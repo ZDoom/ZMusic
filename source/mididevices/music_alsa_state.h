@@ -36,7 +36,7 @@
 
 #if defined __linux__ && defined HAVE_SYSTEM_MIDI
 
-#include "zmusic/zmusic.h"
+#include "zmusic/zmusic_internal.h"
 #include <vector>
 #include <string>
 typedef struct _snd_seq snd_seq_t;
