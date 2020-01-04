@@ -233,7 +233,11 @@ struct Callbacks
 
 
 #ifndef ZMUSIC_INTERNAL
+#ifdef _MSC_VER
 #define DLL_IMPORT _declspec(dllimport)
+#else // !_MSC_VER
+#define DLL_IMPORT
+#endif // _MSC_VER
 // Note that the internal 'class' definitions are not C compatible!
 typedef struct { int zm1; } *ZMusic_MidiSource;
 typedef struct { int zm2; } *ZMusic_MusicStream;
@@ -299,11 +303,11 @@ extern "C"
 #ifdef __cplusplus
 }
 
-inline bool ChangeMusicSetting(EIntConfigKey key, ZMusic_MusicStream song, int value, int* pRealValue = nullptr)
+inline bool ChangeMusicSetting(EIntConfigKey key, ZMusic_MusicStream song, int value, int* pRealValue = NULL)
 {
 	return ChangeMusicSettingInt(key, song, value, pRealValue);
 }
-inline bool ChangeMusicSetting(EFloatConfigKey key, ZMusic_MusicStream song, float value, float* pRealValue = nullptr)
+inline bool ChangeMusicSetting(EFloatConfigKey key, ZMusic_MusicStream song, float value, float* pRealValue = NULL)
 {
 	return ChangeMusicSettingFloat(key, song, value, pRealValue);
 }
