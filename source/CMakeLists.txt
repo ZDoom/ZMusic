@@ -10,6 +10,10 @@ endif()
 
 include( CheckFunctionExists )
 
+if( NOT WIN32 AND NOT APPLE )
+	find_package( Threads )
+endif()
+
 find_package( ALSA )
 if (WIN32 OR ALSA_FOUND)
     add_definitions( -DHAVE_SYSTEM_MIDI )
