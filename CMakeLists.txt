@@ -87,18 +87,7 @@ macro( require_strnicmp )
 	endif()
 endmacro()
 
-option( NO_OPENAL "Disable OpenAL sound support" OFF )
-
 find_package( ZLIB )
-
-include( TargetArch )
-
-target_architecture(ZDOOM_TARGET_ARCH)
-
-if( ${ZDOOM_TARGET_ARCH} MATCHES "x86_64" )
-	set( HAVE_VM_JIT ON )
-	option (HAVE_VULKAN "Enable Vulkan support" ON)
-endif()
 
 
 if( MSVC )
@@ -109,11 +98,7 @@ if( MSVC )
 	# String pooling
 	# Function-level linking
 	# Disable run-time type information
-	if ( HAVE_VULKAN )
-		set( ALL_C_FLAGS "/GF /Gy /GR- /permissive- /DHAVE_VULKAN" )
-	else()
-		set( ALL_C_FLAGS "/GF /Gy /GR- /permissive-" )
-	endif()
+	set( ALL_C_FLAGS "/GF /Gy /GR- /permissive-" )
 
 	# Avoid CRT DLL dependancies in release builds, optionally generate assembly output for checking crash locations.
 	option( ZDOOM_GENERATE_ASM "Generate assembly output." OFF )
@@ -143,11 +128,7 @@ if( MSVC )
 	string(REPLACE " /GR" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 else()
 	set( REL_LINKER_FLAGS "" )
-	if ( HAVE_VULKAN )
-		set( ALL_C_FLAGS "-ffp-contract=off -DHAVE_VULKAN" )
-	else()
-		set( ALL_C_FLAGS "-ffp-contract=off" )
-	endif()
+	set( ALL_C_FLAGS "-ffp-contract=off" )
 
 	if ( UNIX )
 		include(CheckSymbolExists)
@@ -239,16 +220,6 @@ if( NOT CMAKE_CROSSCOMPILING )
 		set( CROSS_EXPORTS "" )
 	endif()
 endif()
-
-# Install the entire docs directory in the distributed zip package
-if( WIN32 )
-	set( INSTALL_DOCS_PATH docs CACHE STRING "Directory where the documentation will be placed during install." )
-else()
-	set( INSTALL_DOCS_PATH share/doc/${ZDOOM_EXE_NAME} CACHE STRING "Directory where the zdoom documentation will be placed during install." )
-endif()
-install(DIRECTORY docs/
-		DESTINATION ${INSTALL_DOCS_PATH}
-		COMPONENT "Documentation")
 
 option( DYN_FLUIDSYNTH "Dynamically load fluidsynth" ON )
 option( DYN_OPENAL "Dynamically load OpenAL" ON )
