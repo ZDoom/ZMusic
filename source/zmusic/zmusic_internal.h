@@ -1,8 +1,14 @@
 #pragma once
 #define ZMUSIC_INTERNAL
 
+#ifdef _MSC_VER
 #define DLL_EXPORT __declspec(dllexport)
 #define DLL_IMPORT __declspec(dllexport)	// without this the compiler complains.
+#else // !_MSC_VER
+#define DLL_EXPORT
+#define DLL_IMPORT
+#endif // _MSC_VER
+
 typedef class MIDISource *ZMusic_MidiSource;
 typedef class MusInfo *ZMusic_MusicStream;
 

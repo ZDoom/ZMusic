@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 // These constants must match the corresponding values of the Windows headers
 // to avoid readjustment in the native Windows device's playback functions 
