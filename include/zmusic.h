@@ -140,7 +140,7 @@ enum EIntConfigKey
 
 enum EFloatConfigKey
 {
-	zmusic_fluid_gain,
+	zmusic_fluid_gain = 1000,
 	zmusic_fluid_reverb_roomsize,
 	zmusic_fluid_reverb_damping,
 	zmusic_fluid_reverb_width,
@@ -151,7 +151,7 @@ enum EFloatConfigKey
 
 	zmusic_timidity_drum_power,
 	zmusic_timidity_tempo_adjust,
-	zmusic_min_sustain_time,
+	zmusic_timidity_min_sustain_time,
 
 	zmusic_gme_stereodepth,
 	zmusic_mod_dumb_mastervolume,
@@ -165,7 +165,7 @@ enum EFloatConfigKey
 
 enum EStringConfigKey
 {
-	zmusic_adl_custom_bank,
+	zmusic_adl_custom_bank = 2000,
 	zmusic_fluid_lib,
 	zmusic_fluid_patchset,
 	zmusic_opn_custom_bank,
@@ -188,14 +188,14 @@ struct ZMusicCustomReader
 	void (*close)(struct ZMusicCustomReader* handle);
 };
 
-struct MidiOutDevice 
+struct ZMusicMidiOutDevice 
 {
 	char *Name;
 	int ID;
 	int Technology;
 };
 
-struct Callbacks
+struct ZMusicCallbacks
 {
 	// Callbacks the client can install to capture messages from the backends
 	// or to provide sound font data.
@@ -231,6 +231,22 @@ struct Callbacks
 	const char *(*NicePath)(const char* path);
 };
 
+enum ZMusicVariableType
+{
+	ZMUSIC_VAR_INT,
+	ZMUSIC_VAR_BOOL,
+	ZMUSIC_VAR_FLOAT,
+	ZMUSIC_VAR_STRING,
+};
+struct ZMusicConfigurationSetting
+{
+	const char* name;
+	int identifier;
+	ZMusicVariableType type;
+	float defaultVal;
+	const char* defaultString;
+};
+
 
 #ifndef ZMUSIC_INTERNAL
 #ifdef _MSC_VER
@@ -251,13 +267,16 @@ extern "C"
 	DLL_IMPORT const char* ZMusic_GetLastError();
 
 	// Sets callbacks for functionality that the client needs to provide.
-	DLL_IMPORT void ZMusic_SetCallbacks(const Callbacks* callbacks);
+	DLL_IMPORT void ZMusic_SetCallbacks(const ZMusicCallbacks* callbacks);
 	// Sets GenMidi data for OPL playback. If this isn't provided the OPL synth will not work.
 	DLL_IMPORT void ZMusic_SetGenMidi(const uint8_t* data);
 	// Set default bank for OPN. Without this OPN only works with custom banks.
 	DLL_IMPORT void ZMusic_SetWgOpn(const void* data, unsigned len);
 	// Set DMXGUS data for running the GUS synth in actual GUS mode.
 	DLL_IMPORT void ZMusic_SetDmxGus(const void* data, unsigned len);
+
+	// Returns an array with all available configuration options - terminated with an empty entry where all elements are 0.
+	DLL_IMPORT const ZMusicConfigurationSetting* ZMusic_GetConfiguration();
 
 	// These exports are needed by the MIDI dumpers which need to remain on the client side because the need access to the client's file system.
 	DLL_IMPORT EMIDIType ZMusic_IdentifyMIDIType(uint32_t* id, int size);
@@ -298,7 +317,7 @@ extern "C"
 	DLL_IMPORT void FindLoopTags(const uint8_t* data, size_t size, uint32_t* start, bool* startass, uint32_t* end, bool* endass);
 	// The rest of the decoder interface is only useful for streaming music. 
 
-	DLL_IMPORT const MidiOutDevice *ZMusic_GetMidiDevices(int *pAmount);
+	DLL_IMPORT const ZMusicMidiOutDevice *ZMusic_GetMidiDevices(int *pAmount);
 
 #ifdef __cplusplus
 }

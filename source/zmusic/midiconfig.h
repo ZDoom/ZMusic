@@ -123,16 +123,14 @@ struct WildMidiConfig
 struct DumbConfig
 {
 	int  mod_samplerate;
-    int  mod_volramp;
-    int  mod_interp;
+    int  mod_volramp = 2;
+    int  mod_interp = 2;
     int  mod_autochip;
-    int  mod_autochip_size_force;
-    int  mod_autochip_size_scan;
-    int  mod_autochip_scan_threshold;
-    float mod_dumb_mastervolume;
+    int  mod_autochip_size_force = 100;
+    int  mod_autochip_size_scan = 500;
+    int  mod_autochip_scan_threshold = 12;
+    float mod_dumb_mastervolume = 1;
 };
-
-// The rest is not used yet.
 
 struct MiscConfig
 {
@@ -155,5 +153,5 @@ extern TimidityConfig timidityConfig;
 extern WildMidiConfig wildMidiConfig;
 extern DumbConfig dumbConfig;
 extern MiscConfig miscConfig;
-extern Callbacks musicCallbacks;
+extern ZMusicCallbacks musicCallbacks;
 
