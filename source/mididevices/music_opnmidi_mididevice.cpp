@@ -80,6 +80,7 @@ enum
 // OPNMIDIDevice Constructor
 //
 //==========================================================================
+#include "data/xg.h"
 
 OPNMIDIDevice::OPNMIDIDevice(const char *bank)
 	:SoftSynthMIDIDevice(44100)
@@ -91,10 +92,9 @@ OPNMIDIDevice::OPNMIDIDevice(const char *bank)
 		{
 			if(opnConfig.default_bank.size() == 0)
 			{
-				opn2_close(Renderer);
-				throw std::runtime_error("No OPN bank found");
+				opn2_openBankData(Renderer, xg_default, 62080);
 			}
-			opn2_openBankData(Renderer, opnConfig.default_bank.data(), (long)opnConfig.default_bank.size());
+			else opn2_openBankData(Renderer, opnConfig.default_bank.data(), (long)opnConfig.default_bank.size());
 		}
 
 		opn2_switchEmulator(Renderer, (int)opnConfig.opn_emulator_id);
