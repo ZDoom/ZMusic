@@ -232,7 +232,7 @@ struct Callbacks
 
 
 #ifndef ZMUSIC_INTERNAL
-#define DLL_IMPORT // _declspec(dllimport)
+#define DLL_IMPORT _declspec(dllimport)
 // Note that the internal 'class' definitions are not C compatible!
 typedef struct { int zm1; } *ZMusic_MidiSource;
 typedef struct { int zm2; } *ZMusic_MusicStream;

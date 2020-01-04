@@ -36,6 +36,7 @@
 
 #include <mutex>
 #include <algorithm>
+#include "zmusic_internal.h"
 #include "streamsource.h"
 #include "zmusic/sounddecoder.h"
 

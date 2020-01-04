@@ -235,14 +235,18 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EMidiD
 		// Check for various raw OPL formats
 		else
 		{
+#ifdef HAVE_OPL
 			if (
 				(id[0] == MAKE_ID('R', 'A', 'W', 'A') && id[1] == MAKE_ID('D', 'A', 'T', 'A')) ||		// Rdos Raw OPL
 				(id[0] == MAKE_ID('D', 'B', 'R', 'A') && id[1] == MAKE_ID('W', 'O', 'P', 'L')) ||		// DosBox Raw OPL
 				(id[0] == MAKE_ID('A', 'D', 'L', 'I') && *((uint8_t*)id + 4) == 'B'))		// Martin Fernandez's modified IMF
 			{
 				streamsource = OPL_OpenSong(reader, &oplConfig);
+
 			}
-			else if ((id[0] == MAKE_ID('R', 'I', 'F', 'F') && id[2] == MAKE_ID('C', 'D', 'X', 'A')))
+			else 
+#endif
+				if ((id[0] == MAKE_ID('R', 'I', 'F', 'F') && id[2] == MAKE_ID('C', 'D', 'X', 'A')))
 			{
 				streamsource = XA_OpenSong(reader);	// this takes over the reader.
 				reader = nullptr;					// We do not own this anymore.

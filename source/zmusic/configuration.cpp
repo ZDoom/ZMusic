@@ -115,20 +115,26 @@ DLL_EXPORT void ZMusic_SetCallbacks(const Callbacks* cb)
 
 DLL_EXPORT void ZMusic_SetGenMidi(const uint8_t* data)
 {
+#ifdef HAVE_OPL
 	memcpy(oplConfig.OPLinstruments, data, 175 * 36);
 	oplConfig.genmidiset = true;
+#endif
 }
 
 DLL_EXPORT void ZMusic_SetWgOpn(const void* data, unsigned len)
 {
+#ifdef HAVE_OPN
 	opnConfig.default_bank.resize(len);
 	memcpy(opnConfig.default_bank.data(), data, len);
+#endif
 }
 
 DLL_EXPORT void ZMusic_SetDmxGus(const void* data, unsigned len)
 {
+#ifdef HAVE_GUS
 	gusConfig.dmxgus.resize(len);
 	memcpy(gusConfig.dmxgus.data(), data, len);
+#endif
 }
 
 int ZMusic_EnumerateMidiDevices()
@@ -238,6 +244,8 @@ void ChangeAndReturn(valtype &variable, valtype value, valtype *realv)
 #define FLUID_CHORUS_MOD_TRIANGLE	1
 #define FLUID_CHORUS_DEFAULT_TYPE FLUID_CHORUS_MOD_SINE
 
+#ifdef HAVE_TIMIDITY
+
 //==========================================================================
 //
 // Timidity++ uses a static global set of configuration variables.
@@ -284,6 +292,7 @@ static void TimidityPlus_SetReverb()
 	else value = (mode - 1) * -128 - level;
 	ChangeVarSync(TimidityPlus::timidity_reverb, value);
 }
+#endif
 
 
 //==========================================================================
@@ -299,6 +308,7 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 		default:
 			return false;
 			
+#ifdef HAVE_ADL
 		case zmusic_adl_chips_count: 
 			ChangeAndReturn(adlConfig.adl_chips_count, value, pRealValue);
 			return devType() == MDEV_ADL;
@@ -326,6 +336,7 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 		case zmusic_adl_volume_model: 
 			ChangeAndReturn(adlConfig.adl_volume_model, value, pRealValue);
 			return devType() == MDEV_ADL;
+#endif
 
 		case zmusic_fluid_reverb: 
 			if (currSong != NULL)
@@ -413,6 +424,7 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 			ChangeAndReturn(fluidConfig.fluid_chorus_type, value, pRealValue);
 			return false;
 			
+#ifdef HAVE_OPL
 		case zmusic_opl_numchips:
 			if (value <= 0)
 				value = 1;
@@ -434,7 +446,8 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 		case zmusic_opl_fullpan:
 			ChangeAndReturn(oplConfig.fullpan, value, pRealValue);
 			return false;
-
+#endif
+#ifdef HAVE_OPN
 		case zmusic_opn_chips_count:
 			ChangeAndReturn(opnConfig.opn_chips_count, value, pRealValue);
 			return devType() == MDEV_OPN;
@@ -454,7 +467,8 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 		case zmusic_opn_use_custom_bank:
 			ChangeAndReturn(opnConfig.opn_use_custom_bank, value, pRealValue);
 			return devType() == MDEV_OPN;
-
+#endif
+#ifdef HAVE_GUS
 		case zmusic_gus_dmxgus:
 			ChangeAndReturn(gusConfig.gus_dmxgus, value, pRealValue);
 			return devType() == MDEV_GUS;
@@ -466,7 +480,8 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 		case zmusic_gus_memsize:
 			ChangeAndReturn(gusConfig.gus_memsize, value, pRealValue);
 			return devType() == MDEV_GUS && gusConfig.gus_dmxgus;
-			
+#endif
+#ifdef HAVE_TIMIDITY
 		case zmusic_timidity_modulation_wheel:
 			ChangeVarSync(TimidityPlus::timidity_modulation_wheel, value);
 			if (pRealValue) *pRealValue = value;
@@ -542,7 +557,8 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 			ChangeVarSync(TimidityPlus::timidity_key_adjust, value);
 			if (pRealValue) *pRealValue = value;
 			return false;
-			
+#endif
+#ifdef HAVE_WILDMIDI
 		case zmusic_wildmidi_reverb:
 			if (currSong != NULL)
 				currSong->ChangeSettingInt("wildmidi.reverb", value);
@@ -556,7 +572,7 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 			wildMidiConfig.enhanced_resampling = value;
 			if (pRealValue) *pRealValue = value;
 			return false;
-
+#endif
 		case zmusic_snd_midiprecache:
 			ChangeAndReturn(miscConfig.snd_midiprecache, value, pRealValue);
 			return false;
@@ -720,6 +736,7 @@ DLL_EXPORT bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* currSong, 
 			ChangeAndReturn(fluidConfig.fluid_chorus_depth, value, pRealValue);
 			return false;
 
+#ifdef HAVE_TIMIDITY
 		case zmusic_timidity_drum_power:
 			if (value < 0) value = 0;
 			else if (value > MAX_AMPLIFICATION / 100.f) value = MAX_AMPLIFICATION / 100.f;
@@ -740,6 +757,7 @@ DLL_EXPORT bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* currSong, 
 			ChangeVarSync(TimidityPlus::min_sustain_time, value);
 			if (pRealValue) *pRealValue = value;
 			return false;
+#endif
 
 		case zmusic_gme_stereodepth:
 			if (currSong != nullptr)
@@ -775,39 +793,47 @@ DLL_EXPORT bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* currSong
 		default:
 			return false;
 			
+#ifdef HAVE_ADL
 		case zmusic_adl_custom_bank: 
 			adlConfig.adl_custom_bank = value;
 			return devType() == MDEV_ADL;
-
+#endif
 		case zmusic_fluid_lib: 
 			fluidConfig.fluid_lib = value;
 			return false; // only takes effect for next song.
 
 		case zmusic_fluid_patchset: 
 			fluidConfig.fluid_patchset = value;
+#ifdef HAVE_TIMIDITY
 			if (timidityConfig.timidity_config.empty()) timidityConfig.timidity_config = value; // Also use for Timidity++ if nothing has been set.
+#endif
 			return devType() == MDEV_FLUIDSYNTH;
 
+#ifdef HAVE_OPN
 		case zmusic_opn_custom_bank: 
 			opnConfig.opn_custom_bank = value;
 			return devType() == MDEV_OPN && opnConfig.opn_use_custom_bank;
-
+#endif
+#ifdef HAVE_GUS
 		case zmusic_gus_config:
 			gusConfig.gus_config = value;
 			return devType() == MDEV_GUS;
-			
+#endif
+#ifdef HAVE_GUS
 		case zmusic_gus_patchdir:
 			gusConfig.gus_patchdir = value;
 			return devType() == MDEV_GUS && gusConfig.gus_dmxgus;
-
+#endif
+#ifdef HAVE_TIMIDITY
 		case zmusic_timidity_config:
 			timidityConfig.timidity_config = value;
 			return devType() == MDEV_TIMIDITY;
-
+#endif
+#ifdef HAVE_WILDMIDI
 		case zmusic_wildmidi_config:
 			wildMidiConfig.config = value;
 			return devType() == MDEV_TIMIDITY;
-			
+#endif
 	}
 	return false;
 }

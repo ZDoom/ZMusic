@@ -37,7 +37,7 @@
 #include "fileio.h"
 #include "zmusic/midiconfig.h"
 
-
+#ifdef HAVE_OPL
 //==========================================================================
 //
 // OPL file played by a software OPL2 synth and streamed through the sound system
@@ -149,3 +149,4 @@ StreamSource *OPL_OpenSong(MusicIO::FileInterface* reader, OPLConfig *config)
 {
 	return new OPLMUSSong(reader, config);
 }
+#endif

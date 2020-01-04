@@ -118,8 +118,8 @@ set( all_files
 	)
 	
 add_library( zmusic SHARED ${all_files} )
-add_definitions(-DZMUSIC_LITE)
 add_library( zmusiclite SHARED ${all_files} )
+target_compile_definitions(zmusiclite PRIVATE ZMUSIC_LITE=1)
 
 if( MSVC )
 	option( GENERATE_MAPFILE "Generate .map file for debugging." OFF )
