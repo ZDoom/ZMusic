@@ -178,9 +178,8 @@ else()
 			set( ALL_C_FLAGS "-static-libgcc" )
 		endif()
 	elseif( NOT MINGW )
-		# Generic GCC/Clang requires position independent executable to be enabled explicitly
-		set( ALL_C_FLAGS "${ALL_C_FLAGS} -fPIE" )
-		set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie" )
+		# Generic GCC/Clang requires position independent code to be enabled explicitly
+		set( ALL_C_FLAGS "${ALL_C_FLAGS} -fPIC" )
 	endif( APPLE )
 endif()
 
