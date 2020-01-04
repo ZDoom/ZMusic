@@ -164,6 +164,9 @@ if(ALSA_FOUND)
 	target_link_libraries( zmusiclite ${ALSA_LIBRARIES} )
 endif()
 
+install(TARGETS zmusic zmusiclite LIBRARY DESTINATION lib)
+install(DIRECTORY ../include/ DESTINATION include FILES_MATCHING PATTERN "*.h*")
+
 source_group("MIDI Devices" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/mididevices/.+")
 source_group("MIDI Sources" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/midisources/.+")
 source_group("Music Formats" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/musicformats/.+")
