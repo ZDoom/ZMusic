@@ -164,6 +164,11 @@ if(ALSA_FOUND)
 	target_link_libraries( zmusiclite ${ALSA_LIBRARIES} )
 endif()
 
+if(APPLE)
+	set_target_properties(zmusic PROPERTIES MACOSX_RPATH TRUE)
+	set_target_properties(zmusiclite PROPERTIES MACOSX_RPATH TRUE)
+endif()
+
 install(TARGETS zmusic zmusiclite LIBRARY DESTINATION lib)
 install(DIRECTORY ../include/ DESTINATION include FILES_MATCHING PATTERN "*.h*")
 
