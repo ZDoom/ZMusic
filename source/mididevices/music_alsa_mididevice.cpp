@@ -499,6 +499,6 @@ bool AlsaMIDIDevice::Update()
 
 MIDIDevice *CreateAlsaMIDIDevice(int mididevice)
 {
-	return new AlsaMIDIDevice(mididevice, musicCallbacks.Alsa_MessageFunc);
+	return new AlsaMIDIDevice(mididevice);
 }
 #endif
