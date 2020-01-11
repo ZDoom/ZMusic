@@ -406,7 +406,7 @@ void AlsaMIDIDevice::PumpEvents() {
 			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Alsa sequencer did not accept event: error %d!\n", result);
 			if(WaitForExit(pump_step, status)) {
 				break;
-			}
+			}
 			continue;
 		}
 		buffer_ticks += event.ticks;
