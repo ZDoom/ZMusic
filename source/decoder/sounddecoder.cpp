@@ -116,7 +116,7 @@ short* dumb_decode_vorbis(int outlen, const void* oggstream, int sizebytes)
 	return samples;
 }
 
-DLL_EXPORT struct SoundDecoder* CreateDecoder(const uint8_t* data, size_t size, bool isstatic)
+DLL_EXPORT struct SoundDecoder* CreateDecoder(const uint8_t* data, size_t size, zmusic_bool isstatic)
 {
 	MusicIO::FileInterface* reader;
 	if (isstatic) reader = new MusicIO::MemoryReader(data, (long)size);

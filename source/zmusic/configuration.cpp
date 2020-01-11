@@ -104,13 +104,31 @@ namespace MusicIO {
 }
 
 
+void ZMusic_Print(int type, const char* msg, va_list args)
+{
+	static char printbuf[4096];
+	snprintf(printbuf, 4096, msg, args);
+	if (musicCallbacks.MessageFunc)
+	{
+		musicCallbacks.MessageFunc(type, printbuf);
+	}
+	else fputs(printbuf, type >= ZMUSIC_MSG_WARNING ? stderr : stdout);
+}
+
+void ZMusic_Printf(int type, const char* msg, ...)
+{
+	va_list ap;
+	va_start(ap, msg);
+	ZMusic_Print(type, msg, ap);
+	va_end(ap);
+}
+
 DLL_EXPORT void ZMusic_SetCallbacks(const ZMusicCallbacks* cb)
 {
 	musicCallbacks = *cb;
 	// If not all these are set the sound font interface is not usable.
 	if (!cb->SF_AddToSearchPath || !cb->SF_OpenFile || !cb->SF_Close)
 		musicCallbacks.OpenSoundFont = nullptr;
-
 }
 
 DLL_EXPORT void ZMusic_SetGenMidi(const uint8_t* data)
@@ -302,7 +320,7 @@ static void TimidityPlus_SetReverb()
 //
 //==========================================================================
 
-DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int value, int *pRealValue)
+DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int value, int *pRealValue)
 {
 	switch (key)
 	{
@@ -633,7 +651,7 @@ DLL_EXPORT bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int 
 	return false;
 }
 
-DLL_EXPORT bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* currSong, float value, float *pRealValue)
+DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* currSong, float value, float *pRealValue)
 {
 	switch (key)
 	{
@@ -787,7 +805,7 @@ DLL_EXPORT bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* currSong, 
 	return false;
 }
 
-DLL_EXPORT bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* currSong, const char *value)
+DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* currSong, const char *value)
 {
 	switch (key)
 	{

@@ -34,6 +34,7 @@
 #include "playmidi.h"
 
 
+void ZMusic_Print(int type, const char* msg, va_list args);
 
 namespace Timidity
 {
@@ -820,27 +821,15 @@ void Renderer::MarkInstrument(int banknum, int percussion, int instr)
 	}
 }
 
+
 static void default_cmsg(int type, int verbosity_level, const char* fmt, ...)
 {
 	if (verbosity_level >= VERB_NOISY) return;	// Don't waste time on diagnostics.
 
 	va_list args;
 	va_start(args, fmt);
-
-	switch (type)
-	{
-	case CMSG_ERROR:
-		vprintf("Error: %s\n", args);
-		break;
-
-	case CMSG_WARNING:
-		vprintf("Warning: %s\n", args);
-		break;
-
-	case CMSG_INFO:
-		vprintf("Info: %s\n", args);
-		break;
-	}
+	ZMusic_Print(type, fmt, args);
+	va_end(args);
 }
 
 // Allow hosting applications to capture the messages and deal with them themselves.

@@ -60,7 +60,7 @@ struct fluid_synth_t;
 class FluidSynthMIDIDevice : public SoftSynthMIDIDevice
 {
 public:
-	FluidSynthMIDIDevice(int samplerate, std::vector<std::string> &config, int (*printfunc_)(const char *, ...));
+	FluidSynthMIDIDevice(int samplerate, std::vector<std::string> &config);
 	~FluidSynthMIDIDevice();
 	
 	int OpenRenderer() override;
@@ -78,7 +78,6 @@ protected:
 	
 	fluid_settings_t *FluidSettings;
 	fluid_synth_t *FluidSynth;
-	int (*printfunc)(const char*, ...);
 
 	// Possible results returned by fluid_settings_...() functions
 	// Initial values are for FluidSynth 2.x
@@ -173,12 +172,11 @@ const char *BaseFileSearch(const char *file, const char *ext, bool lookfirstinpr
 //
 //==========================================================================
 
-FluidSynthMIDIDevice::FluidSynthMIDIDevice(int samplerate, std::vector<std::string> &config, int (*printfunc_)(const char*, ...) = nullptr)
+FluidSynthMIDIDevice::FluidSynthMIDIDevice(int samplerate, std::vector<std::string> &config)
 	: SoftSynthMIDIDevice(samplerate <= 0? fluidConfig.fluid_samplerate : samplerate, 22050, 96000)
 {
 	StreamBlockSize = 4;
 
-	printfunc = printfunc_;
 	FluidSynth = NULL;
 	FluidSettings = NULL;
 #ifdef DYN_FLUIDSYNTH
@@ -358,12 +356,12 @@ int FluidSynthMIDIDevice::LoadPatchSets(const std::vector<std::string> &config)
 	{
 		if (FLUID_FAILED != fluid_synth_sfload(FluidSynth, file.c_str(), count == 0))
 		{
-			//DPrintf(DMSG_NOTIFY, "Loaded patch set %s.\n", tok);
+			ZMusic_Printf(ZMUSIC_MSG_DEBUG, "Loaded patch set %s.\n", file.c_str());
 			count++;
 		}
 		else
 		{
-			if (printfunc) printfunc("Failed to load patch set %s.\n", file.c_str());
+			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Failed to load patch set %s.\n", file.c_str());
 		}
 	}
 	return count;
@@ -389,19 +387,19 @@ void FluidSynthMIDIDevice::ChangeSettingInt(const char *setting, int value)
 	{
 		if (FLUID_OK != fluid_synth_set_interp_method(FluidSynth, -1, value))
 		{
-			if (printfunc) printfunc("Setting interpolation method %d failed.\n", value);
+			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Setting interpolation method %d failed.\n", value);
 		}
 	}
 	else if (strcmp(setting, "synth.polyphony") == 0)
 	{
 		if (FLUID_OK != fluid_synth_set_polyphony(FluidSynth, value))
 		{
-			if (printfunc) printfunc("Setting polyphony to %d failed.\n", value);
+			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Setting polyphony to %d failed.\n", value);
 		}
 	}
 	else if (FluidSettingsResultFailed == fluid_settings_setint(FluidSettings, setting, value))
 	{
-		if (printfunc) printfunc("Failed to set %s to %d.\n", setting, value);
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Failed to set %s to %d.\n", setting, value);
 	}
 	// fluid_settings_setint succeeded; update these settings in the running synth, too
 	else if (strcmp(setting, "synth.reverb.active") == 0)
@@ -440,7 +438,7 @@ void FluidSynthMIDIDevice::ChangeSettingNum(const char *setting, double value)
 	}
 	else if (FluidSettingsResultFailed == fluid_settings_setnum(FluidSettings, setting, value))
 	{
-		if (printfunc) printfunc("Failed to set %s to %g.\n", setting, value);
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Failed to set %s to %g.\n", setting, value);
 	}
 
 }
@@ -463,7 +461,7 @@ void FluidSynthMIDIDevice::ChangeSettingString(const char *setting, const char *
 
 	if (FluidSettingsResultFailed == fluid_settings_setstr(FluidSettings, setting, value))
 	{
-		if (printfunc) printfunc("Failed to set %s to %s.\n", setting, value);
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Failed to set %s to %s.\n", setting, value);
 	}
 }
 
@@ -543,7 +541,7 @@ bool FluidSynthMIDIDevice::LoadFluidSynth(const char *fluid_lib)
 		if(!FluidSynthModule.Load({fluid_lib}))
 		{
 			const char* libname = fluid_lib;
-			if (printfunc) printfunc("Could not load %s\n", libname);
+			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not load %s\n", libname);
 		}
 		else
 			return true;
@@ -551,7 +549,7 @@ bool FluidSynthMIDIDevice::LoadFluidSynth(const char *fluid_lib)
 
 	if(!FluidSynthModule.Load({FLUIDSYNTHLIB1, FLUIDSYNTHLIB2}))
 	{
-		if (printfunc) printfunc("Could not load " FLUIDSYNTHLIB1 " or " FLUIDSYNTHLIB2 "\n");
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not load " FLUIDSYNTHLIB1 " or " FLUIDSYNTHLIB2 "\n");
 		return false;
 	}
 
@@ -633,8 +631,7 @@ void Fluid_SetupConfig(const char* patches, std::vector<std::string> &patch_path
 			}
 			else
 			{
-				if (musicCallbacks.Fluid_MessageFunc)
-					musicCallbacks.Fluid_MessageFunc("Could not find patch set %s.\n", tok);
+				ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not find patch set %s.\n", tok);
 			}
 			tok = strtok(NULL, delim);
 		}
@@ -686,7 +683,7 @@ MIDIDevice *CreateFluidSynthMIDIDevice(int samplerate, const char *Args)
 	std::vector<std::string> fluid_patchset;
 
 	Fluid_SetupConfig(Args, fluid_patchset, true);
-	return new FluidSynthMIDIDevice(samplerate, fluid_patchset, musicCallbacks.Fluid_MessageFunc);
+	return new FluidSynthMIDIDevice(samplerate, fluid_patchset);
 }
 #else
 

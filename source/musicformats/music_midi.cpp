@@ -348,8 +348,7 @@ MIDIDevice *MIDIStreamer::CreateMIDIDevice(EMidiDevice devtype, int samplerate)
 
 		lastRequestedDevice = requestedDevice;
 		lastSelectedDevice = selectedDevice;
-		if (musicCallbacks.Fluid_MessageFunc)
-			musicCallbacks.Fluid_MessageFunc("Unable to create %s MIDI device. Falling back to %s\n", devnames[requestedDevice], devnames[selectedDevice]);
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Unable to create %s MIDI device. Falling back to %s\n", devnames[requestedDevice], devnames[selectedDevice]);
 	}
 	return dev;
 }
@@ -1018,7 +1017,7 @@ MusInfo* CreateMIDIStreamer(MIDISource *source, EMidiDevice devtype, const char*
 	return me;
 }
 
-DLL_EXPORT bool ZMusic_MIDIDumpWave(ZMusic_MidiSource source, EMidiDevice devtype, const char *devarg, const char *outname, int subsong, int samplerate)
+DLL_EXPORT zmusic_bool ZMusic_MIDIDumpWave(ZMusic_MidiSource source, EMidiDevice devtype, const char *devarg, const char *outname, int subsong, int samplerate)
 {
 	try
 	{

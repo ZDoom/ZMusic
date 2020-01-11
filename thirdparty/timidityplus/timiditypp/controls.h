@@ -36,9 +36,9 @@ enum
 	RC_TUNE_END = 3,
 	RC_STOP = 4,	/* Stop to play */
 
-	CMSG_INFO = 0,
-	CMSG_WARNING = 1,
-	CMSG_ERROR = 2,
+	CMSG_INFO = 10,
+	CMSG_WARNING = 50,
+	CMSG_ERROR = 100,
 
 	VERB_NORMAL = 0,
 	VERB_VERBOSE = 1,

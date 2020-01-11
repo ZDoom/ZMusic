@@ -30,6 +30,8 @@
 #include "common.h"
 #include "controls.h"
 
+void ZMusic_Print(int type, const char* msg, va_list args);
+
 namespace TimidityPlus
 {
 
@@ -159,21 +161,8 @@ void default_ctl_cmsg(int type, int verbosity_level, const char* fmt, ...)
 
 	va_list args;
 	va_start(args, fmt);
-
-	switch (type)
-	{
-	case CMSG_ERROR:
-		vprintf("Error: %s\n", args);
-		break;
-
-	case CMSG_WARNING:
-		vprintf("Warning: %s\n", args);
-		break;
-
-	case CMSG_INFO:
-		vprintf("Info: %s\n", args);
-		break;
-	}
+	ZMusic_Print(type, fmt, args);
+	va_end(args);
 }
 
 // Allow hosting applications to capture the messages and deal with them themselves.

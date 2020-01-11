@@ -35,9 +35,9 @@ controls.h
 
 enum
 {
-	CMSG_INFO,
-	CMSG_WARNING,
-	CMSG_ERROR
+	CMSG_INFO = 10,
+	CMSG_WARNING = 50,
+	CMSG_ERROR = 100
 };
 
 enum

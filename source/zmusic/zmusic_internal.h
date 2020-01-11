@@ -47,3 +47,5 @@ struct CustomFileReader : public MusicIO::FileInterface
 
 };
 
+
+void ZMusic_Printf(int type, const char* msg, ...);

@@ -30,19 +30,15 @@
 #include <stdarg.h>
 #include "wm_error.h"
 
+void ZMusic_Print(int type, const char* msg, va_list args);
+
 namespace WildMidi
 {
-static void def_error_func(const char *wmfmt, va_list args)
-{
-	vprintf(wmfmt, args);
-}
-	
-void (*wm_error_func)(const char *wmfmt, va_list args) = def_error_func;
 
 void _WM_ERROR_NEW(const char * wmfmt, ...) {
 	va_list args;
 	va_start(args, wmfmt);
-	wm_error_func(wmfmt, args);
+	ZMusic_Print(100, wmfmt, args);
 }
 
 void _WM_ERROR(const char * func, unsigned int lne, int wmerno,

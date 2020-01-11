@@ -4450,7 +4450,7 @@ void Player::update_rpn_map(int ch, int addr, int update_now)
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
 		channel[ch].drums[note]->fine = val - 64;
-		printMessage(CMSG_INFO, VERB_NOISY,	"Drum Instrument Pitch Fine (CH:%d NOTE:%d VAL:%d)", ch, note, channel[ch].drums[note]->fine);
+		//printMessage(CMSG_INFO, VERB_NOISY,	"Drum Instrument Pitch Fine (CH:%d NOTE:%d VAL:%d)", ch, note, channel[ch].drums[note]->fine);
 		channel[ch].pitchfactor = 0;
 		break;
 	case NRPN_ADDR_1A00:	/* Level of Drum */	 
@@ -4481,7 +4481,7 @@ void Player::update_rpn_map(int ch, int addr, int update_now)
 		note = channel[ch].lastlrpn;
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
-		printMessage(CMSG_INFO, VERB_NOISY,	"Reverb Send Level of Drum (CH:%d NOTE:%d VALUE:%d)", ch, note, val);
+		//printMessage(CMSG_INFO, VERB_NOISY,	"Reverb Send Level of Drum (CH:%d NOTE:%d VALUE:%d)", ch, note, val);
 		if (channel[ch].drums[note]->reverb_level != val) {
 			channel[ch].drum_effect_flag = 0;
 		}
@@ -4492,7 +4492,7 @@ void Player::update_rpn_map(int ch, int addr, int update_now)
 		note = channel[ch].lastlrpn;
 		if (channel[ch].drums[note] == NULL)
 			play_midi_setup_drums(ch, note);
-		printMessage(CMSG_INFO, VERB_NOISY,	"Chorus Send Level of Drum (CH:%d NOTE:%d VALUE:%d)", ch, note, val);
+		//printMessage(CMSG_INFO, VERB_NOISY,	"Chorus Send Level of Drum (CH:%d NOTE:%d VALUE:%d)", ch, note, val);
 		if (channel[ch].drums[note]->chorus_level != val) {
 			channel[ch].drum_effect_flag = 0;
 		}
@@ -4535,22 +4535,22 @@ void Player::update_rpn_map(int ch, int addr, int update_now)
 			play_midi_setup_drums(ch, note);
 		break;
 	case RPN_ADDR_0000:		/* Pitch bend sensitivity */
-		printMessage(CMSG_INFO, VERB_DEBUG,	"Pitch Bend Sensitivity (CH:%d VALUE:%d)", ch, val);
+		//printMessage(CMSG_INFO, VERB_DEBUG,	"Pitch Bend Sensitivity (CH:%d VALUE:%d)", ch, val);
 		/* for mod2mid.c, arpeggio */
 		if (channel[ch].rpnmap[RPN_ADDR_0000] > 24)
 			channel[ch].rpnmap[RPN_ADDR_0000] = 24;
 		channel[ch].pitchfactor = 0;
 		break;
 	case RPN_ADDR_0001:		/* Master Fine Tuning */
-		printMessage(CMSG_INFO, VERB_DEBUG, "Master Fine Tuning (CH:%d VALUE:%d)", ch, val);
+		//printMessage(CMSG_INFO, VERB_DEBUG, "Master Fine Tuning (CH:%d VALUE:%d)", ch, val);
 		channel[ch].pitchfactor = 0;
 		break;
 	case RPN_ADDR_0002:		/* Master Coarse Tuning */
-		printMessage(CMSG_INFO, VERB_DEBUG, "Master Coarse Tuning (CH:%d VALUE:%d)", ch, val);
+		//printMessage(CMSG_INFO, VERB_DEBUG, "Master Coarse Tuning (CH:%d VALUE:%d)", ch, val);
 		channel[ch].pitchfactor = 0;
 		break;
 	case RPN_ADDR_0003:		/* Tuning Program Select */
-		printMessage(CMSG_INFO, VERB_DEBUG, "Tuning Program Select (CH:%d VALUE:%d)", ch, val);
+		//printMessage(CMSG_INFO, VERB_DEBUG, "Tuning Program Select (CH:%d VALUE:%d)", ch, val);
 		for (i = 0; i < upper_voices; i++)
 			if (voice[i].status != VOICE_FREE) {
 				voice[i].temper_instant = 1;
@@ -4558,7 +4558,7 @@ void Player::update_rpn_map(int ch, int addr, int update_now)
 			}
 		break;
 	case RPN_ADDR_0004:		/* Tuning Bank Select */
-		printMessage(CMSG_INFO, VERB_DEBUG, "Tuning Bank Select (CH:%d VALUE:%d)", ch, val);
+		//printMessage(CMSG_INFO, VERB_DEBUG, "Tuning Bank Select (CH:%d VALUE:%d)", ch, val);
 		for (i = 0; i < upper_voices; i++)
 			if (voice[i].status != VOICE_FREE) {
 				voice[i].temper_instant = 1;

@@ -85,6 +85,7 @@ file( GLOB HEADER_FILES
 	decoder/*.h
 	streamsources/*.h
 	../thirdparty/*.h
+	../include/*.h
 	)
 set( all_files
 	${HEADER_FILES}
@@ -118,6 +119,7 @@ set( all_files
 	zmusic/configuration.cpp
 	zmusic/zmusic.cpp
 	zmusic/critsec.cpp
+	loader/test.c
 	${PLAT_SOURCES}
 	)
 	
@@ -176,7 +178,8 @@ source_group("MIDI Devices" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/mid
 source_group("MIDI Sources" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/midisources/.+")
 source_group("Music Formats" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/musicformats/.+")
 source_group("Music Formats\\Win32" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/musicformats/win32/.+")
-source_group("Public Interface" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/zmusic/.+")
+source_group("ZMusic Core" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/zmusic/.+")
 source_group("Sound Decoding" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/decoder/.+")
 source_group("Stream Sources" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/streamsources/.+")
 source_group("Third Party" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/.+")
+source_group("Public Interface" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/../include/.+")

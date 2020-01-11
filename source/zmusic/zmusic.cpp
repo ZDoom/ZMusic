@@ -362,7 +362,7 @@ DLL_EXPORT MusInfo *ZMusic_OpenCDSong (int track, int id)
 //
 //==========================================================================
 
-DLL_EXPORT bool ZMusic_FillStream(MusInfo* song, void* buff, int len)
+DLL_EXPORT zmusic_bool ZMusic_FillStream(MusInfo* song, void* buff, int len)
 {
 	if (song == nullptr) return false;
 	std::lock_guard<FCriticalSection> lock(song->CritSec);
@@ -375,7 +375,7 @@ DLL_EXPORT bool ZMusic_FillStream(MusInfo* song, void* buff, int len)
 //
 //==========================================================================
 
-DLL_EXPORT bool ZMusic_Start(MusInfo *song, int subsong, bool loop)
+DLL_EXPORT zmusic_bool ZMusic_Start(MusInfo *song, int subsong, zmusic_bool loop)
 {
 	if (!song) return true;	// Starting a null song is not an error! It just won't play anything.
 	try
@@ -414,7 +414,7 @@ DLL_EXPORT void ZMusic_Update(MusInfo *song)
 	song->Update();
 }
 
-DLL_EXPORT bool ZMusic_IsPlaying(MusInfo *song)
+DLL_EXPORT zmusic_bool ZMusic_IsPlaying(MusInfo *song)
 {
 	if (!song) return false;
 	return song->IsPlaying();
@@ -427,20 +427,20 @@ DLL_EXPORT void ZMusic_Stop(MusInfo *song)
 	song->Stop();
 }
 
-DLL_EXPORT bool ZMusic_SetSubsong(MusInfo *song, int subsong)
+DLL_EXPORT zmusic_bool ZMusic_SetSubsong(MusInfo *song, int subsong)
 {
 	if (!song) return false;
 	std::lock_guard<FCriticalSection> lock(song->CritSec);
 	return song->SetSubsong(subsong);
 }
 
-DLL_EXPORT bool ZMusic_IsLooping(MusInfo *song)
+DLL_EXPORT zmusic_bool ZMusic_IsLooping(MusInfo *song)
 {
 	if (!song) return false;
 	return song->m_Looping;
 }
 
-DLL_EXPORT bool ZMusic_IsMIDI(MusInfo *song)
+DLL_EXPORT zmusic_bool ZMusic_IsMIDI(MusInfo *song)
 {
 	if (!song) return false;
 	return song->IsMIDI();
@@ -487,7 +487,7 @@ DLL_EXPORT const char* ZMusic_GetLastError()
 	return staticErrorMessage.c_str();
 }
 
-DLL_EXPORT bool ZMusic_WriteSMF(MIDISource* source, const char *fn, int looplimit)
+DLL_EXPORT zmusic_bool ZMusic_WriteSMF(MIDISource* source, const char *fn, int looplimit)
 {
 	std::vector<uint8_t> midi;
 	bool success;

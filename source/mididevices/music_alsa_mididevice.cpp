@@ -41,6 +41,7 @@
 #include "mididevice.h"
 #include "zmusic/m_swap.h"
 #include "zmusic/mus2midi.h"
+#include "zmusic_internal.h"
 
 #include "music_alsa_state.h"
 #include <alsa/asoundlib.h>
@@ -68,7 +69,7 @@ struct EventState {
 class AlsaMIDIDevice : public MIDIDevice
 {
 public:
-	AlsaMIDIDevice(int dev_id, int (*printfunc_)(const char *, ...));
+	AlsaMIDIDevice(int dev_id);
 	~AlsaMIDIDevice();
 	int Open() override;
 	void Close() override;
@@ -106,7 +107,6 @@ public:
 
 protected:
 	AlsaSequencer &sequencer;
-	int (*printfunc)(const char*, ...);
 
 	MidiHeader *Events = nullptr;
 	bool Started = false;
@@ -132,7 +132,7 @@ protected:
 
 }
 
-AlsaMIDIDevice::AlsaMIDIDevice(int dev_id, int (*printfunc_)(const char*, ...) = nullptr) : sequencer(AlsaSequencer::Get()), printfunc(printfunc_)
+AlsaMIDIDevice::AlsaMIDIDevice(int dev_id) : sequencer(AlsaSequencer::Get())
 {
 	auto & internalDevices = sequencer.GetInternalDevices();
 	auto & device = internalDevices.at(dev_id);
@@ -394,9 +394,7 @@ void AlsaMIDIDevice::PumpEvents() {
 			continue;
 		}
 		if (tick_delta < 0) {
-			if(printfunc) {
-				printfunc("Alsa sequencer underrun: %d ticks!\n", tick_delta);
-			}
+			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Alsa sequencer underrun: %d ticks!\n", tick_delta);
 		}
 
 		// We found an event worthy of sending to the sequencer
@@ -405,12 +403,10 @@ void AlsaMIDIDevice::PumpEvents() {
 		snd_seq_ev_schedule_tick(&event.data, QueueId, false, buffer_ticks + event.ticks);
 		int result = snd_seq_event_output(sequencer.handle, &event.data);
 		if(result < 0) {
-			if(printfunc) {
-				printfunc("Alsa sequencer did not accept event: error %d!\n", result);
-			}
+			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Alsa sequencer did not accept event: error %d!\n", result);
 			if(WaitForExit(pump_step, status)) {
 				break;
-			}
+			}
 			continue;
 		}
 		buffer_ticks += event.ticks;
