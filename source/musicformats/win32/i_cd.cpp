@@ -414,7 +414,7 @@ static void KillThread ()
 //
 //==========================================================================
 
-bool CD_Enable (const char *cd_drive)
+DLL_EXPORT zmusic_bool CD_Enable (const char *cd_drive)
 {
 	if (!cd_drive)
 	{

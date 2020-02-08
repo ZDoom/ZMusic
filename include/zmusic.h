@@ -353,6 +353,7 @@ extern "C"
 	// Closes a CD device previously opened with CD_Init
 	DLL_IMPORT void CD_Close();
 
+	DLL_IMPORT zmusic_bool CD_Enable(const char* drive);
 
 
 #ifdef __cplusplus
