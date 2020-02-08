@@ -25,6 +25,11 @@ struct MPG123Decoder : public SoundDecoder
 	virtual size_t getSampleOffset() override;
 	virtual size_t getSampleLength() override;
 
+	// Make non-copyable
+	MPG123Decoder() = default;
+	MPG123Decoder(const MPG123Decoder& rhs) = delete;
+	MPG123Decoder& operator=(const MPG123Decoder& rhs) = delete;
+
 	virtual ~MPG123Decoder();
 
 protected:
@@ -37,10 +42,6 @@ private:
 
 	static off_t file_lseek(void *handle, off_t offset, int whence);
     static ssize_t file_read(void *handle, void *buffer, size_t bytes);
-
-    // Make non-copyable
-    MPG123Decoder(const MPG123Decoder &rhs);
-    MPG123Decoder& operator=(const MPG123Decoder &rhs);
 };
 
 #endif

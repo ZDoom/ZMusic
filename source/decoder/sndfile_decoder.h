@@ -21,6 +21,11 @@ struct SndFileDecoder : public SoundDecoder
 	virtual size_t getSampleOffset() override;
     virtual size_t getSampleLength() override;
 
+    SndFileDecoder() = default;
+    // Make non-copyable
+    SndFileDecoder(const SndFileDecoder& rhs) = delete;
+    SndFileDecoder& operator=(const SndFileDecoder& rhs) = delete;
+
     virtual ~SndFileDecoder();
 
 protected:
@@ -36,10 +41,6 @@ private:
     static sf_count_t file_read(void *ptr, sf_count_t count, void *user_data);
     static sf_count_t file_write(const void *ptr, sf_count_t count, void *user_data);
     static sf_count_t file_tell(void *user_data);
-
-    // Make non-copyable
-    SndFileDecoder(const SndFileDecoder &rhs);
-    SndFileDecoder& operator=(const SndFileDecoder &rhs);
 };
 
 #endif
