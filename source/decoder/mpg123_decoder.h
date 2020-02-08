@@ -25,17 +25,16 @@ struct MPG123Decoder : public SoundDecoder
 	virtual size_t getSampleOffset() override;
 	virtual size_t getSampleLength() override;
 
-	MPG123Decoder() : MPG123(0) { }
 	virtual ~MPG123Decoder();
 
 protected:
     virtual bool open(MusicIO::FileInterface *reader) override;
 
 private:
-    mpg123_handle *MPG123;
-    bool Done;
+    mpg123_handle *MPG123 = nullptr;
+    bool Done = false;
+	MusicIO::FileInterface* Reader = nullptr;
 
-	MusicIO::FileInterface* Reader;
 	static off_t file_lseek(void *handle, off_t offset, int whence);
     static ssize_t file_read(void *handle, void *buffer, size_t bytes);
 
