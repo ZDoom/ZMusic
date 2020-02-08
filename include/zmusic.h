@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ZMUSIC_H_
+#define __ZMUSIC_H_
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -273,6 +274,7 @@ typedef struct { int zm2; } *ZMusic_MusicStream;
 struct SoundDecoder;
 #endif
 
+#ifndef ZMUSIC_NO_PROTOTYPES
 #ifdef __cplusplus
 extern "C"
 {
@@ -347,5 +349,49 @@ inline bool ChangeMusicSetting(EStringConfigKey key, ZMusic_MusicStream song, co
 {
 	return ChangeMusicSettingString(key, song, value);
 }
+
+#endif
+#endif
+
+// Function typedefs for run-time linking
+typedef const char* (*pfn_ZMusic_GetLastError)();
+typedef void (*pfn_ZMusic_SetCallbacks)(const ZMusicCallbacks* callbacks);
+typedef void (*pfn_ZMusic_SetGenMidi)(const uint8_t* data);
+typedef void (*pfn_ZMusic_SetWgOpn)(const void* data, unsigned len);
+typedef void (*pfn_ZMusic_SetDmxGus)(const void* data, unsigned len);
+typedef const ZMusicConfigurationSetting* (*pfn_ZMusic_GetConfiguration)();
+typedef EMIDIType (*pfn_ZMusic_IdentifyMIDIType)(uint32_t* id, int size);
+typedef ZMusic_MidiSource (*pfn_ZMusic_CreateMIDISource)(const uint8_t* data, size_t length, EMIDIType miditype);
+typedef zmusic_bool (*pfn_ZMusic_MIDIDumpWave)(ZMusic_MidiSource source, EMidiDevice devtype, const char* devarg, const char* outname, int subsong, int samplerate);
+typedef ZMusic_MusicStream (*pfn_ZMusic_OpenSong)(ZMusicCustomReader* reader, EMidiDevice device, const char* Args);
+typedef ZMusic_MusicStream (*pfn_ZMusic_OpenSongFile)(const char *filename, EMidiDevice device, const char* Args);
+typedef ZMusic_MusicStream (*pfn_ZMusic_OpenSongMem)(const void *mem, size_t size, EMidiDevice device, const char* Args);
+typedef ZMusic_MusicStream (*pfn_ZMusic_OpenCDSong)(int track, int cdid);
+typedef zmusic_bool (*pfn_ZMusic_FillStream)(ZMusic_MusicStream stream, void* buff, int len);
+typedef zmusic_bool (*pfn_ZMusic_Start)(ZMusic_MusicStream song, int subsong, zmusic_bool loop);
+typedef void (*pfn_ZMusic_Pause)(ZMusic_MusicStream song);
+typedef void (*pfn_ZMusic_Resume)(ZMusic_MusicStream song);
+typedef void (*pfn_ZMusic_Update)(ZMusic_MusicStream song);
+typedef zmusic_bool (*pfn_ZMusic_IsPlaying)(ZMusic_MusicStream song);
+typedef void (*pfn_ZMusic_Stop)(ZMusic_MusicStream song);
+typedef void (*pfn_ZMusic_Close)(ZMusic_MusicStream song);
+typedef zmusic_bool (*pfn_ZMusic_SetSubsong)(ZMusic_MusicStream song, int subsong);
+typedef zmusic_bool (*pfn_ZMusic_IsLooping)(ZMusic_MusicStream song);
+typedef zmusic_bool (*pfn_ZMusic_IsMIDI)(ZMusic_MusicStream song);
+typedef void (*pfn_ZMusic_VolumeChanged)(ZMusic_MusicStream song);
+typedef zmusic_bool (*pfn_ZMusic_WriteSMF)(ZMusic_MidiSource source, const char* fn, int looplimit);
+typedef void (*pfn_ZMusic_GetStreamInfo)(ZMusic_MusicStream song, SoundStreamInfo *info);
+typedef zmusic_bool (*pfn_ChangeMusicSettingInt)(EIntConfigKey key, ZMusic_MusicStream song, int value, int* pRealValue);
+typedef zmusic_bool (*pfn_ChangeMusicSettingFloat)(EFloatConfigKey key, ZMusic_MusicStream song, float value, float* pRealValue);
+typedef zmusic_bool (*pfn_ChangeMusicSettingString)(EStringConfigKey key, ZMusic_MusicStream song, const char* value);
+typedef const char *(*pfn_ZMusic_GetStats)(ZMusic_MusicStream song);
+typedef struct SoundDecoder* (*pfn_CreateDecoder)(const uint8_t* data, size_t size, zmusic_bool isstatic);
+typedef void (*pfn_SoundDecoder_GetInfo)(struct SoundDecoder* decoder, int* samplerate, ChannelConfig* chans, SampleType* type);
+typedef size_t (*pfn_SoundDecoder_Read)(struct SoundDecoder* decoder, void* buffer, size_t length);
+typedef void (*pfn_SoundDecoder_Close)(struct SoundDecoder* decoder);
+typedef void (*pfn_FindLoopTags)(const uint8_t* data, size_t size, uint32_t* start, zmusic_bool* startass, uint32_t* end, zmusic_bool* endass);
+typedef const ZMusicMidiOutDevice *(*pfn_ZMusic_GetMidiDevices)(int *pAmount);
+
+
 
 #endif
