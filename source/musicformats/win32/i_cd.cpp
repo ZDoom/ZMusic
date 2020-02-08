@@ -36,6 +36,7 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdlib.h>
+#include "zmusic_internal.h"
 #include "helperthread.h"
 #include "i_cd.h"
 
@@ -513,7 +514,7 @@ bool CD_InitID (unsigned int id, int guess)
 //
 //==========================================================================
 
-void CD_Close ()
+DLL_EXPORT void CD_Close ()
 {
 	if (Inited != NOT_INITED)
 	{
@@ -528,7 +529,7 @@ void CD_Close ()
 //
 //==========================================================================
 
-void CD_Eject ()
+DLL_EXPORT void CD_Eject ()
 {
 	if (Inited != NOT_INITED)
 		CDThread->SendMessage (CDM_Eject, 0, 0, 0, false);
@@ -540,7 +541,7 @@ void CD_Eject ()
 //
 //==========================================================================
 
-bool CD_UnEject ()
+DLL_EXPORT zmusic_bool CD_UnEject ()
 {
 	if (Inited == NOT_INITED)
 		return false;
@@ -554,7 +555,7 @@ bool CD_UnEject ()
 //
 //==========================================================================
 
-void CD_Stop ()
+DLL_EXPORT void CD_Stop ()
 {
 	if (Inited != NOT_INITED)
 		CDThread->SendMessage (CDM_Stop, 0, 0, 0, false);
@@ -618,7 +619,7 @@ void CD_PlayCDNoWait (bool looping)
 //
 //==========================================================================
 
-void CD_Pause ()
+DLL_EXPORT void CD_Pause ()
 {
 	if (Inited != NOT_INITED)
 		CDThread->SendMessage (CDM_Pause, 0, 0, 0, false);
@@ -630,7 +631,7 @@ void CD_Pause ()
 //
 //==========================================================================
 
-bool CD_Resume ()
+DLL_EXPORT zmusic_bool CD_Resume ()
 {
 	if (Inited == NOT_INITED)
 		return false;

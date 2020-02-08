@@ -334,6 +334,27 @@ extern "C"
 
 	DLL_IMPORT const ZMusicMidiOutDevice *ZMusic_GetMidiDevices(int *pAmount);
 
+	// Direct access to the CD drive.
+	// Stops playing the CD
+	DLL_IMPORT void CD_Stop();
+
+	// Pauses CD playing
+	DLL_IMPORT void CD_Pause();
+
+	// Resumes CD playback after pausing
+	DLL_IMPORT zmusic_bool CD_Resume();
+
+	// Eject the CD tray
+	DLL_IMPORT void CD_Eject();
+
+	// Close the CD tray
+	DLL_IMPORT zmusic_bool CD_UnEject();
+
+	// Closes a CD device previously opened with CD_Init
+	DLL_IMPORT void CD_Close();
+
+
+
 #ifdef __cplusplus
 }
 
