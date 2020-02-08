@@ -333,6 +333,7 @@ extern "C"
 	// The rest of the decoder interface is only useful for streaming music. 
 
 	DLL_IMPORT const ZMusicMidiOutDevice *ZMusic_GetMidiDevices(int *pAmount);
+	DLL_IMPORT int ZMusic_GetADLBanks(const char* const** pNames);
 
 	// Direct access to the CD drive.
 	// Stops playing the CD
