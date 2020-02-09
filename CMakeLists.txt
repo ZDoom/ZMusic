@@ -222,7 +222,6 @@ if( NOT CMAKE_CROSSCOMPILING )
 endif()
 
 option( DYN_FLUIDSYNTH "Dynamically load fluidsynth" ON )
-option( DYN_OPENAL "Dynamically load OpenAL" ON )
 option( DYN_SNDFILE "Dynamically load libsndfile" ON )
 option( DYN_MPG123 "Dynamically load libmpg123" ON )
 
