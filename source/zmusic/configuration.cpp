@@ -107,7 +107,7 @@ namespace MusicIO {
 void ZMusic_Print(int type, const char* msg, va_list args)
 {
 	static char printbuf[4096];
-	snprintf(printbuf, 4096, msg, args);
+	vsnprintf(printbuf, 4096, msg, args);
 	if (musicCallbacks.MessageFunc)
 	{
 		musicCallbacks.MessageFunc(type, printbuf);
