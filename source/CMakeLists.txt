@@ -122,9 +122,11 @@ set( all_files
 	loader/test.c
 	${PLAT_SOURCES}
 	)
-	
-add_library( zmusic SHARED ${all_files} )
-add_library( zmusiclite SHARED ${all_files} )
+
+option( BUILD_SHARED_LIBS "Build shared libraries" ON )
+
+add_library( zmusic ${all_files} )
+add_library( zmusiclite ${all_files} )
 target_compile_definitions(zmusiclite PRIVATE ZMUSIC_LITE=1)
 
 if( MSVC )

@@ -86,8 +86,6 @@ use_fast_math()
     SET(USE_GME_NSF 1 CACHE BOOL "Enable NES NSF music emulation" FORCE)
 #endif()
 
-# [ZDoom] Set always to OFF.
-set(BUILD_SHARED_LIBS OFF)
 set(ENABLE_UBSAN  OFF)
 
 # Check for GCC/Clang "visibility" support.
