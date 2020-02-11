@@ -203,6 +203,10 @@ static void ParseVorbisComments(MusicIO::FileInterface *fr, uint32_t *start, zmu
 		return;
 	size_t count = vc_data[0] | (vc_data[1]<<8) | (vc_data[2]<<16) | (vc_data[3]<<24);
 
+	zmusic_bool loopass = false;
+	uint32_t looplen = 0;
+	bool endfound = false;
+
 	for(size_t i = 0; i < count; i++)
 	{
 		// Each comment is a 32LE integer for the comment length, followed by
@@ -224,10 +228,42 @@ static void ParseVorbisComments(MusicIO::FileInterface *fr, uint32_t *start, zmu
 			return;
 		strdat[length] = 0;
 
-		if(strnicmp(strdat, "LOOP_START=", 11) == 0)
-			S_ParseTimeTag(strdat + 11, startass, start);
-		else if(strnicmp(strdat, "LOOP_END=", 9) == 0)
-			S_ParseTimeTag(strdat + 9, endass, end);
+		static const char* loopStartTags[] = { "LOOP_START=", "LOOPSTART=", "LOOP=" };
+		static const char* loopEndTags[] = { "LOOP_END=", "LOOPEND=" };
+		static const char* loopLengthTags[] = { "LOOP_LENGTH", "LOOPLENGTH" };
+
+		for (auto tag : loopStartTags)
+		{
+			if (!strnicmp(strdat, tag, strlen(tag)))
+			{
+				S_ParseTimeTag(strdat + 11, startass, start);
+				break;
+			}
+		}
+		for (auto tag : loopEndTags)
+		{
+			if (!strnicmp(strdat, tag, strlen(tag)))
+			{
+				S_ParseTimeTag(strdat + 11, endass, end);
+				endfound = true;
+				break;
+			}
+		}
+		for (auto tag : loopLengthTags)
+		{
+			if (!strnicmp(strdat, tag, strlen(tag)))
+			{
+				S_ParseTimeTag(strdat + 11, &loopass, &looplen);
+				*end += *start;
+				break;
+			}
+		}
+	}
+	// Use loop length only if no end defined.
+	if (!endfound && looplen && loopass == *startass)
+	{
+		*endass = loopass;
+		*end = *start + looplen;
 	}
 }
 
