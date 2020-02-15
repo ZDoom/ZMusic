@@ -230,7 +230,7 @@ static void ParseVorbisComments(MusicIO::FileInterface *fr, uint32_t *start, zmu
 
 		static const char* loopStartTags[] = { "LOOP_START=", "LOOPSTART=", "LOOP=" };
 		static const char* loopEndTags[] = { "LOOP_END=", "LOOPEND=" };
-		static const char* loopLengthTags[] = { "LOOP_LENGTH", "LOOPLENGTH" };
+		static const char* loopLengthTags[] = { "LOOP_LENGTH=", "LOOPLENGTH=" };
 
 		for (auto tag : loopStartTags)
 		{
