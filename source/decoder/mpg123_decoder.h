@@ -18,7 +18,7 @@ typedef ptrdiff_t ssize_t;
 
 struct MPG123Decoder : public SoundDecoder
 {
-	virtual void getInfo(int* samplerate, ChannelConfig* chans, SampleType* type) override;
+	virtual void getInfo(int* samplerate, EZMusicChannelConfig* chans, EZMusicSampleType* type) override;
 
 	virtual size_t read(char* buffer, size_t bytes) override;
 	virtual bool seek(size_t ms_offset, bool ms, bool mayrestart) override;

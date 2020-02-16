@@ -21,7 +21,7 @@ public:
 	virtual bool SetPosition(unsigned position) { return false; }
 	virtual bool SetSubsong(int subsong) { return false; }
 	virtual bool GetData(void *buffer, size_t len) = 0;
-	virtual SoundStreamInfo GetFormat() { return {65536, m_OutputRate, 2  }; }	// Default format is: System's output sample rate, 32 bit float, stereo
+	virtual ZMusicSoundStreamInfo GetFormat() { return {65536, m_OutputRate, 2  }; }	// Default format is: System's output sample rate, 32 bit float, stereo
 	virtual std::string GetStats() { return ""; }
 	virtual void ChangeSettingInt(const char *name, int value) {  }
 	virtual void ChangeSettingNum(const char *name, double value) {  }

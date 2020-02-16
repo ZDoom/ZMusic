@@ -51,7 +51,7 @@ public:
 	~OPLMUSSong ();
 	bool Start() override;
 	void ChangeSettingInt(const char *name, int value) override;
-	SoundStreamInfo GetFormat() override;
+	ZMusicSoundStreamInfo GetFormat() override;
 
 protected:
 	bool GetData(void *buffer, size_t len) override;
@@ -90,7 +90,7 @@ OPLMUSSong::OPLMUSSong(MusicIO::FileInterface* reader, OPLConfig* config)
 //
 //==========================================================================
 
-SoundStreamInfo OPLMUSSong::GetFormat()
+ZMusicSoundStreamInfo OPLMUSSong::GetFormat()
 {
 	int samples = int(OPL_SAMPLE_RATE / 14);
 	return { samples * 4, int(OPL_SAMPLE_RATE), current_opl_core == 0? 1:2  };

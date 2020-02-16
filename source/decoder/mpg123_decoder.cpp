@@ -152,7 +152,7 @@ bool MPG123Decoder::open(MusicIO::FileInterface *reader)
 	return false;
 }
 
-void MPG123Decoder::getInfo(int *samplerate, ChannelConfig *chans, SampleType *type)
+void MPG123Decoder::getInfo(int *samplerate, EZMusicChannelConfig *chans, EZMusicSampleType *type)
 {
     int enc = 0, channels = 0;
     long srate = 0;

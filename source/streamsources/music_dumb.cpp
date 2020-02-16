@@ -64,7 +64,7 @@ public:
 	//bool SetPosition(int ms);
 	bool SetSubsong(int subsong) override;
 	bool Start() override;
-	SoundStreamInfo GetFormat() override;
+	ZMusicSoundStreamInfo GetFormat() override;
 	void ChangeSettingNum(const char* setting, double val) override;
 	std::string GetStats() override;
 
@@ -1034,7 +1034,7 @@ DumbSong::~DumbSong()
 //
 //==========================================================================
 
-SoundStreamInfo DumbSong::GetFormat()
+ZMusicSoundStreamInfo DumbSong::GetFormat()
 {
 	return { 32*1024, srate, 2 };
 }

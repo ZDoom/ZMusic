@@ -50,7 +50,7 @@ public:
 	SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t loop_end, bool startass, bool endass);
 	~SndFileSong();
 	std::string GetStats() override;
-	SoundStreamInfo GetFormat() override;
+	ZMusicSoundStreamInfo GetFormat() override;
 	bool GetData(void *buffer, size_t len) override;
 	
 protected:
@@ -415,8 +415,8 @@ static int32_t Scale(int32_t a, int32_t b, int32_t c)
 
 SndFileSong::SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t loop_end, bool startass, bool endass)
 {
-	ChannelConfig iChannels;
-	SampleType Type;
+	EZMusicChannelConfig iChannels;
+	EZMusicSampleType Type;
 	
 	decoder->getInfo(&SampleRate, &iChannels, &Type);
 
@@ -430,7 +430,7 @@ SndFileSong::SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t lo
 	Channels = iChannels == ChannelConfig_Stereo? 2:1;
 }
 
-SoundStreamInfo SndFileSong::GetFormat()
+ZMusicSoundStreamInfo SndFileSong::GetFormat()
 {
 	// deal with this once the configuration is handled better.
 	return { 64/*snd_streambuffersize*/ * 1024, SampleRate, -Channels };

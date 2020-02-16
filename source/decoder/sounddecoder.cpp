@@ -90,8 +90,8 @@ extern "C"
 short* dumb_decode_vorbis(int outlen, const void* oggstream, int sizebytes)
 {
 	short* samples = (short*)calloc(1, outlen);
-	ChannelConfig chans;
-	SampleType type;
+	EZMusicChannelConfig chans;
+	EZMusicSampleType type;
 	int srate;
 
 	// The decoder will take ownership of the reader if it succeeds so this may not be a local variable.
@@ -126,7 +126,7 @@ DLL_EXPORT struct SoundDecoder* CreateDecoder(const uint8_t* data, size_t size, 
 	return res;
 }
 
-DLL_EXPORT void SoundDecoder_GetInfo(struct SoundDecoder* decoder, int* samplerate, ChannelConfig* chans, SampleType* type)
+DLL_EXPORT void SoundDecoder_GetInfo(struct SoundDecoder* decoder, int* samplerate, EZMusicChannelConfig* chans, EZMusicSampleType* type)
 {
 	if (decoder) decoder->getInfo(samplerate, chans, type);
 	else if (samplerate) *samplerate = 0;

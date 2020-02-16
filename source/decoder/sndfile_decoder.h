@@ -13,7 +13,7 @@
 
 struct SndFileDecoder : public SoundDecoder
 {
-    virtual void getInfo(int *samplerate, ChannelConfig *chans, SampleType *type) override;
+    virtual void getInfo(int *samplerate, EZMusicChannelConfig *chans, EZMusicSampleType *type) override;
 
     virtual size_t read(char *buffer, size_t bytes) override;
     virtual std::vector<uint8_t> readAll() override;

@@ -67,7 +67,7 @@ enum
 class MIDIStreamer : public MusInfo
 {
 public:
-	MIDIStreamer(EMidiDevice type, const char* args);
+	MIDIStreamer(EZMusicMidiDevice type, const char* args);
 	~MIDIStreamer();
 
 	void MusicVolumeChanged() override;
@@ -87,7 +87,7 @@ public:
 	int ServiceEvent();
 	void SetMIDISource(MIDISource* _source);
 	bool ServiceStream(void* buff, int len) override;
-	SoundStreamInfo GetStreamInfo() const override;
+	ZMusicSoundStreamInfo GetStreamInfo() const override;
 
 	int GetDeviceType() const override;
 
@@ -95,7 +95,7 @@ public:
 
 
 protected:
-	MIDIStreamer(const char* dumpname, EMidiDevice type);
+	MIDIStreamer(const char* dumpname, EZMusicMidiDevice type);
 
 	void OutputVolume(uint32_t volume);
 	int FillBuffer(int buffer_num, int max_events, uint32_t max_time);
@@ -110,8 +110,8 @@ protected:
 	//void SetMidiSynth(MIDIDevice *synth);
 
 
-	static EMidiDevice SelectMIDIDevice(EMidiDevice devtype);
-	MIDIDevice* CreateMIDIDevice(EMidiDevice devtype, int samplerate);
+	static EZMusicMidiDevice SelectMIDIDevice(EZMusicMidiDevice devtype);
+	MIDIDevice* CreateMIDIDevice(EZMusicMidiDevice devtype, int samplerate);
 
 	static void Callback(void* userdata);
 
@@ -132,7 +132,7 @@ protected:
 	bool InitialPlayback;
 	uint32_t NewVolume;
 	uint32_t Volume;
-	EMidiDevice DeviceType;
+	EZMusicMidiDevice DeviceType;
 	bool CallbackIsThreaded;
 	int LoopLimit;
 	std::string Args;
@@ -150,7 +150,7 @@ protected:
 //
 //==========================================================================
 
-MIDIStreamer::MIDIStreamer(EMidiDevice type, const char *args)
+MIDIStreamer::MIDIStreamer(EZMusicMidiDevice type, const char *args)
 :
   DeviceType(type), Args(args)
 {
@@ -201,7 +201,7 @@ bool MIDIStreamer::IsValid() const
 //
 //==========================================================================
 
-EMidiDevice MIDIStreamer::SelectMIDIDevice(EMidiDevice device)
+EZMusicMidiDevice MIDIStreamer::SelectMIDIDevice(EZMusicMidiDevice device)
 {
 	/* MIDI are played as:
 		- OPL: 
@@ -248,15 +248,15 @@ EMidiDevice MIDIStreamer::SelectMIDIDevice(EMidiDevice device)
 //
 //==========================================================================
 
-static EMidiDevice lastRequestedDevice, lastSelectedDevice;
+static EZMusicMidiDevice lastRequestedDevice, lastSelectedDevice;
 
-MIDIDevice *MIDIStreamer::CreateMIDIDevice(EMidiDevice devtype, int samplerate)
+MIDIDevice *MIDIStreamer::CreateMIDIDevice(EZMusicMidiDevice devtype, int samplerate)
 {
 	bool checked[MDEV_COUNT] = { false };
 
 	MIDIDevice *dev = nullptr;
 	if (devtype == MDEV_SNDSYS) devtype = MDEV_FLUIDSYNTH;
-	EMidiDevice requestedDevice = devtype, selectedDevice;
+	EZMusicMidiDevice requestedDevice = devtype, selectedDevice;
 	while (dev == nullptr)
 	{
 		selectedDevice = devtype;
@@ -361,7 +361,7 @@ MIDIDevice *MIDIStreamer::CreateMIDIDevice(EMidiDevice devtype, int samplerate)
 
 void MIDIStreamer::Play(bool looping, int subsong)
 {
-	EMidiDevice devtype;
+	EZMusicMidiDevice devtype;
 
 	if (source == nullptr) return;	// We have nothing to play so abort.
 
@@ -446,7 +446,7 @@ bool MIDIStreamer::InitPlayback()
 	}
 }
 
-SoundStreamInfo MIDIStreamer::GetStreamInfo() const
+ZMusicSoundStreamInfo MIDIStreamer::GetStreamInfo() const
 {
 	if (MIDI) return MIDI->GetStreamInfo();
 	else return { 0, 0, 0 };
@@ -1010,14 +1010,14 @@ bool MIDIStreamer::ServiceStream(void* buff, int len)
 //
 //==========================================================================
 
-MusInfo* CreateMIDIStreamer(MIDISource *source, EMidiDevice devtype, const char* args)
+MusInfo* CreateMIDIStreamer(MIDISource *source, EZMusicMidiDevice devtype, const char* args)
 {
 	auto me = new MIDIStreamer(devtype, args);
 	me->SetMIDISource(source);
 	return me;
 }
 
-DLL_EXPORT zmusic_bool ZMusic_MIDIDumpWave(ZMusic_MidiSource source, EMidiDevice devtype, const char *devarg, const char *outname, int subsong, int samplerate)
+DLL_EXPORT zmusic_bool ZMusic_MIDIDumpWave(ZMusic_MidiSource source, EZMusicMidiDevice devtype, const char *devarg, const char *outname, int subsong, int samplerate)
 {
 	try
 	{

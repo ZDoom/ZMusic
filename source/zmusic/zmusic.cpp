@@ -65,7 +65,7 @@ MusInfo *OpenStreamSong(StreamSource *source);
 const char *GME_CheckFormat(uint32_t header);
 MusInfo* CDDA_OpenSong(MusicIO::FileInterface* reader);
 MusInfo* CD_OpenSong(int track, int id);
-MusInfo* CreateMIDIStreamer(MIDISource *source, EMidiDevice devtype, const char* args);
+MusInfo* CreateMIDIStreamer(MIDISource *source, EZMusicMidiDevice devtype, const char* args);
 
 //==========================================================================
 //
@@ -150,7 +150,7 @@ static bool ungzip(uint8_t *data, int complen, std::vector<uint8_t> &newdata)
 //
 //==========================================================================
 
-static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EMidiDevice device, const char *Args)
+static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EZMusicMidiDevice device, const char *Args)
 {
 	MusInfo *info = nullptr;
 	StreamSource *streamsource = nullptr;
@@ -193,7 +193,7 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EMidiD
 			}
 		}
 		
-		EMIDIType miditype = ZMusic_IdentifyMIDIType(id, sizeof(id));
+		EZMusicMIDIType miditype = ZMusic_IdentifyMIDIType(id, sizeof(id));
 		if (miditype != MIDI_NOTMIDI)
 		{
 			std::vector<uint8_t> data(reader->filelength());
@@ -299,7 +299,7 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EMidiD
 	}
 }
 
-DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSongFile(const char* filename, EMidiDevice device, const char* Args)
+DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSongFile(const char* filename, EZMusicMidiDevice device, const char* Args)
 {
 	auto f = MusicIO::utf8_fopen(filename, "rb");
 	if (!f)
@@ -312,7 +312,7 @@ DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSongFile(const char* filename, EMidiDev
 	return ZMusic_OpenSongInternal(fr, device, Args);
 }
 
-DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSongMem(const void* mem, size_t size, EMidiDevice device, const char* Args)
+DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSongMem(const void* mem, size_t size, EZMusicMidiDevice device, const char* Args)
 {
 	if (!mem || !size)
 	{
@@ -324,7 +324,7 @@ DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSongMem(const void* mem, size_t size, E
 	return ZMusic_OpenSongInternal(mr, device, Args);
 }
 
-DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSong(ZMusicCustomReader* reader, EMidiDevice device, const char* Args)
+DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSong(ZMusicCustomReader* reader, EZMusicMidiDevice device, const char* Args)
 {
 	if (!reader)
 	{
@@ -446,7 +446,7 @@ DLL_EXPORT zmusic_bool ZMusic_IsMIDI(MusInfo *song)
 	return song->IsMIDI();
 }
 
-DLL_EXPORT void ZMusic_GetStreamInfo(MusInfo *song, SoundStreamInfo *fmt)
+DLL_EXPORT void ZMusic_GetStreamInfo(MusInfo *song, ZMusicSoundStreamInfo *fmt)
 {
 	if (!fmt) return;
 	if (!song) *fmt = {};

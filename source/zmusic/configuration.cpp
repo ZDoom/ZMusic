@@ -320,7 +320,7 @@ static void TimidityPlus_SetReverb()
 //
 //==========================================================================
 
-DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSong, int value, int *pRealValue)
+DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EZMusicIntConfigKey key, MusInfo *currSong, int value, int *pRealValue)
 {
 	switch (key)
 	{
@@ -651,7 +651,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 	return false;
 }
 
-DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* currSong, float value, float *pRealValue)
+DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EZMusicFloatConfigKey key, MusInfo* currSong, float value, float *pRealValue)
 {
 	switch (key)
 	{
@@ -805,7 +805,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 	return false;
 }
 
-DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* currSong, const char *value)
+DLL_EXPORT zmusic_bool ChangeMusicSettingString(EZMusicStringConfigKey key, MusInfo* currSong, const char *value)
 {
 	switch (key)
 	{

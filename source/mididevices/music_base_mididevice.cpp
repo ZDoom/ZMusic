@@ -176,7 +176,7 @@ std::string MIDIDevice::GetStats()
 //
 //==========================================================================
 
-SoundStreamInfo MIDIDevice::GetStreamInfo() const
+ZMusicSoundStreamInfo MIDIDevice::GetStreamInfo() const
 {
 	return { 0, 0, 0 };	// i.e. do not use streaming.
 }

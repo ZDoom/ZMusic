@@ -3,10 +3,10 @@
 
 #ifdef _MSC_VER
 #define DLL_EXPORT __declspec(dllexport)
-#define DLL_IMPORT __declspec(dllexport)	// without this the compiler complains.
+#define ZMUSIC_DLL_IMPORT __declspec(dllexport)	// without this the compiler complains.
 #else // !_MSC_VER
 #define DLL_EXPORT
-#define DLL_IMPORT
+#define ZMUSIC_DLL_IMPORT
 #endif // _MSC_VER
 
 typedef class MIDISource *ZMusic_MidiSource;

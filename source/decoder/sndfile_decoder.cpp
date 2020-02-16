@@ -133,7 +133,7 @@ bool SndFileDecoder::open(MusicIO::FileInterface *reader)
 	return false;
 }
 
-void SndFileDecoder::getInfo(int *samplerate, ChannelConfig *chans, SampleType *type)
+void SndFileDecoder::getInfo(int *samplerate, EZMusicChannelConfig *chans, EZMusicSampleType *type)
 {
     *samplerate = SndInfo.samplerate;
 
