@@ -302,7 +302,7 @@ void MIDISource::CreateSMF(std::vector<uint8_t> &file, int looplimit)
 	uint8_t running_status = 255;
 	
 	// Always create songs aimed at GM devices.
-	CheckCaps(MIDIDEV_MIDIPORT);
+	CheckCaps(ZMUSIC_MIDIDEV_MIDIPORT);
 	LoopLimit = looplimit <= 0 ? EXPORT_LOOP_LIMIT : looplimit;
 	DoRestart();
 	StartPlayback(false, LoopLimit);
@@ -418,13 +418,13 @@ extern int MUSHeaderSearch(const uint8_t *head, int len);
 //
 //==========================================================================
 
-DLL_EXPORT EZMusicMIDIType ZMusic_IdentifyMIDIType(uint32_t *id, int size)
+DLL_EXPORT EZMusicMidiType ZMusic_IdentifyMIDIType(uint32_t *id, int size)
 {
 	// Check for MUS format
 	// Tolerate sloppy wads by searching up to 32 bytes for the header
 	if (MUSHeaderSearch((uint8_t*)id, size) >= 0)
 	{
-		return MIDI_MUS;
+		return ZMUSIC_MIDI_MUS;
 	}
 	// Check for HMI format
 	else 
@@ -432,14 +432,14 @@ DLL_EXPORT EZMusicMIDIType ZMusic_IdentifyMIDIType(uint32_t *id, int size)
 		id[1] == MAKE_ID('M','I','D','I') &&
 		id[2] == MAKE_ID('S','O','N','G'))
 	{
-		return MIDI_HMI;
+		return ZMUSIC_MIDI_HMI;
 	}
 	// Check for HMP format
 	else
 	if (id[0] == MAKE_ID('H','M','I','M') &&
 		id[1] == MAKE_ID('I','D','I','P'))
 	{
-		return MIDI_HMI;
+		return ZMUSIC_MIDI_HMI;
 	}
 	// Check for XMI format
 	else
@@ -448,16 +448,16 @@ DLL_EXPORT EZMusicMIDIType ZMusic_IdentifyMIDIType(uint32_t *id, int size)
 		((id[0] == MAKE_ID('C','A','T',' ') || id[0] == MAKE_ID('F','O','R','M')) &&
 		 id[2] == MAKE_ID('X','M','I','D')))
 	{
-		return MIDI_XMI;
+		return ZMUSIC_MIDI_XMI;
 	}
 	// Check for MIDI format
 	else if (id[0] == MAKE_ID('M','T','h','d'))
 	{
-		return MIDI_MIDI;
+		return ZMUSIC_MIDI_MIDI;
 	}
 	else
 	{
-		return MIDI_NOTMIDI;
+		return ZMUSIC_MIDI_NOTMIDI;
 	}
 }
 
@@ -467,26 +467,26 @@ DLL_EXPORT EZMusicMIDIType ZMusic_IdentifyMIDIType(uint32_t *id, int size)
 //
 //==========================================================================
 
-DLL_EXPORT ZMusic_MidiSource ZMusic_CreateMIDISource(const uint8_t *data, size_t length, EZMusicMIDIType miditype)
+DLL_EXPORT ZMusic_MidiSource ZMusic_CreateMIDISource(const uint8_t *data, size_t length, EZMusicMidiType miditype)
 {
 	try
 	{
 		MIDISource* source;
 		switch (miditype)
 		{
-		case MIDI_MUS:
+		case ZMUSIC_MIDI_MUS:
 			source = new MUSSong2(data, length);
 			break;
 
-		case MIDI_MIDI:
+		case ZMUSIC_MIDI_MIDI:
 			source = new MIDISong2(data, length);
 			break;
 
-		case MIDI_HMI:
+		case ZMUSIC_MIDI_HMI:
 			source = new HMISong(data, length);
 			break;
 
-		case MIDI_XMI:
+		case ZMUSIC_MIDI_XMI:
 			source = new XMISong(data, length);
 			break;
 

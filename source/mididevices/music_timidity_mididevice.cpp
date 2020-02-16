@@ -78,7 +78,7 @@ public:
 	
 	int OpenRenderer() override;
 	void PrecacheInstruments(const uint16_t *instruments, int count) override;
-	int GetDeviceType() const override { return MDEV_GUS; }
+	int GetDeviceType() const override { return ZMUSIC_MDEV_GUS; }
 	
 protected:
 	Timidity::Renderer *Renderer;
@@ -270,7 +270,7 @@ bool GUS_SetupConfig(const char* args)
 	if (*args == 0) args = gusConfig.gus_config.c_str();
 	if (stricmp(gusConfig.loadedConfig.c_str(), args) == 0) return false; // aleady loaded
 
-	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, SF_GUS | SF_SF2);
+	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, ZMUSIC_SF_GUS | ZMUSIC_SF_SF2);
 	if (!reader && MusicIO::fileExists(args))
 	{
 		auto f = MusicIO::utf8_fopen(args, "rb");

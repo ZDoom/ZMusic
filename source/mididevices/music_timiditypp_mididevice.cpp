@@ -54,7 +54,7 @@ public:
 	int OpenRenderer() override;
 	void PrecacheInstruments(const uint16_t *instruments, int count) override;
 	//std::string GetStats();
-	int GetDeviceType() const override { return MDEV_TIMIDITY; }
+	int GetDeviceType() const override { return ZMUSIC_MDEV_TIMIDITY; }
 
 	double test[3] = { 0, 0, 0 };
 
@@ -201,7 +201,7 @@ bool Timidity_SetupConfig(const char* args)
 	if (*args == 0) args = timidityConfig.timidity_config.c_str();
 	if (stricmp(timidityConfig.loadedConfig.c_str(), args) == 0) return false; // aleady loaded
 
-	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, SF_GUS | SF_SF2);
+	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, ZMUSIC_SF_GUS | ZMUSIC_SF_SF2);
 	if (!reader && MusicIO::fileExists(args))
 	{
 		auto f = MusicIO::utf8_fopen(args, "rb");

@@ -68,7 +68,7 @@ public:
 	void ChangeSettingInt(const char *setting, int value) override;
 	void ChangeSettingNum(const char *setting, double value) override;
 	void ChangeSettingString(const char *setting, const char *value) override;
-	int GetDeviceType() const override { return MDEV_FLUIDSYNTH; }
+	int GetDeviceType() const override { return ZMUSIC_MDEV_FLUIDSYNTH; }
 	
 protected:
 	void HandleEvent(int status, int parm1, int parm2) override;
@@ -590,7 +590,7 @@ void Fluid_SetupConfig(const char* patches, std::vector<std::string> &patch_path
 
 	if (musicCallbacks.PathForSoundfont)
 	{
-		auto info = musicCallbacks.PathForSoundfont(patches, SF_SF2);
+		auto info = musicCallbacks.PathForSoundfont(patches, ZMUSIC_SF_SF2);
 		if (info) patches = info;
 	}
 

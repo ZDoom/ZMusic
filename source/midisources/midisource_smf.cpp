@@ -181,11 +181,11 @@ MIDISong2::MIDISong2 (const uint8_t* data, size_t len)
 void MIDISong2::CheckCaps(int tech)
 {
 	DesignationMask = 0xFF0F;
-	if (tech == MIDIDEV_FMSYNTH)
+	if (tech == ZMUSIC_MIDIDEV_FMSYNTH)
 	{
 		DesignationMask = 0x00F0;
 	}
-	else if (tech == MIDIDEV_MIDIPORT)
+	else if (tech == ZMUSIC_MIDIDEV_MIDIPORT)
 	{
 		DesignationMask = 0x0001;
 	}

@@ -14,46 +14,46 @@ typedef unsigned char zmusic_bool;
 // and should not be changed.
 typedef enum EZMusicMidiDeviceClass_
 {
-	MIDIDEV_MIDIPORT = 1,
-	MIDIDEV_SYNTH,
-	MIDIDEV_SQSYNTH,
-	MIDIDEV_FMSYNTH,
-	MIDIDEV_MAPPER,
-	MIDIDEV_WAVETABLE,
-	MIDIDEV_SWSYNTH
+	ZMUSIC_MIDIDEV_MIDIPORT = 1,
+	ZMUSIC_MIDIDEV_SYNTH,
+	ZMUSIC_MIDIDEV_SQSYNTH,
+	ZMUSIC_MIDIDEV_FMSYNTH,
+	ZMUSIC_MIDIDEV_MAPPER,
+	ZMUSIC_MIDIDEV_WAVETABLE,
+	ZMUSIC_MIDIDEV_SWSYNTH
 } EZMusicMidiDeviceClass;
 
-typedef enum EZMusicMIDIType_
+typedef enum EZMusicMidiType_
 {
-	MIDI_NOTMIDI,
-	MIDI_MIDI,
-	MIDI_HMI,
-	MIDI_XMI,
-	MIDI_MUS
-} EZMusicMIDIType;
+	ZMUSIC_MIDI_NOTMIDI,
+	ZMUSIC_MIDI_MIDI,
+	ZMUSIC_MIDI_HMI,
+	ZMUSIC_MIDI_XMI,
+	ZMUSIC_MIDI_MUS
+} EZMusicMidiType;
 
 typedef enum EZMusicMidiDevice_
 {
-	MDEV_DEFAULT = -1,
-	MDEV_STANDARD = 0,
-	MDEV_OPL = 1,
-	MDEV_SNDSYS = 2,
-	MDEV_TIMIDITY = 3,
-	MDEV_FLUIDSYNTH = 4,
-	MDEV_GUS = 5,
-	MDEV_WILDMIDI = 6,
-	MDEV_ADL = 7,
-	MDEV_OPN = 8,
+	ZMUSIC_MDEV_DEFAULT = -1,
+	ZMUSIC_MDEV_STANDARD = 0,
+	ZMUSIC_MDEV_OPL = 1,
+	ZMUSIC_MDEV_SNDSYS = 2,
+	ZMUSIC_MDEV_TIMIDITY = 3,
+	ZMUSIC_MDEV_FLUIDSYNTH = 4,
+	ZMUSIC_MDEV_GUS = 5,
+	ZMUSIC_MDEV_WILDMIDI = 6,
+	ZMUSIC_MDEV_ADL = 7,
+	ZMUSIC_MDEV_OPN = 8,
 
-	MDEV_COUNT
+	ZMUSIC_MDEV_COUNT
 } EZMusicMidiDevice;
 
 typedef enum EZMusicSoundFontTypes_
 {
-	SF_SF2 = 1,
-	SF_GUS = 2,
-	SF_WOPL = 4,
-	SF_WOPN = 8
+	ZMUSIC_SF_SF2 = 1,
+	ZMUSIC_SF_GUS = 2,
+	ZMUSIC_SF_WOPL = 4,
+	ZMUSIC_SF_WOPN = 8
 } EZMusicSoundFontTypes;
 
 typedef struct ZMusicSoundStreamInfo_
@@ -294,8 +294,8 @@ extern "C"
 	ZMUSIC_DLL_IMPORT const ZMusicConfigurationSetting* ZMusic_GetConfiguration();
 
 	// These exports are needed by the MIDI dumpers which need to remain on the client side because the need access to the client's file system.
-	ZMUSIC_DLL_IMPORT EZMusicMIDIType ZMusic_IdentifyMIDIType(uint32_t* id, int size);
-	ZMUSIC_DLL_IMPORT ZMusic_MidiSource ZMusic_CreateMIDISource(const uint8_t* data, size_t length, EZMusicMIDIType miditype);
+	ZMUSIC_DLL_IMPORT EZMusicMidiType ZMusic_IdentifyMIDIType(uint32_t* id, int size);
+	ZMUSIC_DLL_IMPORT ZMusic_MidiSource ZMusic_CreateMIDISource(const uint8_t* data, size_t length, EZMusicMidiType miditype);
 	ZMUSIC_DLL_IMPORT zmusic_bool ZMusic_MIDIDumpWave(ZMusic_MidiSource source, EZMusicMidiDevice devtype, const char* devarg, const char* outname, int subsong, int samplerate);
 
 	ZMUSIC_DLL_IMPORT ZMusic_MusicStream ZMusic_OpenSong(ZMusicCustomReader* reader, EZMusicMidiDevice device, const char* Args);
@@ -383,8 +383,8 @@ typedef void (*pfn_ZMusic_SetGenMidi)(const uint8_t* data);
 typedef void (*pfn_ZMusic_SetWgOpn)(const void* data, unsigned len);
 typedef void (*pfn_ZMusic_SetDmxGus)(const void* data, unsigned len);
 typedef const ZMusicConfigurationSetting* (*pfn_ZMusic_GetConfiguration)();
-typedef EZMusicMIDIType (*pfn_ZMusic_IdentifyMIDIType)(uint32_t* id, int size);
-typedef ZMusic_MidiSource (*pfn_ZMusic_CreateMIDISource)(const uint8_t* data, size_t length, EZMusicMIDIType miditype);
+typedef EZMusicMidiType (*pfn_ZMusic_IdentifyMIDIType)(uint32_t* id, int size);
+typedef ZMusic_MidiSource (*pfn_ZMusic_CreateMIDISource)(const uint8_t* data, size_t length, EZMusicMidiType miditype);
 typedef zmusic_bool (*pfn_ZMusic_MIDIDumpWave)(ZMusic_MidiSource source, EZMusicMidiDevice devtype, const char* devarg, const char* outname, int subsong, int samplerate);
 typedef ZMusic_MusicStream (*pfn_ZMusic_OpenSong)(ZMusicCustomReader* reader, EZMusicMidiDevice device, const char* Args);
 typedef ZMusic_MusicStream (*pfn_ZMusic_OpenSongFile)(const char *filename, EZMusicMidiDevice device, const char* Args);

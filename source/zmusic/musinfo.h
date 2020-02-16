@@ -24,7 +24,7 @@ public:
 	virtual bool SetPosition(unsigned int ms) { return false;  }
 	virtual bool SetSubsong (int subsong) { return false; }
 	virtual void Update() {}
-	virtual int GetDeviceType() const { return MDEV_DEFAULT; }	// MDEV_DEFAULT stands in for anything that cannot change playback parameters which needs a restart.
+	virtual int GetDeviceType() const { return ZMUSIC_MDEV_DEFAULT; }	// ZMUSIC_MDEV_DEFAULT stands in for anything that cannot change playback parameters which needs a restart.
 	virtual std::string GetStats() { return "No stats available for this song"; }
 	virtual MusInfo* GetWaveDumper(const char* filename, int rate) { return nullptr;  }
 	virtual void ChangeSettingInt(const char* setting, int value) {}			// FluidSynth settings

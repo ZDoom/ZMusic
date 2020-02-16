@@ -667,15 +667,15 @@ static bool IgnoreMIDIVolume(UINT id)
 
 	if (MMSYSERR_NOERROR == midiOutGetDevCapsA(id, &caps, sizeof(caps)))
 	{
-		if (caps.wTechnology == MIDIDEV_MAPPER)
+		if (caps.wTechnology == ZMUSIC_MIDIDEV_MAPPER)
 		{
 			// We cannot determine what this is so we have to assume the worst, as the default
 			// devive's volume control is irreparably broken.
 			return true;
 		}
-		// The Microsoft GS Wavetable Synth advertises itself as MIDIDEV_SWSYNTH with a VOLUME control.
+		// The Microsoft GS Wavetable Synth advertises itself as ZMUSIC_MIDIDEV_SWSYNTH with a VOLUME control.
 		// If the one we're using doesn't match that, we don't need to bother checking the name.
-		if (caps.wTechnology == MIDIDEV_SWSYNTH && (caps.dwSupport & MIDICAPS_VOLUME))
+		if (caps.wTechnology == ZMUSIC_MIDIDEV_SWSYNTH && (caps.dwSupport & MIDICAPS_VOLUME))
 		{
 			if (strncmp(caps.szPname, "Microsoft GS", 12) == 0)
 			{

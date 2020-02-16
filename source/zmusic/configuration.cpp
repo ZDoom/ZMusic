@@ -55,7 +55,7 @@ struct Dummy
 	void ChangeSettingString(const char*, const char*) {}
 };
 
-#define devType() ((currSong)? (currSong)->GetDeviceType() : MDEV_DEFAULT)
+#define devType() ((currSong)? (currSong)->GetDeviceType() : ZMUSIC_MDEV_DEFAULT)
 
 
 MiscConfig miscConfig;
@@ -184,25 +184,25 @@ struct MidiDeviceList
 	void Build()
 	{
 #ifdef HAVE_OPN
-		devices.push_back({ strdup("libOPN"), -8, MIDIDEV_FMSYNTH });
+		devices.push_back({ strdup("libOPN"), -8, ZMUSIC_MIDIDEV_FMSYNTH });
 #endif
 #ifdef HAVE_ADL
-		devices.push_back({ strdup("libADL"), -7, MIDIDEV_FMSYNTH });
+		devices.push_back({ strdup("libADL"), -7, ZMUSIC_MIDIDEV_FMSYNTH });
 #endif
 #ifdef HAVE_WILDMIDI
-		devices.push_back({ strdup("WildMidi"), -6, MIDIDEV_SWSYNTH });
+		devices.push_back({ strdup("WildMidi"), -6, ZMUSIC_MIDIDEV_SWSYNTH });
 #endif
 #ifdef HAVE_FLUIDSYNTH
-		devices.push_back({ strdup("FluidSynth"), -5, MIDIDEV_SWSYNTH });
+		devices.push_back({ strdup("FluidSynth"), -5, ZMUSIC_MIDIDEV_SWSYNTH });
 #endif
 #ifdef HAVE_GUS
-		devices.push_back({ strdup("GUS Emulation"), -4, MIDIDEV_SWSYNTH });
+		devices.push_back({ strdup("GUS Emulation"), -4, ZMUSIC_MIDIDEV_SWSYNTH });
 #endif
 #ifdef HAVE_OPL
-		devices.push_back({ strdup("OPL Synth Emulation"), -3, MIDIDEV_FMSYNTH });
+		devices.push_back({ strdup("OPL Synth Emulation"), -3, ZMUSIC_MIDIDEV_FMSYNTH });
 #endif
 #ifdef HAVE_TIMIDITY
-		devices.push_back({ strdup("TiMidity++"), -2, MIDIDEV_SWSYNTH });
+		devices.push_back({ strdup("TiMidity++"), -2, ZMUSIC_MIDIDEV_SWSYNTH });
 #endif
 
 #ifdef HAVE_SYSTEM_MIDI
@@ -212,7 +212,7 @@ struct MidiDeviceList
 		auto& dev = sequencer.GetInternalDevices();
 		for (auto& d : dev)
 		{
-			ZMusicMidiOutDevice mdev = { strdup(d.Name.c_str()), d.ID, MIDIDEV_MAPPER };	// fixme: Correctly determine the type of the device.
+			ZMusicMidiOutDevice mdev = { strdup(d.Name.c_str()), d.ID, ZMUSIC_MIDIDEV_MAPPER };	// fixme: Correctly determine the type of the device.
 			devices.push_back(mdev);
 		}
 #elif _WIN32
@@ -330,31 +330,31 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EZMusicIntConfigKey key, MusInfo *c
 #ifdef HAVE_ADL
 		case zmusic_adl_chips_count: 
 			ChangeAndReturn(adlConfig.adl_chips_count, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 
 		case zmusic_adl_emulator_id: 
 			ChangeAndReturn(adlConfig.adl_emulator_id, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 
 		case zmusic_adl_run_at_pcm_rate: 
 			ChangeAndReturn(adlConfig.adl_run_at_pcm_rate, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 
 		case zmusic_adl_fullpan: 
 			ChangeAndReturn(adlConfig.adl_fullpan, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 
 		case zmusic_adl_bank: 
 			ChangeAndReturn(adlConfig.adl_bank, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 
 		case zmusic_adl_use_custom_bank: 
 			ChangeAndReturn(adlConfig.adl_use_custom_bank, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 
 		case zmusic_adl_volume_model: 
 			ChangeAndReturn(adlConfig.adl_volume_model, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 #endif
 
 		case zmusic_fluid_reverb: 
@@ -460,7 +460,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EZMusicIntConfigKey key, MusInfo *c
 			if (value < 0) value = 0;
 			else if (value > 3) value = 3;
 			ChangeAndReturn(oplConfig.core, value, pRealValue);
-			return devType() == MDEV_OPL;
+			return devType() == ZMUSIC_MDEV_OPL;
 
 		case zmusic_opl_fullpan:
 			ChangeAndReturn(oplConfig.fullpan, value, pRealValue);
@@ -469,36 +469,36 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EZMusicIntConfigKey key, MusInfo *c
 #ifdef HAVE_OPN
 		case zmusic_opn_chips_count:
 			ChangeAndReturn(opnConfig.opn_chips_count, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return devType() == ZMUSIC_MDEV_OPN;
 
 		case zmusic_opn_emulator_id:
 			ChangeAndReturn(opnConfig.opn_emulator_id, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return devType() == ZMUSIC_MDEV_OPN;
 
 		case zmusic_opn_run_at_pcm_rate:
 			ChangeAndReturn(opnConfig.opn_run_at_pcm_rate, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return devType() == ZMUSIC_MDEV_OPN;
 
 		case zmusic_opn_fullpan:
 			ChangeAndReturn(opnConfig.opn_fullpan, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return devType() == ZMUSIC_MDEV_OPN;
 
 		case zmusic_opn_use_custom_bank:
 			ChangeAndReturn(opnConfig.opn_use_custom_bank, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return devType() == ZMUSIC_MDEV_OPN;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_dmxgus:
 			ChangeAndReturn(gusConfig.gus_dmxgus, value, pRealValue);
-			return devType() == MDEV_GUS;
+			return devType() == ZMUSIC_MDEV_GUS;
 
 		case zmusic_gus_midi_voices:
 			ChangeAndReturn(gusConfig.midi_voices, value, pRealValue);
-			return devType() == MDEV_GUS;
+			return devType() == ZMUSIC_MDEV_GUS;
 		
 		case zmusic_gus_memsize:
 			ChangeAndReturn(gusConfig.gus_memsize, value, pRealValue);
-			return devType() == MDEV_GUS && gusConfig.gus_dmxgus;
+			return devType() == ZMUSIC_MDEV_GUS && gusConfig.gus_dmxgus;
 #endif
 #ifdef HAVE_TIMIDITY
 		case zmusic_timidity_modulation_wheel:
@@ -533,7 +533,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EZMusicIntConfigKey key, MusInfo *c
 		case zmusic_timidity_surround_chorus:
 			ChangeVarSync(TimidityPlus::timidity_surround_chorus, value);
 			if (pRealValue) *pRealValue = value;
-			return devType() == MDEV_TIMIDITY;
+			return devType() == ZMUSIC_MDEV_TIMIDITY;
 
 		case zmusic_timidity_channel_pressure:
 			ChangeVarSync(TimidityPlus::timidity_channel_pressure, value);
@@ -553,7 +553,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EZMusicIntConfigKey key, MusInfo *c
 		case zmusic_timidity_modulation_envelope:
 			ChangeVarSync(TimidityPlus::timidity_modulation_envelope, value);
 			if (pRealValue) *pRealValue = value;
-			return devType() == MDEV_TIMIDITY;
+			return devType() == ZMUSIC_MDEV_TIMIDITY;
 
 		case zmusic_timidity_overlap_voice_allow:
 			ChangeVarSync(TimidityPlus::timidity_overlap_voice_allow, value);
@@ -815,7 +815,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EZMusicStringConfigKey key, MusI
 #ifdef HAVE_ADL
 		case zmusic_adl_custom_bank: 
 			adlConfig.adl_custom_bank = value;
-			return devType() == MDEV_ADL;
+			return devType() == ZMUSIC_MDEV_ADL;
 #endif
 		case zmusic_fluid_lib: 
 			fluidConfig.fluid_lib = value;
@@ -826,32 +826,32 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EZMusicStringConfigKey key, MusI
 #ifdef HAVE_TIMIDITY
 			if (timidityConfig.timidity_config.empty()) timidityConfig.timidity_config = value; // Also use for Timidity++ if nothing has been set.
 #endif
-			return devType() == MDEV_FLUIDSYNTH;
+			return devType() == ZMUSIC_MDEV_FLUIDSYNTH;
 
 #ifdef HAVE_OPN
 		case zmusic_opn_custom_bank: 
 			opnConfig.opn_custom_bank = value;
-			return devType() == MDEV_OPN && opnConfig.opn_use_custom_bank;
+			return devType() == ZMUSIC_MDEV_OPN && opnConfig.opn_use_custom_bank;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_config:
 			gusConfig.gus_config = value;
-			return devType() == MDEV_GUS;
+			return devType() == ZMUSIC_MDEV_GUS;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_patchdir:
 			gusConfig.gus_patchdir = value;
-			return devType() == MDEV_GUS && gusConfig.gus_dmxgus;
+			return devType() == ZMUSIC_MDEV_GUS && gusConfig.gus_dmxgus;
 #endif
 #ifdef HAVE_TIMIDITY
 		case zmusic_timidity_config:
 			timidityConfig.timidity_config = value;
-			return devType() == MDEV_TIMIDITY;
+			return devType() == ZMUSIC_MDEV_TIMIDITY;
 #endif
 #ifdef HAVE_WILDMIDI
 		case zmusic_wildmidi_config:
 			wildMidiConfig.config = value;
-			return devType() == MDEV_TIMIDITY;
+			return devType() == ZMUSIC_MDEV_TIMIDITY;
 #endif
 	}
 	return false;

@@ -219,25 +219,25 @@ EZMusicMidiDevice MIDIStreamer::SelectMIDIDevice(EZMusicMidiDevice device)
 	*/
 
 	// Choose the type of MIDI device we want.
-	if (device != MDEV_DEFAULT)
+	if (device != ZMUSIC_MDEV_DEFAULT)
 	{
 		return device;
 	}
 	switch (miscConfig.snd_mididevice)
 	{
-	case -1:		return MDEV_SNDSYS;
-	case -2:		return MDEV_TIMIDITY;
-	case -3:		return MDEV_OPL;
-	case -4:		return MDEV_GUS;
-	case -5:		return MDEV_FLUIDSYNTH;
-	case -6:		return MDEV_WILDMIDI;
-	case -7:		return MDEV_ADL;
-	case -8:		return MDEV_OPN;
+	case -1:		return ZMUSIC_MDEV_SNDSYS;
+	case -2:		return ZMUSIC_MDEV_TIMIDITY;
+	case -3:		return ZMUSIC_MDEV_OPL;
+	case -4:		return ZMUSIC_MDEV_GUS;
+	case -5:		return ZMUSIC_MDEV_FLUIDSYNTH;
+	case -6:		return ZMUSIC_MDEV_WILDMIDI;
+	case -7:		return ZMUSIC_MDEV_ADL;
+	case -8:		return ZMUSIC_MDEV_OPN;
 	default:
 		#ifdef HAVE_SYSTEM_MIDI
-					return MDEV_STANDARD;
+					return ZMUSIC_MDEV_STANDARD;
 		#else
-					return MDEV_SNDSYS;
+					return ZMUSIC_MDEV_SNDSYS;
 		#endif
 	}
 }
@@ -252,10 +252,10 @@ static EZMusicMidiDevice lastRequestedDevice, lastSelectedDevice;
 
 MIDIDevice *MIDIStreamer::CreateMIDIDevice(EZMusicMidiDevice devtype, int samplerate)
 {
-	bool checked[MDEV_COUNT] = { false };
+	bool checked[ZMUSIC_MDEV_COUNT] = { false };
 
 	MIDIDevice *dev = nullptr;
-	if (devtype == MDEV_SNDSYS) devtype = MDEV_FLUIDSYNTH;
+	if (devtype == ZMUSIC_MDEV_SNDSYS) devtype = ZMUSIC_MDEV_FLUIDSYNTH;
 	EZMusicMidiDevice requestedDevice = devtype, selectedDevice;
 	while (dev == nullptr)
 	{
@@ -264,19 +264,19 @@ MIDIDevice *MIDIStreamer::CreateMIDIDevice(EZMusicMidiDevice devtype, int sample
 		{
 			switch (devtype)
 			{
-			case MDEV_GUS:
+			case ZMUSIC_MDEV_GUS:
 				dev = CreateTimidityMIDIDevice(Args.c_str(), samplerate);
 				break;
 
-			case MDEV_ADL:
+			case ZMUSIC_MDEV_ADL:
 				dev = CreateADLMIDIDevice(Args.c_str());
 				break;
 
-			case MDEV_OPN:
+			case ZMUSIC_MDEV_OPN:
 				dev = CreateOPNMIDIDevice(Args.c_str());
 				break;
 
-			case MDEV_STANDARD:
+			case ZMUSIC_MDEV_STANDARD:
 
 #ifdef HAVE_SYSTEM_MIDI
 #ifdef _WIN32
@@ -288,19 +288,19 @@ MIDIDevice *MIDIStreamer::CreateMIDIDevice(EZMusicMidiDevice devtype, int sample
 #endif
 				// Intentional fall-through for systems without standard midi support
 
-			case MDEV_FLUIDSYNTH:
+			case ZMUSIC_MDEV_FLUIDSYNTH:
 				dev = CreateFluidSynthMIDIDevice(samplerate, Args.c_str());
 				break;
 
-			case MDEV_OPL:
+			case ZMUSIC_MDEV_OPL:
 				dev = CreateOplMIDIDevice(Args.c_str());
 				break;
 
-			case MDEV_TIMIDITY:
+			case ZMUSIC_MDEV_TIMIDITY:
 				dev = CreateTimidityPPMIDIDevice(Args.c_str(), samplerate);
 				break;
 
-			case MDEV_WILDMIDI:
+			case ZMUSIC_MDEV_WILDMIDI:
 				dev = CreateWildMIDIDevice(Args.c_str(), samplerate);
 				break;
 
@@ -312,20 +312,20 @@ MIDIDevice *MIDIStreamer::CreateMIDIDevice(EZMusicMidiDevice devtype, int sample
 		{
 			//DPrintf(DMSG_WARNING, "%s\n", err.what());
 			checked[devtype] = true;
-			devtype = MDEV_DEFAULT;
+			devtype = ZMUSIC_MDEV_DEFAULT;
 			// Opening the requested device did not work out so choose another one.
-			if (!checked[MDEV_FLUIDSYNTH]) devtype = MDEV_FLUIDSYNTH;
-			else if (!checked[MDEV_TIMIDITY]) devtype = MDEV_TIMIDITY;
-			else if (!checked[MDEV_WILDMIDI]) devtype = MDEV_WILDMIDI;
-			else if (!checked[MDEV_GUS]) devtype = MDEV_GUS;
+			if (!checked[ZMUSIC_MDEV_FLUIDSYNTH]) devtype = ZMUSIC_MDEV_FLUIDSYNTH;
+			else if (!checked[ZMUSIC_MDEV_TIMIDITY]) devtype = ZMUSIC_MDEV_TIMIDITY;
+			else if (!checked[ZMUSIC_MDEV_WILDMIDI]) devtype = ZMUSIC_MDEV_WILDMIDI;
+			else if (!checked[ZMUSIC_MDEV_GUS]) devtype = ZMUSIC_MDEV_GUS;
 #ifdef HAVE_SYSTEM_MIDI
-			else if (!checked[MDEV_STANDARD]) devtype = MDEV_STANDARD;
+			else if (!checked[ZMUSIC_MDEV_STANDARD]) devtype = ZMUSIC_MDEV_STANDARD;
 #endif
-			else if (!checked[MDEV_ADL]) devtype = MDEV_ADL;
-			else if (!checked[MDEV_OPN]) devtype = MDEV_OPN;
-			else if (!checked[MDEV_OPL]) devtype = MDEV_OPL;
+			else if (!checked[ZMUSIC_MDEV_ADL]) devtype = ZMUSIC_MDEV_ADL;
+			else if (!checked[ZMUSIC_MDEV_OPN]) devtype = ZMUSIC_MDEV_OPN;
+			else if (!checked[ZMUSIC_MDEV_OPL]) devtype = ZMUSIC_MDEV_OPL;
 
-			if (devtype == MDEV_DEFAULT)
+			if (devtype == ZMUSIC_MDEV_DEFAULT)
 			{
 				std::string message = std::string(err.what()) + "\n\nFailed to play music: Unable to open any MIDI Device.";
 				throw std::runtime_error(message);
@@ -387,7 +387,7 @@ bool MIDIStreamer::DumpWave(const char *filename, int subsong, int samplerate)
 
 	assert(MIDI == NULL);
 	auto devtype = SelectMIDIDevice(DeviceType);
-	if (devtype == MDEV_STANDARD)
+	if (devtype == ZMUSIC_MDEV_STANDARD)
 	{
 		throw std::runtime_error("System MIDI device is not supported");
 	}

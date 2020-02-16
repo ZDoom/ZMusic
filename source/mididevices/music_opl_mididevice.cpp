@@ -75,7 +75,7 @@ protected:
 	void HandleLongEvent(const uint8_t *data, int len) override;
 	void ComputeOutput(float *buffer, int len) override;
 	bool ServiceStream(void *buff, int numbytes) override;
-	int GetDeviceType() const override { return MDEV_OPL; }
+	int GetDeviceType() const override { return ZMUSIC_MDEV_OPL; }
 };
 
 
@@ -137,7 +137,7 @@ void OPLMIDIDevice::Close()
 
 int OPLMIDIDevice::GetTechnology() const
 {
-	return MIDIDEV_FMSYNTH;
+	return ZMUSIC_MIDIDEV_FMSYNTH;
 }
 
 //==========================================================================

@@ -193,8 +193,8 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EZMusi
 			}
 		}
 		
-		EZMusicMIDIType miditype = ZMusic_IdentifyMIDIType(id, sizeof(id));
-		if (miditype != MIDI_NOTMIDI)
+		EZMusicMidiType miditype = ZMusic_IdentifyMIDIType(id, sizeof(id));
+		if (miditype != ZMUSIC_MIDI_NOTMIDI)
 		{
 			std::vector<uint8_t> data(reader->filelength());
 			if (reader->read(data.data(), (long)data.size()) != (long)data.size())
@@ -217,9 +217,9 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EZMusi
 			}
 
 #ifndef HAVE_SYSTEM_MIDI
-			// some platforms don't support MDEV_STANDARD so map to MDEV_SNDSYS
-			if (device == MDEV_STANDARD)
-				device = MDEV_SNDSYS;
+			// some platforms don't support ZMUSIC_MDEV_STANDARD so map to ZMUSIC_MDEV_SNDSYS
+			if (device == ZMUSIC_MDEV_STANDARD)
+				device = ZMUSIC_MDEV_SNDSYS;
 #endif
 			
 			info = CreateMIDIStreamer(source, device, Args? Args : "");

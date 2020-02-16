@@ -85,7 +85,7 @@ void CDSong::Pause ()
 {
 	if (m_Status == STATE_Playing)
 	{
-		CD_Pause ();
+		ZMusic_CD_Pause ();
 		m_Status = STATE_Paused;
 	}
 }
@@ -94,7 +94,7 @@ void CDSong::Resume ()
 {
 	if (m_Status == STATE_Paused)
 	{
-		if (CD_Resume ())
+		if (ZMusic_CD_Resume ())
 			m_Status = STATE_Playing;
 	}
 }
@@ -104,7 +104,7 @@ void CDSong::Stop ()
 	if (m_Status != STATE_Stopped)
 	{
 		m_Status = STATE_Stopped;
-		CD_Stop ();
+		ZMusic_CD_Stop ();
 	}
 }
 

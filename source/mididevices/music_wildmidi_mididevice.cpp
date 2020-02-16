@@ -58,7 +58,7 @@ public:
 	int OpenRenderer() override;
 	void PrecacheInstruments(const uint16_t *instruments, int count) override;
 	std::string GetStats() override;
-	int GetDeviceType() const override { return MDEV_WILDMIDI; }
+	int GetDeviceType() const override { return ZMUSIC_MDEV_WILDMIDI; }
 	
 protected:
 	WildMidi::Renderer *Renderer;
@@ -248,7 +248,7 @@ bool WildMidi_SetupConfig(const char* args)
 	if (*args == 0) args = wildMidiConfig.config.c_str();
 	if (stricmp(wildMidiConfig.loadedConfig.c_str(), args) == 0) return false; // aleady loaded
 
-	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, SF_GUS);
+	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, ZMUSIC_SF_GUS);
 	if (!reader && MusicIO::fileExists(args))
 	{
 		reader = new MusicIO::FileSystemSoundFontReader(args, true);

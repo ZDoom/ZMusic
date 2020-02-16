@@ -147,7 +147,7 @@ bool SoftSynthMIDIDevice::IsOpen() const
 
 int SoftSynthMIDIDevice::GetTechnology() const
 {
-	return MIDIDEV_SWSYNTH;
+	return ZMUSIC_MIDIDEV_SWSYNTH;
 }
 
 //==========================================================================

@@ -5,7 +5,7 @@
 
 struct SoundDecoder
 {
-	static SoundDecoder* CreateDecoder(MusicIO::FileInterface* reader);
+	static SoundDecoder* ZMusic_CreateDecoder(MusicIO::FileInterface* reader);
 
     virtual void getInfo(int *samplerate, EZMusicChannelConfig *chans, EZMusicSampleType *type) = 0;
 

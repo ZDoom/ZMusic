@@ -52,7 +52,7 @@ public:
 	~ADLMIDIDevice();
 	
 	int OpenRenderer() override;
-	int GetDeviceType() const override { return MDEV_ADL; }
+	int GetDeviceType() const override { return ZMUSIC_MDEV_ADL; }
 
 protected:
 	
@@ -249,7 +249,7 @@ MIDIDevice *CreateADLMIDIDevice(const char *Args)
 			const char* info;
 			if (musicCallbacks.PathForSoundfont)
 			{
-				info = musicCallbacks.PathForSoundfont(bank, SF_WOPL);
+				info = musicCallbacks.PathForSoundfont(bank, ZMUSIC_SF_WOPL);
 			}
 			else
 			{

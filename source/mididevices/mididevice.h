@@ -49,7 +49,7 @@ public:
 	virtual void ChangeSettingNum(const char *setting, double value);
 	virtual void ChangeSettingString(const char *setting, const char *value);
 	virtual std::string GetStats();
-	virtual int GetDeviceType() const { return MDEV_DEFAULT; }
+	virtual int GetDeviceType() const { return ZMUSIC_MDEV_DEFAULT; }
 	virtual bool CanHandleSysex() const { return true; }
 	virtual ZMusicSoundStreamInfo GetStreamInfo() const;
 
