@@ -301,7 +301,6 @@ extern "C"
 	ZMUSIC_DLL_IMPORT ZMusic_MusicStream ZMusic_OpenSong(ZMusicCustomReader* reader, EZMusicMidiDevice device, const char* Args);
 	ZMUSIC_DLL_IMPORT ZMusic_MusicStream ZMusic_OpenSongFile(const char *filename, EZMusicMidiDevice device, const char* Args);
 	ZMUSIC_DLL_IMPORT ZMusic_MusicStream ZMusic_OpenSongMem(const void *mem, size_t size, EZMusicMidiDevice device, const char* Args);
-	ZMUSIC_DLL_IMPORT ZMusic_MusicStream ZMusic_OpenCDSong(int track, int cdid);
 
 	ZMUSIC_DLL_IMPORT zmusic_bool ZMusic_FillStream(ZMusic_MusicStream stream, void* buff, int len);
 	ZMUSIC_DLL_IMPORT zmusic_bool ZMusic_Start(ZMusic_MusicStream song, int subsong, zmusic_bool loop);
@@ -334,16 +333,6 @@ extern "C"
 
 	ZMUSIC_DLL_IMPORT const ZMusicMidiOutDevice *ZMusic_GetMidiDevices(int *pAmount);
 	ZMUSIC_DLL_IMPORT int ZMusic_GetADLBanks(const char* const** pNames);
-
-	// Direct access to the CD drive.
-	ZMUSIC_DLL_IMPORT void ZMusic_CD_Stop();
-	ZMUSIC_DLL_IMPORT void ZMusic_CD_Pause();
-	ZMUSIC_DLL_IMPORT zmusic_bool ZMusic_CD_Resume();
-	ZMUSIC_DLL_IMPORT void ZMusic_CD_Eject();
-	ZMUSIC_DLL_IMPORT zmusic_bool ZMusic_CD_UnEject();
-	ZMUSIC_DLL_IMPORT void ZMusic_CD_Close();
-	ZMUSIC_DLL_IMPORT zmusic_bool ZMusic_CD_Enable(const char* drive);
-
 
 #ifdef __cplusplus
 }

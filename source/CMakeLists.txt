@@ -62,8 +62,6 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/
 if (WIN32)
     set( PLAT_SOURCES
         mididevices/music_win_mididevice.cpp
-        musicformats/win32/i_cd.cpp
-        musicformats/win32/helperthread.cpp
     )
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if (ALSA_FOUND)
@@ -81,7 +79,6 @@ file( GLOB HEADER_FILES
 	mididevices/*.h
 	midisources/*.h
 	musicformats/*.h
-	musicformats/win32/*.h
 	decoder/*.h
 	streamsources/*.h
 	../thirdparty/*.h
@@ -112,7 +109,6 @@ set( all_files
 	streamsources/music_xa.cpp
 	musicformats/music_stream.cpp
 	musicformats/music_midi.cpp
-	musicformats/music_cd.cpp
 	decoder/sounddecoder.cpp
 	decoder/sndfile_decoder.cpp
 	decoder/mpg123_decoder.cpp

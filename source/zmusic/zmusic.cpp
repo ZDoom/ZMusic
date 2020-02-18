@@ -63,8 +63,6 @@ class MusInfo;
 
 MusInfo *OpenStreamSong(StreamSource *source);
 const char *GME_CheckFormat(uint32_t header);
-MusInfo* CDDA_OpenSong(MusicIO::FileInterface* reader);
-MusInfo* CD_OpenSong(int track, int id);
 MusInfo* CreateMIDIStreamer(MIDISource *source, EZMusicMidiDevice devtype, const char* args);
 
 //==========================================================================
@@ -225,13 +223,6 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EZMusi
 			info = CreateMIDIStreamer(source, device, Args? Args : "");
 		}
 		
-		// Check for CDDA "format"
-		else if ((id[0] == MAKE_ID('R', 'I', 'F', 'F') && id[2] == MAKE_ID('C', 'D', 'D', 'A')))
-		{
-			// This is a CDDA file
-			info = CDDA_OpenSong(reader);
-		}
-		
 		// Check for various raw OPL formats
 		else
 		{
@@ -335,26 +326,6 @@ DLL_EXPORT ZMusic_MusicStream ZMusic_OpenSong(ZMusicCustomReader* reader, EZMusi
 	return ZMusic_OpenSongInternal(cr, device, Args);
 }
 
-
-//==========================================================================
-//
-// play CD music
-//
-//==========================================================================
-
-DLL_EXPORT MusInfo *ZMusic_OpenCDSong (int track, int id)
-{
-	MusInfo *info = CD_OpenSong (track, id);
-	
-	if (info && !info->IsValid ())
-	{
-		delete info;
-		info = nullptr;
-		SetError("Unable to open CD Audio");
-	}
-	
-	return info;
-}
 
 //==========================================================================
 //
