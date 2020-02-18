@@ -37,7 +37,7 @@
 #include "sndfile_decoder.h"
 #include "mpg123_decoder.h"
 
-SoundDecoder *SoundDecoder::CreateDecoder(MusicIO::FileInterface *reader)
+SoundDecoder *SoundDecoder::ZMusic_CreateDecoder(MusicIO::FileInterface *reader)
 {
     SoundDecoder *decoder = NULL;
     auto pos = reader->tell();
@@ -97,7 +97,7 @@ short* dumb_decode_vorbis(int outlen, const void* oggstream, int sizebytes)
 	// The decoder will take ownership of the reader if it succeeds so this may not be a local variable.
 	MusicIO::MemoryReader* reader = new MusicIO::MemoryReader((const uint8_t*)oggstream, sizebytes);
 
-	SoundDecoder* decoder = SoundDecoder::CreateDecoder(reader);
+	SoundDecoder* decoder = SoundDecoder::ZMusic_CreateDecoder(reader);
 	if (!decoder)
 	{
 		reader->close();
@@ -105,7 +105,7 @@ short* dumb_decode_vorbis(int outlen, const void* oggstream, int sizebytes)
 	}
 
 	decoder->getInfo(&srate, &chans, &type);
-	if (chans != ChannelConfig_Mono || type != SampleType_Int16)
+	if (chans != ZMusic_Decoder_ChannelConfig_Mono || type != ZMusic_Decoder_SampleType_Int16)
 	{
 		delete decoder;
 		return samples;
@@ -116,29 +116,29 @@ short* dumb_decode_vorbis(int outlen, const void* oggstream, int sizebytes)
 	return samples;
 }
 
-DLL_EXPORT struct SoundDecoder* CreateDecoder(const uint8_t* data, size_t size, zmusic_bool isstatic)
+DLL_EXPORT struct SoundDecoder* ZMusic_CreateDecoder(const uint8_t* data, size_t size, zmusic_bool isstatic)
 {
 	MusicIO::FileInterface* reader;
 	if (isstatic) reader = new MusicIO::MemoryReader(data, (long)size);
 	else reader = new MusicIO::VectorReader(data, size);
-	auto res = SoundDecoder::CreateDecoder(reader);
+	auto res = SoundDecoder::ZMusic_CreateDecoder(reader);
 	if (!res) reader->close();
 	return res;
 }
 
-DLL_EXPORT void SoundDecoder_GetInfo(struct SoundDecoder* decoder, int* samplerate, EZMusicChannelConfig* chans, EZMusicSampleType* type)
+DLL_EXPORT void ZMusic_Decoder_GetInfo(struct SoundDecoder* decoder, int* samplerate, EZMusicChannelConfig* chans, EZMusicSampleType* type)
 {
 	if (decoder) decoder->getInfo(samplerate, chans, type);
 	else if (samplerate) *samplerate = 0;
 }
 
-DLL_EXPORT size_t SoundDecoder_Read(struct SoundDecoder* decoder, void* buffer, size_t length)
+DLL_EXPORT size_t ZMusic_Decoder_Read(struct SoundDecoder* decoder, void* buffer, size_t length)
 {
 	if (decoder) return decoder->read((char*)buffer, length);
 	else return 0;
 }
 
-DLL_EXPORT void SoundDecoder_Close(struct SoundDecoder* decoder)
+DLL_EXPORT void ZMusic_Decoder_Close(struct SoundDecoder* decoder)
 {
 	if (decoder) delete decoder;
 }

@@ -162,11 +162,11 @@ void MPG123Decoder::getInfo(int *samplerate, EZMusicChannelConfig *chans, EZMusi
     *samplerate = srate;
 
     if(channels == 2)
-        *chans = ChannelConfig_Stereo;
+        *chans = ZMusic_Decoder_ChannelConfig_Stereo;
     else
-        *chans = ChannelConfig_Mono;
+        *chans = ZMusic_Decoder_ChannelConfig_Mono;
 
-    *type = SampleType_Int16;
+    *type = ZMusic_Decoder_SampleType_Int16;
 }
 
 size_t MPG123Decoder::read(char *buffer, size_t bytes)

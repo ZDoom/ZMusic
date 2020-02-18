@@ -364,7 +364,7 @@ static void FindOggComments(MusicIO::FileInterface *fr, uint32_t *loop_start, zm
 	}
 }
 
-void FindLoopTags(MusicIO::FileInterface *fr, uint32_t *start, zmusic_bool *startass, uint32_t *end, zmusic_bool *endass)
+void ZMusic_FindLoopTags(MusicIO::FileInterface *fr, uint32_t *start, zmusic_bool *startass, uint32_t *end, zmusic_bool *endass)
 {
 	uint8_t signature[4];
 
@@ -375,10 +375,10 @@ void FindLoopTags(MusicIO::FileInterface *fr, uint32_t *start, zmusic_bool *star
 		FindOggComments(fr, start, startass, end, endass);
 }
 
-DLL_EXPORT void FindLoopTags(const uint8_t* data, size_t size, uint32_t* start, zmusic_bool* startass, uint32_t* end, zmusic_bool* endass)
+DLL_EXPORT void ZMusic_FindLoopTags(const uint8_t* data, size_t size, uint32_t* start, zmusic_bool* startass, uint32_t* end, zmusic_bool* endass)
 {
 	MusicIO::FileInterface* reader = new MusicIO::MemoryReader(data, (long)size);
-	FindLoopTags(reader, start, startass, end, endass);
+	ZMusic_FindLoopTags(reader, start, startass, end, endass);
 	reader->close();
 }
 
@@ -394,10 +394,10 @@ StreamSource *SndFile_OpenSong(MusicIO::FileInterface *fr)
 
 	uint32_t loop_start = 0, loop_end = ~0u;
 	zmusic_bool startass = false, endass = false;
-	FindLoopTags(fr, &loop_start, &startass, &loop_end, &endass);
+	ZMusic_FindLoopTags(fr, &loop_start, &startass, &loop_end, &endass);
 
 	fr->seek(0, SEEK_SET);
-	auto decoder = SoundDecoder::CreateDecoder(fr);
+	auto decoder = SoundDecoder::ZMusic_CreateDecoder(fr);
 	if (decoder == nullptr) return nullptr;	// If this fails the file reader has not been taken over and the caller needs to clean up. This is to allow further analysis of the passed file.
 	return new SndFileSong(decoder, loop_start, loop_end, startass, endass);
 }
@@ -427,7 +427,7 @@ SndFileSong::SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t lo
 	Loop_Start = loop_start;
 	Loop_End = sampleLength == 0 ? loop_end : std::min<uint32_t>(loop_end, sampleLength);
 	Decoder = decoder;
-	Channels = iChannels == ChannelConfig_Stereo? 2:1;
+	Channels = iChannels == ZMusic_Decoder_ChannelConfig_Stereo? 2:1;
 }
 
 ZMusicSoundStreamInfo SndFileSong::GetFormat()

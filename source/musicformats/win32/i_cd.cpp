@@ -414,13 +414,13 @@ static void KillThread ()
 //
 //==========================================================================
 
-DLL_EXPORT zmusic_bool CD_Enable (const char *cd_drive)
+DLL_EXPORT zmusic_bool ZMusic_CD_Enable (const char *cd_drive)
 {
 	if (!cd_drive)
 	{
 		// lock the CD system.
 		Enabled = false;
-		CD_Close();
+		ZMusic_CD_Close();
 		return false;
 	}
 	Enabled = true;	// this must have been called at least once to consider the use of the CD system
@@ -452,7 +452,7 @@ bool CD_Init (int device)
 
 	if (Inited != device)
 	{
-		CD_Close ();
+		ZMusic_CD_Close ();
 
 		if (CDThread->SendMessage (CDM_Init, device, 0, 0, true))
 		{
@@ -487,7 +487,7 @@ bool CD_InitID (unsigned int id, int guess)
 		{
 			return true;
 		}
-		CD_Close ();
+		ZMusic_CD_Close ();
 	}
 
 	for (drive = 'V'; drive < 'Z'; drive++)
@@ -502,7 +502,7 @@ bool CD_InitID (unsigned int id, int guess)
 			{
 				return true;
 			}
-			CD_Close ();
+			ZMusic_CD_Close ();
 		}
 	}
 	return false;
@@ -510,11 +510,11 @@ bool CD_InitID (unsigned int id, int guess)
 
 //==========================================================================
 //
-// CD_Close
+// ZMusic_CD_Close
 //
 //==========================================================================
 
-DLL_EXPORT void CD_Close ()
+DLL_EXPORT void ZMusic_CD_Close ()
 {
 	if (Inited != NOT_INITED)
 	{
@@ -525,11 +525,11 @@ DLL_EXPORT void CD_Close ()
 
 //==========================================================================
 //
-// CD_Eject
+// ZMusic_CD_Eject
 //
 //==========================================================================
 
-DLL_EXPORT void CD_Eject ()
+DLL_EXPORT void ZMusic_CD_Eject ()
 {
 	if (Inited != NOT_INITED)
 		CDThread->SendMessage (CDM_Eject, 0, 0, 0, false);
@@ -537,11 +537,11 @@ DLL_EXPORT void CD_Eject ()
 
 //==========================================================================
 //
-// CD_UnEject
+// ZMusic_CD_UnEject
 //
 //==========================================================================
 
-DLL_EXPORT zmusic_bool CD_UnEject ()
+DLL_EXPORT zmusic_bool ZMusic_CD_UnEject ()
 {
 	if (Inited == NOT_INITED)
 		return false;
@@ -551,11 +551,11 @@ DLL_EXPORT zmusic_bool CD_UnEject ()
 
 //==========================================================================
 //
-// CD_Stop
+// ZMusic_CD_Stop
 //
 //==========================================================================
 
-DLL_EXPORT void CD_Stop ()
+DLL_EXPORT void ZMusic_CD_Stop ()
 {
 	if (Inited != NOT_INITED)
 		CDThread->SendMessage (CDM_Stop, 0, 0, 0, false);
@@ -615,11 +615,11 @@ void CD_PlayCDNoWait (bool looping)
 
 //==========================================================================
 //
-// CD_Pause
+// ZMusic_CD_Pause
 //
 //==========================================================================
 
-DLL_EXPORT void CD_Pause ()
+DLL_EXPORT void ZMusic_CD_Pause ()
 {
 	if (Inited != NOT_INITED)
 		CDThread->SendMessage (CDM_Pause, 0, 0, 0, false);
@@ -627,11 +627,11 @@ DLL_EXPORT void CD_Pause ()
 
 //==========================================================================
 //
-// CD_Resume
+// ZMusic_CD_Resume
 //
 //==========================================================================
 
-DLL_EXPORT zmusic_bool CD_Resume ()
+DLL_EXPORT zmusic_bool ZMusic_CD_Resume ()
 {
 	if (Inited == NOT_INITED)
 		return false;

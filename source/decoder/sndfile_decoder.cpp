@@ -138,11 +138,11 @@ void SndFileDecoder::getInfo(int *samplerate, EZMusicChannelConfig *chans, EZMus
     *samplerate = SndInfo.samplerate;
 
     if(SndInfo.channels == 2)
-        *chans = ChannelConfig_Stereo;
+        *chans = ZMusic_Decoder_ChannelConfig_Stereo;
     else
-        *chans = ChannelConfig_Mono;
+        *chans = ZMusic_Decoder_ChannelConfig_Mono;
 
-    *type = SampleType_Int16;
+    *type = ZMusic_Decoder_SampleType_Int16;
 }
 
 size_t SndFileDecoder::read(char *buffer, size_t bytes)
