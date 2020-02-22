@@ -263,6 +263,7 @@ bool GMESong::StartTrack(int track, bool getcritsec)
 		return false;
 	}
 	CurrTrack = track;
+	started = true;
 	GetTrackInfo();
 	if (!m_Looping)
 	{
