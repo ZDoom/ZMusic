@@ -615,7 +615,7 @@ void Fluid_SetupConfig(const char* patches, std::vector<std::string> &patch_path
 			// prepend $PROGDIR to the path.
 			if (strcspn(tok, ":/\\") == strlen(tok))
 			{
-				path = module_progdir + "/" + tok;
+				path = FModule_GetProgDir() + "/" + tok;
 			}
 			else
 #endif

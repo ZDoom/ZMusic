@@ -61,7 +61,7 @@ bool IsSndFilePresent()
 	if (!done)
 	{
 		done = true;
-		auto abspath = module_progdir + "/" SNDFILELIB;
+		auto abspath = FModule_GetProgDir() + "/" SNDFILELIB;
 		cached_result = SndFileModule.Load({abspath.c_str(), SNDFILELIB});
 	}
 	return cached_result;

@@ -100,9 +100,14 @@ void *FModule::GetSym(const char* name)
 	return (void *)GetProcAddress((HMODULE)handle, name);
 }
 
-std::string module_progdir(".");	// current program directory used to look up dynamic libraries. Default to something harmless in case the user didn't set it.
+static std::string module_progdir(".");	// current program directory used to look up dynamic libraries. Default to something harmless in case the user didn't set it.
 
 void FModule_SetProgDir(const char* progdir)
 {
 	module_progdir = progdir;
+}
+
+const std::string& FModule_GetProgDir()
+{
+    return module_progdir;
 }

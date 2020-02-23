@@ -62,7 +62,7 @@ bool IsMPG123Present()
 	if (!done)
 	{
 		done = true;
-		auto abspath = module_progdir + "/" MPG123LIB;
+		auto abspath = FModule_GetProgDir() + "/" MPG123LIB;
 		cached_result = MPG123Module.Load({abspath.c_str(), MPG123LIB});
 	}
 	return cached_result;

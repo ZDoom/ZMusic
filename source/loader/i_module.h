@@ -230,4 +230,4 @@ public:
 };
 
 void FModule_SetProgDir(const char* progdir);
-extern std::string module_progdir;
+const std::string& FModule_GetProgDir();
