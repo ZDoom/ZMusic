@@ -88,6 +88,7 @@ macro( require_strnicmp )
 endmacro()
 
 find_package( ZLIB )
+find_package( GME )
 
 
 if( MSVC )
