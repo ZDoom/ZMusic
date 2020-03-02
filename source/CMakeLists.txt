@@ -173,6 +173,11 @@ if(APPLE)
 	set_target_properties(zmusiclite PROPERTIES MACOSX_RPATH TRUE)
 endif()
 
+set_target_properties(zmusic zmusiclite PROPERTIES
+	VERSION ${ZMUSIC_VERSION}
+	SOVERSION ${ZMUSIC_VERSION_MAJOR}
+)
+
 install(TARGETS zmusic zmusiclite LIBRARY DESTINATION lib)
 install(DIRECTORY ../include/ DESTINATION include FILES_MATCHING PATTERN "*.h*")
 
