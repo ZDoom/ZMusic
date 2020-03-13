@@ -234,26 +234,32 @@ static void ParseVorbisComments(MusicIO::FileInterface *fr, uint32_t *start, zmu
 
 		for (auto tag : loopStartTags)
 		{
-			if (!strnicmp(strdat, tag, strlen(tag)))
+			const size_t tagLength = strlen(tag);
+
+			if (!strnicmp(strdat, tag, tagLength))
 			{
-				S_ParseTimeTag(strdat + 11, startass, start);
+				S_ParseTimeTag(strdat + tagLength, startass, start);
 				break;
 			}
 		}
 		for (auto tag : loopEndTags)
 		{
-			if (!strnicmp(strdat, tag, strlen(tag)))
+			const size_t tagLength = strlen(tag);
+
+			if (!strnicmp(strdat, tag, tagLength))
 			{
-				S_ParseTimeTag(strdat + 11, endass, end);
+				S_ParseTimeTag(strdat + tagLength, endass, end);
 				endfound = true;
 				break;
 			}
 		}
 		for (auto tag : loopLengthTags)
 		{
-			if (!strnicmp(strdat, tag, strlen(tag)))
+			const size_t tagLength = strlen(tag);
+
+			if (!strnicmp(strdat, tag, tagLength))
 			{
-				S_ParseTimeTag(strdat + 11, &loopass, &looplen);
+				S_ParseTimeTag(strdat + tagLength, &loopass, &looplen);
 				*end += *start;
 				break;
 			}
