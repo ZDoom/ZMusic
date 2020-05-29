@@ -27,6 +27,7 @@
 #include <string.h>
 #include <vector>
 #include <string>
+#include <cstdarg>
 
 #if defined _WIN32 && !defined _WINDOWS_	// only define this if windows.h is not included.
 	// I'd rather not include Windows.h for just this. This header is not supposed to pollute everything it touches.

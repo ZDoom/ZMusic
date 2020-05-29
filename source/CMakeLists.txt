@@ -53,7 +53,7 @@ endif()
 if( WIN32 )
 	add_definitions( -D_WIN32 )
 	set( SYS_LIBS winmm )
-else()
+elseif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "^NetBSD$")
 	set( SYS_LIBS dl )
 endif() 
 
