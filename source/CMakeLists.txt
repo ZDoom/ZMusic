@@ -54,7 +54,7 @@ if( WIN32 )
 	add_definitions( -D_WIN32 )
 	set( SYS_LIBS winmm )
 else()
-	set( SYS_LIBS dl )
+	set( SYS_LIBS ${CMAKE_DL_LIBS} )
 endif() 
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/zmusic" "${CMAKE_CURRENT_SOURCE_DIR}/../include" "${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/dumb/include" "${ZLIB_INCLUDE_DIR}" "${ADL_INCLUDE_DIR}" "${OPN_INCLUDE_DIR}" "${TIMIDITYPP_INCLUDE_DIR}" "${TIMIDITY_INCLUDE_DIR}" "${WILDMIDI_INCLUDE_DIR}" "${OPLSYNTH_INCLUDE_DIR}" "${GME_INCLUDE_DIR}" )

@@ -28,6 +28,7 @@
 #define WILDMIDI_LIB_H
 
 #include "../../../source/zmusic/fileio.h"
+#include <stdarg.h>
 
 namespace WildMidi
 {
