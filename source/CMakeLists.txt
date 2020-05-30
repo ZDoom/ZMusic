@@ -174,12 +174,15 @@ if(APPLE)
 endif()
 
 set_target_properties(zmusic zmusiclite PROPERTIES
+	PUBLIC_HEADER ../include/zmusic.h
 	VERSION ${ZMUSIC_VERSION}
 	SOVERSION ${ZMUSIC_VERSION_MAJOR}
 )
 
-install(TARGETS zmusic zmusiclite LIBRARY DESTINATION lib)
-install(DIRECTORY ../include/ DESTINATION include FILES_MATCHING PATTERN "*.h*")
+install(TARGETS zmusic zmusiclite
+	PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
 
 source_group("MIDI Devices" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/mididevices/.+")
 source_group("MIDI Sources" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/midisources/.+")
