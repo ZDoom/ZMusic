@@ -28,7 +28,6 @@
 #include <vector>
 #include <string>
 
-
 #if defined _WIN32 && !defined _WINDOWS_	// only define this if windows.h is not included.
 	// I'd rather not include Windows.h for just this. This header is not supposed to pollute everything it touches.
 extern "C" __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned CodePage, unsigned long  dwFlags, const char* lpMultiByteStr, int cbMultiByte, const wchar_t* lpWideCharStr, int cchWideChar);
