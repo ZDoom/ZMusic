@@ -15,6 +15,7 @@ file( GLOB HEADER_FILES
 	oplsynth/*.h
 	)
 add_library( oplsynth STATIC
+	${HEADER_FILES}
 	fmopl.cpp
 	musicblock.cpp
 	nukedopl3.cpp

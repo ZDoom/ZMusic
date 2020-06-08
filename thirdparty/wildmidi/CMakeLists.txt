@@ -15,6 +15,7 @@ file( GLOB HEADER_FILES
 	wildmidi/*.h
 	)
 add_library( wildmidi STATIC
+	${HEADER_FILES}
 	file_io.cpp
 	gus_pat.cpp
 	reverb.cpp

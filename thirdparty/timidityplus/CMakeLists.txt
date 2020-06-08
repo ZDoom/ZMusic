@@ -12,6 +12,7 @@ file( GLOB HEADER_FILES
 	timiditypp/*.h
 	)
 add_library( timidityplus STATIC
+	${HEADER_FILES}
 	fft4g.cpp
 	reverb.cpp
 	common.cpp

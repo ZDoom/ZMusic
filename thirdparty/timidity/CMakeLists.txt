@@ -13,6 +13,7 @@ file( GLOB HEADER_FILES
 	timidity/*.h
 	)
 add_library( timidity STATIC
+	${HEADER_FILES}
 	common.cpp
 	instrum.cpp
 	instrum_dls.cpp
