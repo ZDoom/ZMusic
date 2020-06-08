@@ -267,7 +267,8 @@ void Instruments::init_sf(SFInsts *rec)
 		return;
 	}
 
-	if(load_soundfont(&sfinfo, rec->tf))
+	// SoundFont spec, 7.2: ... contains a minimum of two records, one record for each preset and one for a terminal record
+	if(load_soundfont(&sfinfo, rec->tf) || sfinfo.npresets < 2)
 	{
 	    end_soundfont(rec);
 	    return;
@@ -275,7 +276,7 @@ void Instruments::init_sf(SFInsts *rec)
 
 	correct_samples(&sfinfo);
 	current_sfrec = rec;
-	for (i = 0; i < sfinfo.npresets; i++) {
+	for (i = 0; i < sfinfo.npresets - 1; i++) {
 		int bank = sfinfo.preset[i].bank;
 		int preset = sfinfo.preset[i].preset;
 
