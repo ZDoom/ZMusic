@@ -179,6 +179,8 @@ set_target_properties(zmusic zmusiclite PROPERTIES
 	SOVERSION ${ZMUSIC_VERSION_MAJOR}
 )
 
+include(GNUInstallDirs)
+
 install(TARGETS zmusic zmusiclite
 	PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
