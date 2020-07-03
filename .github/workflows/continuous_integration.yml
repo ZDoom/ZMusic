@@ -20,7 +20,7 @@ jobs:
             name: "Visual Studio 32-bit",
             os: windows-latest,
             build_type: "Release",
-            extra_options: "-A Win32"
+            extra_options: "-A Win32 -DFORCE_INTERNAL_ZLIB=ON"
           }
         - {
             name: "macOS Clang",
