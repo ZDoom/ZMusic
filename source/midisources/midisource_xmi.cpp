@@ -483,7 +483,6 @@ uint32_t *XMISong::SendCommand (uint32_t *events, EventSource due, uint32_t dela
 		{
 			events[2] = event | (data1<<8) | (data2<<16);
 		}
-		events += 3;
 
 
 		if ((event & 0x70) == (MIDI_NOTEON & 0x70))
