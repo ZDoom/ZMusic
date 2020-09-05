@@ -187,6 +187,7 @@ set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${REL_C_F
 set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEB_C_FLAGS} -D_DEBUG" )
 
 option(FORCE_INTERNAL_ZLIB "Use internal zlib")
+# this option is unused for now, since upstream is broken with some formats
 option(FORCE_INTERNAL_GME "Use internal gme" ON)
 mark_as_advanced( FORCE_INTERNAL_GME )
 
@@ -201,18 +202,16 @@ else()
 	set( ZLIB_LIBRARY z )
 endif()
 
+# can be commented out when/if upstream gme becomes usable again
+#message( STATUS "Using system gme library, includes found at ${GME_INCLUDE_DIR}" )
 
-if( GME_FOUND AND NOT FORCE_INTERNAL_GME )
-	message( STATUS "Using system gme library, includes found at ${GME_INCLUDE_DIR}" )
-else()
-	message( STATUS "Using internal gme library" )
-	# Use MAME as it's a balanced emulator: well-accurate, but doesn't eats lot of CPU
-	# Nuked OPN2 is very accurate emulator, but it eats too much CPU for the workflow
-	set( GME_YM2612_EMU "MAME" )
-	add_subdirectory( thirdparty/game-music-emu )
-	set( GME_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/game-music-emu" )
-	set( GME_LIBRARIES gme )
-endif()
+message( STATUS "Using internal gme library" )
+# Use MAME as it's a balanced emulator: well-accurate, but doesn't eats lot of CPU
+# Nuked OPN2 is very accurate emulator, but it eats too much CPU for the workflow
+set( GME_YM2612_EMU "MAME" )
+add_subdirectory( thirdparty/game-music-emu )
+set( GME_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/game-music-emu" )
+set( GME_LIBRARIES gme )
 
 set( ADL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/adlmidi" )
 set( OPN_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/opnmidi" )
