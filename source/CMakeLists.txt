@@ -105,6 +105,7 @@ set( all_files
 	midisources/midisource_smf.cpp
 	midisources/midisource_hmi.cpp
 	midisources/midisource_xmi.cpp
+	midisources/midisource_mids.cpp
 	streamsources/music_dumb.cpp
 	streamsources/music_gme.cpp
 	streamsources/music_libsndfile.cpp

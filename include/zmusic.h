@@ -29,7 +29,8 @@ typedef enum EMIDIType_
 	MIDI_MIDI,
 	MIDI_HMI,
 	MIDI_XMI,
-	MIDI_MUS
+	MIDI_MUS,
+	MIDI_MIDS
 } EMIDIType;
 
 typedef enum EMidiDevice_

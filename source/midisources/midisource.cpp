@@ -450,6 +450,13 @@ DLL_EXPORT EMIDIType ZMusic_IdentifyMIDIType(uint32_t *id, int size)
 	{
 		return MIDI_XMI;
 	}
+	// Check for MIDS format
+	else
+	if (id[0] == MAKE_ID('R','I','F','F') &&
+		id[2] == MAKE_ID('M','I','D','S'))
+	{
+		return MIDI_MIDS;
+	}
 	// Check for MIDI format
 	else if (id[0] == MAKE_ID('M','T','h','d'))
 	{
@@ -488,6 +495,10 @@ DLL_EXPORT ZMusic_MidiSource ZMusic_CreateMIDISource(const uint8_t *data, size_t
 
 		case MIDI_XMI:
 			source = new XMISong(data, length);
+			break;
+		
+		case MIDI_MIDS:
+			source = new MIDSSong(data, length);
 			break;
 
 		default:

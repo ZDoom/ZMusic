@@ -226,6 +226,25 @@ private:
 	EventSource EventDue;
 };
 
+// MIDS file played with a MIDI Stream
 
+class MIDSSong : public MIDISource
+{
+public:
+	MIDSSong(const uint8_t* data, size_t len);
+
+protected:
+	void DoInitialSetup() override;
+	void DoRestart() override;
+	bool CheckDone() override;
+	uint32_t *MakeEvents(uint32_t *events, uint32_t *max_events_p, uint32_t max_time) override;
+
+private:
+	std::vector<uint32_t> midiBuffer;
+	size_t MidsP, MaxMidsP;
+	int FormatFlags;
+
+	void ProcessInitialTempoEvents();
+};
 
 #endif /* midisources_h */
