@@ -240,7 +240,7 @@ protected:
 	uint32_t *MakeEvents(uint32_t *events, uint32_t *max_events_p, uint32_t max_time) override;
 
 private:
-	std::vector<uint32_t> midiBuffer;
+	std::vector<uint32_t> MidsBuffer;
 	size_t MidsP, MaxMidsP;
 	int FormatFlags;
 
