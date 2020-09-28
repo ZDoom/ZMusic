@@ -199,6 +199,7 @@ void ADLMIDIDevice::HandleEvent(int status, int parm1, int parm2)
 
 void ADLMIDIDevice::HandleLongEvent(const uint8_t *data, int len)
 {
+	adl_rt_systemExclusive(Renderer, data, len);
 }
 
 static const ADLMIDI_AudioFormat audio_output_format =

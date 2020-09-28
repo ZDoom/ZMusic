@@ -208,6 +208,7 @@ void OPNMIDIDevice::HandleEvent(int status, int parm1, int parm2)
 
 void OPNMIDIDevice::HandleLongEvent(const uint8_t *data, int len)
 {
+	opn2_rt_systemExclusive(Renderer, data, len);
 }
 
 static const OPNMIDI_AudioFormat audio_output_format =
