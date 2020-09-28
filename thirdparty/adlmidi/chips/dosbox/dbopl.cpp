@@ -40,6 +40,7 @@
 #include <vector>
 #include <memory>
 #include "dbopl.h"
+#include "../common/mutex.hpp"
 
 #if defined(__GNUC__) && __GNUC__ > 3
 #define INLINE inline __attribute__((__always_inline__))
@@ -72,36 +73,16 @@
 #define PI 3.14159265358979323846
 #endif
 
-struct NoCopy {
-	NoCopy() {}
-private:
-	NoCopy(const NoCopy &);
-	NoCopy &operator=(const NoCopy &);
-};
-#if !defined(_WIN32)
-#include <pthread.h>
-struct Mutex : NoCopy {
-	Mutex() { pthread_mutex_init(&m, NULL);}
-	~Mutex() { pthread_mutex_destroy(&m); }
-	void lock() { pthread_mutex_lock(&m); }
-	void unlock() { pthread_mutex_unlock(&m); }
-	pthread_mutex_t m;
-};
-#else
-#include <windows.h>
-struct Mutex : NoCopy {
-	Mutex() { InitializeCriticalSection(&m); }
-	~Mutex() { DeleteCriticalSection(&m); }
-	void lock() { EnterCriticalSection(&m); }
-	void unlock() { LeaveCriticalSection(&m); }
-	CRITICAL_SECTION m;
-};
+/*
+ * Workaround for some compilers are has no those macros in their headers!
+ */
+#ifndef INT16_MIN
+#define INT16_MIN   (-0x7fff - 1)
 #endif
-struct MutexHolder : NoCopy {
-	explicit MutexHolder(Mutex &m) : m(m) { m.lock(); }
-	~MutexHolder() { m.unlock(); }
-	Mutex &m;
-};
+#ifndef INT16_MAX
+#define INT16_MAX   0x7fff
+#endif
+
 
 namespace DBOPL {
 
@@ -1333,10 +1314,14 @@ struct CacheEntry {
 	Bit32u linearRates[76];
 	Bit32u attackRates[76];
 };
-struct Cache : NoCopy {
-    ~Cache();
-    Mutex mutex;
-    std::vector<CacheEntry *> entries;
+struct Cache {
+	Cache() {}
+	~Cache();
+	Mutex mutex;
+	std::vector<CacheEntry *> entries;
+private:
+	Cache(const Cache &);
+	Cache &operator=(const Cache &);
 };
 
 static Cache cache;
@@ -1522,11 +1507,15 @@ void Chip::Setup( Bit32u rate ) {
 	}
 }
 
-static bool doneTables = false;
+static volatile bool doneTables = false;
+static Mutex mutexTables;
+
 void InitTables( void ) {
 	if ( doneTables )
 		return;
-	doneTables = true;
+	MutexHolder lock( mutexTables );
+	if ( doneTables )
+		return;
 #if ( DBOPL_WAVE == WAVE_HANDLER ) || ( DBOPL_WAVE == WAVE_TABLELOG )
 	//Exponential volume table, same as the real adlib
 	for ( int i = 0; i < 256; i++ ) {
@@ -1676,6 +1665,7 @@ void InitTables( void ) {
 		}
 	}
 #endif
+	doneTables = true;
 }
 
 Bit32u Handler::WriteAddr( Bit32u port, Bit8u val ) {
