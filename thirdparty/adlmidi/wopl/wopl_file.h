@@ -1,7 +1,7 @@
 /*
  * Wohlstand's OPL3 Bank File - a bank format to store OPL3 timbre data and setup
  *
- * Copyright (c) 2015-2018 Vitaly Novichkov <admin@wohlnet.ru>
+ * Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,12 @@ typedef enum WOPL_VolumeModel
     WOPL_VM_Native,
     WOPL_VM_DMX,
     WOPL_VM_Apogee,
-    WOPL_VM_Win9x
+    WOPL_VM_Win9x,
+    WOPL_VM_DMX_Fixed,
+    WOPL_VM_Apogee_Fixed,
+    WOPL_VM_AIL,
+    WOPL_VM_Win9x_GenericFM,
+    WOPL_VM_HMI
 } WOPL_VolumeModel;
 
 typedef enum WOPL_InstrumentFlags
@@ -242,7 +247,7 @@ extern WOPLFile *WOPL_LoadBankFromMem(void *mem, size_t length, int *error);
 /**
  * @brief Load WOPI instrument file from the memory.
  * You must allocate WOPIFile structure by yourself and give the pointer to it.
- * @param file Pointer to destinition WOPIFile structure to fill it with parsed data.
+ * @param file Pointer to destination WOPIFile structure to fill it with parsed data.
  * @param mem Pointer to memory block contains raw WOPI instrument file data
  * @param length Length of given memory block
  * @return 0 if no errors occouped, or an error code of WOPL_ErrorCodes enumeration
@@ -252,7 +257,7 @@ extern int WOPL_LoadInstFromMem(WOPIFile *file, void *mem, size_t length);
 /**
  * @brief Calculate the size of the output memory block
  * @param file Heap-allocated WOPL file data structure
- * @param version Destinition version of the file
+ * @param version Destination version of the file
  * @return Size of the raw WOPL file data
  */
 extern size_t WOPL_CalculateBankFileSize(WOPLFile *file, uint16_t version);
@@ -260,7 +265,7 @@ extern size_t WOPL_CalculateBankFileSize(WOPLFile *file, uint16_t version);
 /**
  * @brief Calculate the size of the output memory block
  * @param file Pointer to WOPI file data structure
- * @param version Destinition version of the file
+ * @param version Destination version of the file
  * @return Size of the raw WOPI file data
  */
 extern size_t WOPL_CalculateInstFileSize(WOPIFile *file, uint16_t version);
@@ -268,8 +273,8 @@ extern size_t WOPL_CalculateInstFileSize(WOPIFile *file, uint16_t version);
 /**
  * @brief Write raw WOPL into given memory block
  * @param file Heap-allocated WOPL file data structure
- * @param dest_mem Destinition memory block pointer
- * @param length Length of destinition memory block
+ * @param dest_mem Destination memory block pointer
+ * @param length Length of destination memory block
  * @param version Wanted WOPL version
  * @param force_gm Force GM set in saved bank file
  * @return Error code or 0 on success
@@ -279,8 +284,8 @@ extern int WOPL_SaveBankToMem(WOPLFile *file, void *dest_mem, size_t length, uin
 /**
  * @brief Write raw WOPI into given memory block
  * @param file Pointer to WOPI file data structure
- * @param dest_mem Destinition memory block pointer
- * @param length Length of destinition memory block
+ * @param dest_mem Destination memory block pointer
+ * @param length Length of destination memory block
  * @param version Wanted WOPI version
  * @return Error code or 0 on success
  */

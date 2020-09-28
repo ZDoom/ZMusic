@@ -18,19 +18,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NUKED_OPL3174_H
-#define NUKED_OPL3174_H
+#ifndef OPAL_OPL3_H
+#define OPAL_OPL3_H
 
 #include "opl_chip_base.h"
 
-class NukedOPL3v174 final : public OPLChipBaseT<NukedOPL3v174>
+class OpalOPL3 final : public OPLChipBaseT<OpalOPL3>
 {
     void *m_chip;
 public:
-    NukedOPL3v174();
-    ~NukedOPL3v174() override;
+    OpalOPL3();
+    ~OpalOPL3() override;
 
-    bool canRunAtPcmRate() const override { return false; }
+    bool canRunAtPcmRate() const override { return true; }
     void setRate(uint32_t rate) override;
     void reset() override;
     void writeReg(uint16_t addr, uint8_t data) override;
@@ -41,4 +41,4 @@ public:
     const char *emulatorName() override;
 };
 
-#endif // NUKED_OPL3174_H
+#endif // NUKED_OPL3_H
