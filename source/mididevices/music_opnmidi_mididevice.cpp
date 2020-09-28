@@ -92,7 +92,7 @@ OPNMIDIDevice::OPNMIDIDevice(const char *bank)
 		{
 			if(opnConfig.default_bank.size() == 0)
 			{
-				opn2_openBankData(Renderer, xg_default, 62080);
+				opn2_openBankData(Renderer, xg_default, sizeof(xg_default));
 			}
 			else opn2_openBankData(Renderer, opnConfig.default_bank.data(), (long)opnConfig.default_bank.size());
 		}

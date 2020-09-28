@@ -13,7 +13,7 @@ struct ADLConfig
 	int adl_chips_count = 6;
 	int adl_emulator_id = 0;
 	int adl_bank = 14;
-	int adl_volume_model = 3; // DMX
+	int adl_volume_model = 6; // A "Fixed" DMX (without simulation of AM voices bug)
 	int adl_run_at_pcm_rate = 0;
 	int adl_fullpan = 1;
 	int adl_use_custom_bank = false;
