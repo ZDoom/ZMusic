@@ -1,8 +1,8 @@
 /*
- * libOPNMIDI is a free MIDI to WAV conversion library with OPN2 (YM2612) emulation
+ * libOPNMIDI is a free Software MIDI synthesizer library with OPN2 (YM2612) emulation
  *
  * MIDI parser and player (Original code from ADLMIDI): Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2018 Vitaly Novichkov <admin@wohlnet.ru>
+ * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2020 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 #define OPNMIDI_VERSION_MAJOR       1
-#define OPNMIDI_VERSION_MINOR       4
+#define OPNMIDI_VERSION_MINOR       5
 #define OPNMIDI_VERSION_PATCHLEVEL  0
 
 #define OPNMIDI_TOSTR_I(s) #s
@@ -38,6 +38,9 @@ extern "C" {
         OPNMIDI_TOSTR(OPNMIDI_VERSION_MAJOR) "." \
         OPNMIDI_TOSTR(OPNMIDI_VERSION_MINOR) "." \
         OPNMIDI_TOSTR(OPNMIDI_VERSION_PATCHLEVEL)
+
+#define OPN_OPN2_SAMPLE_RATE        53267
+#define OPN_OPNA_SAMPLE_RATE        55466
 
 #include <stddef.h>
 
@@ -94,6 +97,17 @@ typedef short           OPN2_SInt16;
 #endif
 
 /**
+ * @brief Chip types
+ */
+enum OPNMIDI_ChipType
+{
+    /*! The Yamaha OPN2, alias YM2612 YM3438 */
+    OPNMIDI_ChipType_OPN2 = 0,
+    /*! The Yamaha OPNA, alias YM2608 */
+    OPNMIDI_ChipType_OPNA
+};
+
+/**
  * @brief Volume scaling models
  */
 enum OPNMIDI_VolumeModels
@@ -138,7 +152,7 @@ enum OPNMIDI_SampleType
     /*! unsigned PCM 32-bit */
     OPNMIDI_SampleType_U32,
     /*! Count of available sample format types */
-    OPNMIDI_SampleType_Count,
+    OPNMIDI_SampleType_Count
 };
 
 /**
@@ -220,7 +234,74 @@ enum OPN2_BankAccessFlags
     OPNMIDI_Bank_CreateRt = 1|2
 };
 
-typedef struct OPN2_Instrument OPN2_Instrument;
+
+
+/* ======== Instrument structures ======== */
+
+/**
+ * @brief Version of the instrument data format
+ */
+enum
+{
+    OPNMIDI_InstrumentVersion = 0
+};
+
+/**
+ * @brief Instrument flags
+ */
+typedef enum OPN2_InstrumentFlags
+{
+    OPNMIDI_Ins_Pseudo8op  = 0x01, /*Reserved for future use, not implemented yet*/
+    OPNMIDI_Ins_IsBlank    = 0x02
+} OPN2_InstrumentFlags;
+
+/**
+ * @brief Operator structure, part of Instrument structure
+ */
+typedef struct OPN2_Operator
+{
+    /* Detune and frequency multiplication register data */
+    OPN2_UInt8 dtfm_30;
+    /* Total level register data */
+    OPN2_UInt8 level_40;
+    /* Rate scale and attack register data */
+    OPN2_UInt8 rsatk_50;
+    /* Amplitude modulation enable and Decay-1 register data */
+    OPN2_UInt8 amdecay1_60;
+    /* Decay-2 register data */
+    OPN2_UInt8 decay2_70;
+    /* Sustain and Release register data */
+    OPN2_UInt8 susrel_80;
+    /* SSG-EG register data */
+    OPN2_UInt8 ssgeg_90;
+} OPN2_Operator;
+
+/**
+ * @brief Instrument structure
+ */
+typedef struct OPN2_Instrument
+{
+    /*! Version of the instrument object */
+    int version;
+    /* MIDI note key (half-tone) offset for an instrument (or a first voice in pseudo-4-op mode) */
+    OPN2_SInt16 note_offset;
+    /* Reserved */
+    OPN2_SInt8  midi_velocity_offset;
+    /* Percussion MIDI base tone number at which this drum will be played */
+    OPN2_UInt8 percussion_key_number;
+    /* Instrument flags */
+    OPN2_UInt8 inst_flags;
+    /* Feedback and Algorithm register data */
+    OPN2_UInt8 fbalg;
+    /* LFO Sensitivity register data */
+    OPN2_UInt8 lfosens;
+    /* Operators register data */
+    OPN2_Operator operators[4];
+    /* Millisecond delay of sounding while key is on */
+    OPN2_UInt16 delay_on_ms;
+    /* Millisecond delay of sounding after key off */
+    OPN2_UInt16 delay_off_ms;
+} OPN2_Instrument;
 
 
 
@@ -310,6 +391,12 @@ extern OPNMIDI_DECLSPEC void opn2_setLfoFrequency(struct OPN2_MIDIPlayer *device
 
 /*Get the LFO frequency*/
 extern OPNMIDI_DECLSPEC int opn2_getLfoFrequency(struct OPN2_MIDIPlayer *device);
+
+/*Override chip type. -1 - use bank default state*/
+extern OPNMIDI_DECLSPEC void opn2_setChipType(struct OPN2_MIDIPlayer *device, int chipType);
+
+/*Get the chip type*/
+extern OPNMIDI_DECLSPEC int opn2_getChipType(struct OPN2_MIDIPlayer *device);
 
 /**
  * @brief Override Enable(1) or Disable(0) scaling of modulator volumes. -1 - use bank default scaling of modulator volumes
@@ -419,6 +506,14 @@ enum Opn2_Emulator
     OPNMIDI_EMU_GENS,
     /*! Genesis Plus GX (a fork of Mame YM2612) */
     OPNMIDI_EMU_GX,
+    /*! Neko Project II OPNA */
+    OPNMIDI_EMU_NP2,
+    /*! Mame YM2608 */
+    OPNMIDI_EMU_MAME_2608,
+    /*! PMDWin OPNA */
+    OPNMIDI_EMU_PMDWIN,
+    /*! VGM file dumper (required for MIDI2VGM) */
+    OPNMIDI_VGM_DUMPER,
     /*! Count instrument on the level */
     OPNMIDI_EMU_end
 };
@@ -502,6 +597,8 @@ extern OPNMIDI_DECLSPEC const char *opn2_errorInfo(struct OPN2_MIDIPlayer *devic
  * Tip 1: You can initialize multiple instances and run them in parallel
  * Tip 2: Library is NOT thread-safe, therefore don't use same instance in different threads or use mutexes
  * Tip 3: Changing of sample rate on the fly is not supported. Re-create the instance again.
+ * Top 4: To generate output in OPN2 or OPNA chip native sample rate, please initialize it with sample rate
+ *        value as `OPN_OPN2_SAMPLE_RATE` or `OPN_OPNA_SAMPLE_RATE` in dependence on the chip
  *
  * @param sample_rate Output sample rate
  * @return Instance of the library. If NULL was returned, check the `adl_errorString` message for more info.
@@ -798,7 +895,7 @@ enum OPNMIDI_TrackOptions
     /*! Disabled track */
     OPNMIDI_TrackOption_Off  = 2,
     /*! Solo track */
-    OPNMIDI_TrackOption_Solo = 3,
+    OPNMIDI_TrackOption_Solo = 3
 };
 
 /**
@@ -1001,76 +1098,6 @@ extern OPNMIDI_DECLSPEC void opn2_setDebugMessageHook(struct OPN2_MIDIPlayer *de
  * To get the valid MIDI channel you will need to apply the & 0x0F mask to every value.
  */
 extern OPNMIDI_DECLSPEC int opn2_describeChannels(struct OPN2_MIDIPlayer *device, char *text, char *attr, size_t size);
-
-
-
-
-/* ======== Instrument structures ======== */
-
-/**
- * @brief Version of the instrument data format
- */
-enum
-{
-    OPNMIDI_InstrumentVersion = 0
-};
-
-/**
- * @brief Instrument flags
- */
-typedef enum OPN2_InstrumentFlags
-{
-    OPNMIDI_Ins_Pseudo8op  = 0x01, /*Reserved for future use, not implemented yet*/
-    OPNMIDI_Ins_IsBlank    = 0x02
-} OPN2_InstrumentFlags;
-
-/**
- * @brief Operator structure, part of Instrument structure
- */
-typedef struct OPN2_Operator
-{
-    /* Detune and frequency multiplication register data */
-    OPN2_UInt8 dtfm_30;
-    /* Total level register data */
-    OPN2_UInt8 level_40;
-    /* Rate scale and attack register data */
-    OPN2_UInt8 rsatk_50;
-    /* Amplitude modulation enable and Decay-1 register data */
-    OPN2_UInt8 amdecay1_60;
-    /* Decay-2 register data */
-    OPN2_UInt8 decay2_70;
-    /* Sustain and Release register data */
-    OPN2_UInt8 susrel_80;
-    /* SSG-EG register data */
-    OPN2_UInt8 ssgeg_90;
-} OPN2_Operator;
-
-/**
- * @brief Instrument structure
- */
-typedef struct OPN2_Instrument
-{
-    /*! Version of the instrument object */
-    int version;
-    /* MIDI note key (half-tone) offset for an instrument (or a first voice in pseudo-4-op mode) */
-    OPN2_SInt16 note_offset;
-    /* Reserved */
-    OPN2_SInt8  midi_velocity_offset;
-    /* Percussion MIDI base tone number at which this drum will be played */
-    OPN2_UInt8 percussion_key_number;
-    /* Instrument flags */
-    OPN2_UInt8 inst_flags;
-    /* Feedback and Algorithm register data */
-    OPN2_UInt8 fbalg;
-    /* LFO Sensitivity register data */
-    OPN2_UInt8 lfosens;
-    /* Operators register data */
-    OPN2_Operator operators[4];
-    /* Millisecond delay of sounding while key is on */
-    OPN2_UInt16 delay_on_ms;
-    /* Millisecond delay of sounding after key off */
-    OPN2_UInt16 delay_off_ms;
-} OPN2_Instrument;
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 /*
  * Interfaces over Yamaha OPN2 (YM2612) chip emulators
  *
- * Copyright (C) 2017-2018 Vitaly Novichkov (Wohlstand)
+ * Copyright (c) 2017-2020 Vitaly Novichkov (Wohlstand)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ class GensOPN2 final : public OPNChipBaseBufferedT<GensOPN2>
 {
     Ym2612_Emu *chip;
 public:
-    GensOPN2();
+    explicit GensOPN2(OPNFamily f);
     ~GensOPN2() override;
 
     bool canRunAtPcmRate() const override { return true; }

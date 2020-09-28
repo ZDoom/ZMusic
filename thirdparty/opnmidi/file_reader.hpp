@@ -1,7 +1,7 @@
 /*
  * FileAndMemoryReader - a tiny helper to utify file reading from a disk and memory block
  *
- * Copyright (c) 2015-2018 Vitaly Novichkov <admin@wohlnet.ru>
+ * Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -140,6 +140,7 @@ public:
         {
             switch(rel_to)
             {
+            default:
             case SET:
                 m_mp_tell = static_cast<size_t>(pos);
                 break;
