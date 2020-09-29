@@ -47,6 +47,7 @@ ADLConfig adlConfig;
 class ADLMIDIDevice : public SoftSynthMIDIDevice
 {
 	struct ADL_MIDIPlayer *Renderer;
+	float OutputGainFactor;
 public:
 	ADLMIDIDevice(const ADLConfig *config);
 	~ADLMIDIDevice();
@@ -86,6 +87,7 @@ ADLMIDIDevice::ADLMIDIDevice(const ADLConfig *config)
 	:SoftSynthMIDIDevice(44100)
 {
 	Renderer = adl_init(44100);	// todo: make it configurable
+	OutputGainFactor = 3.5f;
 	if (Renderer != nullptr)
 	{
 		adl_switchEmulator(Renderer, config->adl_emulator_id);
@@ -95,6 +97,34 @@ ADLMIDIDevice::ADLMIDIDevice(const ADLConfig *config)
 		adl_setNumChips(Renderer, config->adl_chips_count);
 		adl_setVolumeRangeModel(Renderer, config->adl_volume_model);
 		adl_setSoftPanEnabled(Renderer, config->adl_fullpan);
+		// TODO: Please tune the factor for each volume model to avoid too loud or too silent sounding
+		switch (adl_getVolumeRangeModel(Renderer))
+		{
+		// Louder models
+		case ADLMIDI_VolumeModel_Generic:
+		case ADLMIDI_VolumeModel_9X:
+		case ADLMIDI_VolumeModel_9X_GENERIC_FM:
+			OutputGainFactor = 2.0f;
+			break;
+		// Middle volume models
+		case ADLMIDI_VolumeModel_HMI:
+		case ADLMIDI_VolumeModel_HMI_OLD:
+			OutputGainFactor = 2.5f;
+			break;
+		default:
+		// Quite models
+		case ADLMIDI_VolumeModel_DMX:
+		case ADLMIDI_VolumeModel_DMX_Fixed:
+		case ADLMIDI_VolumeModel_APOGEE:
+		case ADLMIDI_VolumeModel_APOGEE_Fixed:
+		case ADLMIDI_VolumeModel_AIL:
+			OutputGainFactor = 3.5f;
+			break;
+		// Quiter models
+		case ADLMIDI_VolumeModel_NativeOPL3:
+			OutputGainFactor = 3.8f;
+			break;
+		}
 	}
 	else throw std::runtime_error("Failed to create ADL MIDI renderer.");
 }
@@ -222,7 +252,7 @@ void ADLMIDIDevice::ComputeOutput(float *buffer, int len)
 	auto result = adl_generateFormat(Renderer, len * 2, left, right, &audio_output_format);
 	for(int i=0; i < result; i++)
 	{
-		buffer[i] *= 3.5f;
+		buffer[i] *= OutputGainFactor;
 	}
 }
 
