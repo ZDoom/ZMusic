@@ -289,8 +289,8 @@ EventType AlsaMIDIDevice::PullEvent(EventState & state) {
 			return EventType::Action;
 
 		case MIDI_POLYPRESS:
-			// FIXME: Seems to be missing in the Alsa sequencer implementation
-			break;
+			snd_seq_ev_set_keypress(&state.data, channel, parm1, parm2);
+			return EventType::Action;
 
 		case MIDI_CTRLCHANGE:
 			snd_seq_ev_set_controller(&state.data, channel, parm1, parm2);
@@ -427,7 +427,6 @@ void AlsaMIDIDevice::PumpEvents() {
 		snd_seq_drain_output(sequencer.handle);
 		snd_seq_sync_output_queue(sequencer.handle);
 	}
-	snd_seq_sync_output_queue(sequencer.handle);
 	snd_seq_stop_queue(sequencer.handle, QueueId, NULL);
 	snd_seq_drain_output(sequencer.handle);
 }
