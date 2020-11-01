@@ -322,18 +322,31 @@ static void FindOggComments(MusicIO::FileInterface *fr, uint32_t *loop_start, zm
 		if(fr->read(segsizes, ogg_segments) != ogg_segments)
 			break;
 
-		// Find the segment with the Vorbis Comment packet (type 3)
+		// Find the segment with the Vorbis Comment packet (type 3) or Opus tags.
+		bool vorbis_comments = false;
 		for(int i = 0; i < ogg_segments; ++i)
 		{
 			uint8_t segsize = segsizes[i];
 
 			if(segsize > 16)
 			{
-				uint8_t vorbhead[7];
-				if(fr->read(vorbhead, 7) != 7)
+				uint8_t vorbhead[8];
+				if(fr->read(vorbhead, 8) != 8)
 					return;
 
-				if(vorbhead[0] == 3 && memcmp(vorbhead+1, "vorbis", 6) == 0)
+				if(vorbhead[0] == 3 && memcmp(vorbhead + 1, "vorbis", 6) == 0)
+				{
+					// Seek back because the vorbis tag is only 7 bytes long.
+					if(fr->seek(-1, SEEK_CUR) == -1)
+						return;
+					segsize++;
+
+					vorbis_comments = true;
+				}
+				else if(memcmp(vorbhead, "OpusTags", 8) == 0)
+					vorbis_comments = true;
+
+				if(vorbis_comments)
 				{
 					// If the packet is 'laced', it spans multiple segments (a
 					// segment size of 255 indicates the next segment continues
@@ -355,7 +368,7 @@ static void FindOggComments(MusicIO::FileInterface *fr, uint32_t *loop_start, zm
 					return;
 				}
 
-				segsize -= 7;
+				segsize -= 8;
 			}
 			if(fr->seek(segsize, SEEK_CUR) == -1)
 				return;
