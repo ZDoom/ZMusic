@@ -24,11 +24,6 @@ if( FORCE_CROSSCOMPILE )
 	set( CMAKE_CROSSCOMPILING TRUE )
 endif()
 
-if(CMAKE_CROSSCOMPILING)
-	set(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Export file from native build.")
-	include(${IMPORT_EXECUTABLES})
-endif()
-
 
 # Macro for building libraries without debugging information
 macro( make_release_only )
