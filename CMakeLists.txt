@@ -26,7 +26,13 @@ endif()
 
 if(CMAKE_CROSSCOMPILING)
 	set(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Export file from native build.")
-	include(${IMPORT_EXECUTABLES})
+
+	# todo: if compile-time executables should ever be required, this must be promoted to a fatal error
+	if (IMPORT_EXECUTABLES STREQUAL "IMPORTFILE-NOTFOUND")
+		message(WARNING "IMPORT_EXECUTABLES not set!")
+	else()
+		include(${IMPORT_EXECUTABLES})
+	endif()
 endif()
 
 
