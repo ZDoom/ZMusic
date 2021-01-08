@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.7...3.19)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 make_release_only()
@@ -133,10 +133,13 @@ if(MINGW)
     set(ZLIB_SRCS ${ZLIB_SRCS} ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 endif()
 
-add_library(${ZLIBNAME} STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+add_library(${ZLIBNAME} OBJECT ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(${ZLIBNAME} PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 
 set_target_properties(${ZLIBNAME} PROPERTIES SOVERSION 1)
+
+# [ZMusic] Set target include directories
+target_include_directories(${ZLIBNAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version

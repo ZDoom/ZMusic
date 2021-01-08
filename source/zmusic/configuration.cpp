@@ -37,16 +37,21 @@
 #include <mmsystem.h>
 #endif
 #include <algorithm>
-#include "timidity/timidity.h"
-#include "timiditypp/timidity.h"
-#include "oplsynth/oplio.h"
 #include "critsec.h"
-#include "../../thirdparty/dumb/include/dumb.h"
+#include "dumb.h"
 
 #include "zmusic_internal.h"
 #include "musinfo.h"
 #include "midiconfig.h"
 #include "mididevices/music_alsa_state.h"
+
+#ifdef HAVE_TIMIDITY
+#include "timidity/timidity.h"
+#include "timiditypp/timidity.h"
+#endif
+#ifdef HAVE_OPL
+#include "oplsynth/oplio.h"
+#endif
 
 struct Dummy
 {

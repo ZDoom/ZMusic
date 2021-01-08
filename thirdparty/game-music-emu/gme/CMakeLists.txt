@@ -156,20 +156,20 @@ set (EXPORTED_HEADERS gme.h)
 # we're building the library or merely using the library. The following is
 # only defined when building the library to allow us to tell which is which.
 
-#[ZDoom] Not needed
+#[ZMusic] Not needed
 #add_definitions(-DBLARGG_BUILD_DLL)
 
 # For the gme_types.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Add library to be compiled.
-add_library(gme STATIC ${libgme_SRCS})
+add_library(gme OBJECT ${libgme_SRCS})
 
 if(ZLIB_FOUND)
     message(" ** ZLib library located, compressed file formats will be supported")
     target_compile_definitions(gme PRIVATE -DHAVE_ZLIB_H)
-    target_include_directories(gme PRIVATE ${ZLIB_INCLUDE_DIRS})
-    target_link_libraries(gme ${ZLIB_LIBRARIES})
+    # [ZMusic] Switch to modern target for better transitive handling.
+    target_link_libraries(gme PRIVATE ZLIB::ZLIB)
     # Is not to be installed though
 
     set(PKG_CONFIG_ZLIB -lz) # evaluated in libgme.pc.in
@@ -177,7 +177,10 @@ else()
     message("ZLib library not found, disabling support for compressed formats such as VGZ")
 endif()
 
-# [ZDoom] Not needed.
+# [ZMusic] Interface include directories
+target_include_directories(gme INTERFACE ..)
+
+# [ZMusic] Not needed.
 if( FALSE )
 # The version is the release.  The "soversion" is the API version.  As long
 # as only build fixes are performed (i.e. no backwards-incompatible changes

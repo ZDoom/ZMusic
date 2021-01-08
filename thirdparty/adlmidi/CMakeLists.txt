@@ -1,11 +1,9 @@
-cmake_minimum_required( VERSION 2.8.7 )
-
 make_release_only()
-use_fast_math()
 
-add_definitions(-DADLMIDI_DISABLE_MIDI_SEQUENCER)
+add_library(adl OBJECT)
 
-add_library( adl STATIC
+target_sources(adl
+PRIVATE
 	adlmidi_midiplay.cpp
 	adlmidi_opl3.cpp
 	adlmidi_private.cpp
@@ -21,5 +19,10 @@ add_library( adl STATIC
 	chips/nuked/nukedopl3_174.c
 	chips/nuked/nukedopl3.c
 	wopl/wopl_file.c
-	)
-target_link_libraries( adl )
+)
+
+target_compile_definitions(adl PRIVATE ADLMIDI_DISABLE_MIDI_SEQUENCER)
+
+target_include_directories(adl PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
+use_fast_math(adl)

@@ -31,13 +31,16 @@
 **---------------------------------------------------------------------------
 */
 
+#include "zmusic_internal.h"
+
+#ifdef HAVE_OPL
+
 #include "streamsource.h"
 #include "oplsynth/opl.h"
 #include "oplsynth/opl_mus_player.h"
 #include "fileio.h"
 #include "zmusic/midiconfig.h"
 
-#ifdef HAVE_OPL
 //==========================================================================
 //
 // OPL file played by a software OPL2 synth and streamed through the sound system

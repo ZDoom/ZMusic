@@ -1,94 +1,10 @@
-cmake_minimum_required( VERSION 2.8.7 )
-
-use_fast_math()
-require_stricmp()
-require_strnicmp()
-
-if( ZD_CMAKE_COMPILER_IS_GNUC_COMPATIBLE )
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
-endif()
-
-include( CheckFunctionExists )
-
-if( NOT WIN32 AND NOT APPLE )
-	find_package( Threads )
-endif()
-
-find_package( ALSA )
-if (WIN32 OR ALSA_FOUND)
-    add_definitions( -DHAVE_SYSTEM_MIDI )
-endif()
-
-if( DYN_SNDFILE)
-	add_definitions( -DHAVE_SNDFILE -DDYN_SNDFILE )
-else()
-	find_package( SndFile )
-
-	if( SNDFILE_FOUND )
-		add_definitions( -DHAVE_SNDFILE )
-	endif()
-endif()
-
-if( DYN_MPG123)
-	add_definitions( -DHAVE_MPG123 -DDYN_MPG123 )
-else()
-	find_package( MPG123 )
-
-	if( MPG123_FOUND )
-		add_definitions( -DHAVE_MPG123 )
-	endif()
-endif()
-
-if( DYN_FLUIDSYNTH )
-	add_definitions( -DHAVE_FLUIDSYNTH -DDYN_FLUIDSYNTH )
-else()
-	find_package( FluidSynth )
-
-	if( FLUIDSYNTH_FOUND )
-		add_definitions( -DHAVE_FLUIDSYNTH )
-	endif()
-endif()
-
-
-if( WIN32 )
-	add_definitions( -D_WIN32 )
-	set( SYS_LIBS winmm )
-else()
-	set( SYS_LIBS ${CMAKE_DL_LIBS} )
-endif() 
-
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/zmusic" "${CMAKE_CURRENT_SOURCE_DIR}/../include" "${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/dumb/include" "${ZLIB_INCLUDE_DIR}" "${ADL_INCLUDE_DIR}" "${OPN_INCLUDE_DIR}" "${TIMIDITYPP_INCLUDE_DIR}" "${TIMIDITY_INCLUDE_DIR}" "${WILDMIDI_INCLUDE_DIR}" "${OPLSYNTH_INCLUDE_DIR}" "${GME_INCLUDE_DIR}" )
-
-if (WIN32)
-    set( PLAT_SOURCES
-        mididevices/music_win_mididevice.cpp
-        musicformats/win32/i_cd.cpp
-        musicformats/win32/helperthread.cpp
-    )
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    if (ALSA_FOUND)
-        set( PLAT_SOURCES
-            mididevices/music_alsa_mididevice.cpp
-            mididevices/music_alsa_state.cpp
-        )
-    endif()
-endif()
-
-
-file( GLOB HEADER_FILES
-	zmusic/*.h
-	loader/*.h
-	mididevices/*.h
-	midisources/*.h
-	musicformats/*.h
-	musicformats/win32/*.h
-	decoder/*.h
-	streamsources/*.h
-	../thirdparty/*.h
-	../include/*.h
-	)
-set( all_files
-	${HEADER_FILES}
+# zmusic-obj doesn't actually build anything itself, but rather all sources are
+# added as interface sources.  Thus whatever links to zmusic-obj will be in
+# charge of compiling.  As a result any properties set on zmusic-obj should be
+# interface.
+add_library(zmusic-obj INTERFACE)
+target_sources(zmusic-obj
+INTERFACE
 	loader/i_module.cpp
 	mididevices/music_base_mididevice.cpp
 	mididevices/music_adlmidi_mididevice.cpp
@@ -121,71 +37,177 @@ set( all_files
 	zmusic/zmusic.cpp
 	zmusic/critsec.cpp
 	loader/test.c
-	${PLAT_SOURCES}
+)
+
+file(GLOB HEADER_FILES
+	zmusic/*.h
+	loader/*.h
+	mididevices/*.h
+	midisources/*.h
+	musicformats/*.h
+	musicformats/win32/*.h
+	decoder/*.h
+	streamsources/*.h
+	../thirdparty/*.h
+	../include/*.h
+)
+target_sources(zmusic-obj INTERFACE ${HEADER_FILES})
+
+target_compile_features(zmusic-obj INTERFACE cxx_std_11)
+#set_target_properties(zmusic-obj PROPERTIES LINKER_LANGUAGE CXX)
+
+require_stricmp(zmusic-obj INTERFACE)
+require_strnicmp(zmusic-obj INTERFACE)
+
+if(NOT WIN32 AND NOT APPLE)
+	find_package(Threads)
+	target_link_libraries(zmusic-obj INTERFACE Threads::Threads)
+	determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET Threads::Threads MODULE Threads)
+endif()
+
+option(DYN_SNDFILE "Dynamically load libsndfile" ON)
+if(DYN_SNDFILE)
+	target_compile_definitions(zmusic-obj INTERFACE HAVE_SNDFILE DYN_SNDFILE)
+else()
+	find_package(SndFile)
+
+	if(SNDFILE_FOUND)
+		target_compile_definitions(zmusic-obj INTERFACE HAVE_SNDFILE)
+		target_link_libraries(zmusic-obj INTERFACE SndFile::sndfile)
+		determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET SndFile::sndfile MODULE SndFile)
+	endif()
+endif()
+
+option(DYN_MPG123 "Dynamically load libmpg123" ON)
+if(DYN_MPG123)
+	target_compile_definitions(zmusic-obj INTERFACE HAVE_MPG123 DYN_MPG123)
+else()
+	find_package(MPG123)
+
+	if(MPG123_FOUND)
+		target_compile_definitions(zmusic-obj INTERFACE HAVE_MPG123)
+		target_link_libraries(zmusic-obj INTERFACE mpg123)
+		determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET mpg123 MODULE MPG123)
+	endif()
+endif()
+
+option(DYN_FLUIDSYNTH "Dynamically load fluidsynth" ON)
+if(DYN_FLUIDSYNTH)
+	target_compile_definitions(zmusic-obj INTERFACE HAVE_FLUIDSYNTH DYN_FLUIDSYNTH)
+else()
+	find_package(FluidSynth)
+
+	if(FLUIDSYNTH_FOUND)
+		target_compile_definitions(zmusic-obj INTERFACE HAVE_FLUIDSYNTH)
+		target_link_libraries(zmusic-obj INTERFACE libfluidsynth)
+		determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET libfluidsynth MODULE FluidSynth)
+	endif()
+endif()
+
+# System MIDI support
+if(WIN32)
+	target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
+	target_link_libraries(zmusic-obj INTERFACE winmm)
+	target_sources(zmusic-obj INTERFACE mididevices/music_win_mididevice.cpp)
+elseif(NOT APPLE)
+	find_package(ALSA)
+    if(ALSA_FOUND)
+		target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
+		target_sources(zmusic-obj
+		INTERFACE
+			mididevices/music_alsa_mididevice.cpp
+			mididevices/music_alsa_state.cpp
+		)
+		target_link_libraries(zmusic-obj INTERFACE ALSA::ALSA)
+		determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET ALSA::ALSA MODULE ALSA)
+	endif()
+endif()
+
+if(WIN32)
+	target_sources(zmusic-obj
+	INTERFACE
+		musicformats/win32/i_cd.cpp
+		musicformats/win32/helperthread.cpp
 	)
+endif()
 
-option( BUILD_SHARED_LIBS "Build shared libraries" ON )
+target_link_libraries(zmusic-obj INTERFACE dumb gme ZLIB::ZLIB ${CMAKE_DL_LIBS})
 
-add_library( zmusic ${all_files} )
-add_library( zmusiclite ${all_files} )
+target_include_directories(zmusic-obj
+INTERFACE
+	../include
+	${CMAKE_CURRENT_SOURCE_DIR}
+	zmusic
+)
+
+propagate_object_links(zmusic-obj)
+
+add_library(zmusic)
+add_library(ZMusic::zmusic ALIAS zmusic)
+add_library(zmusiclite)
+add_library(ZMusic::zmusiclite ALIAS zmusiclite)
+
+use_fast_math(zmusic)
+use_fast_math(zmusiclite)
+
+# Although zmusic-obj puts the public include directory in our private include
+# list, we need to add it to the interface include directories for consumers.
+target_include_directories(zmusic INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(zmusiclite INTERFACE $<INSTALL_INTERFACE:include>)
+
+target_link_libraries_hidden(zmusic zmusic-obj adl oplsynth opn timidity timidityplus wildmidi)
+target_link_libraries_hidden(zmusiclite zmusic-obj)
+
 target_compile_definitions(zmusiclite PRIVATE ZMUSIC_LITE=1)
 
-if( MSVC )
-	option( GENERATE_MAPFILE "Generate .map file for debugging." OFF )
-
-	if( GENERATE_MAPFILE )
-		set( LINKERSTUFF "${LINKERSTUFF} /MAP" )
-		set_target_properties(zmusic PROPERTIES LINK_FLAGS ${LINKERSTUFF})
-		set_target_properties(zmusiclite PROPERTIES LINK_FLAGS ${LINKERSTUFF})
-	endif()
- 
-endif()
-	
-
-target_link_libraries( zmusic "${SYS_LIBS}" adl dumb gme oplsynth opn timidity timidityplus wildmidi "${ZLIB_LIBRARIES}" )
-target_link_libraries( zmusiclite "${SYS_LIBS}" dumb gme "${ZLIB_LIBRARIES}" )
-
-if( NOT DYN_SNDFILE AND SNDFILE_FOUND )
-	include_directories( "${SNDFILE_INCLUDE_DIRS}" )
-	target_link_libraries( zmusic ${SNDFILE_LIBRARIES} )
-	target_link_libraries( zmusiclite ${SNDFILE_LIBRARIES} )
-endif()
-
-if( NOT DYN_MPG123 AND MPG123_FOUND )
-	include_directories( "${MPG123_INCLUDE_DIR}" )
-	target_link_libraries( zmusic ${MPG123_LIBRARIES} )
-	target_link_libraries( zmusiclite ${MPG123_LIBRARIES} )
-endif()
-
-if( NOT DYN_FLUIDSYNTH AND FLUIDSYNTH_FOUND )
-	include_directories( "${FLUIDSYNTH_INCLUDE_DIR}" )
-	target_link_libraries( zmusic ${FLUIDSYNTH_LIBRARIES} )
-	target_link_libraries( zmusiclite ${FLUIDSYNTH_LIBRARIES} )
-endif()
-
-if(ALSA_FOUND)
-	include_directories( "${ALSA_INCLUDE_DIR}" )
-	target_link_libraries( zmusic ${ALSA_LIBRARIES} )
-	target_link_libraries( zmusiclite ${ALSA_LIBRARIES} )
-endif()
-
-if(APPLE)
-	set_target_properties(zmusic PROPERTIES MACOSX_RPATH TRUE)
-	set_target_properties(zmusiclite PROPERTIES MACOSX_RPATH TRUE)
-endif()
-
-set_target_properties(zmusic zmusiclite PROPERTIES
+set_target_properties(zmusic zmusiclite
+PROPERTIES
+	MACOSX_RPATH ON
 	PUBLIC_HEADER ../include/zmusic.h
-	VERSION ${ZMUSIC_VERSION}
-	SOVERSION ${ZMUSIC_VERSION_MAJOR}
+	VERSION ${PROJECT_VERSION}
+	SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-include(GNUInstallDirs)
-
-install(TARGETS zmusic zmusiclite
-	PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+install(TARGETS zmusic EXPORT ZMusicFullTargets
+PUBLIC_HEADER
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+	COMPONENT devel
+LIBRARY
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	COMPONENT full
+	NAMELINK_COMPONENT devel
 )
+
+install(TARGETS zmusiclite EXPORT ZMusicLiteTargets
+PUBLIC_HEADER
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+	COMPONENT devel
+LIBRARY
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	COMPONENT lite
+	NAMELINK_COMPONENT devel
+)
+
+install(EXPORT ZMusicFullTargets
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic"
+	NAMESPACE ZMusic::
+	COMPONENT devel
+)
+
+install(EXPORT ZMusicLiteTargets
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic"
+	NAMESPACE ZMusic::
+	COMPONENT devel
+)
+
+if( MSVC )
+	option( ZMUSIC_GENERATE_MAPFILE "Generate .map file for debugging." OFF )
+
+	if( ZMUSIC_GENERATE_MAPFILE )
+		target_link_options(zmusic PRIVATE "/MAP")
+		target_link_options(zmusiclite PRIVATE "/MAP")
+	endif() 
+endif()
 
 source_group("MIDI Devices" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/mididevices/.+")
 source_group("MIDI Sources" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/midisources/.+")
