@@ -856,7 +856,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 #ifdef HAVE_WILDMIDI
 		case zmusic_wildmidi_config:
 			wildMidiConfig.config = value;
-			return devType() == MDEV_TIMIDITY;
+			return devType() == MDEV_WILDMIDI;
 #endif
 	}
 	return false;
