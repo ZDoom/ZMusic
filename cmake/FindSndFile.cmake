@@ -27,7 +27,7 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SndFile DEFAULT_MSG SNDFILE_LIBRARY SNDFILE_INCLUDE_DIR)
 
 if(SNDFILE_FOUND)
-	add_library(sndfile UNKNOWN IMPORTED)
+	add_library(sndfile UNKNOWN IMPORTED GLOBAL)
 	set_target_properties(sndfile
 	PROPERTIES
 		IMPORTED_LOCATION "${SNDFILE_LIBRARY}"
