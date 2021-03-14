@@ -1004,7 +1004,7 @@ DumbSong::DumbSong(DUH* myduh, int samplerate)
 	written = 0;
 	length = 0;
 	start_order = 0;
-	MasterVolume = (float)dumbConfig.mod_dumb_mastervolume;
+	MasterVolume = (float)dumbConfig.mod_dumb_mastervolume * 4;
 	if (dumbConfig.mod_samplerate != 0)
 	{
 		srate = dumbConfig.mod_samplerate;
