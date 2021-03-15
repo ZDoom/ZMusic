@@ -11,32 +11,48 @@ jobs:
       matrix:
         config:
         - {
-            name: "Visual Studio 64-bit",
-            os: windows-latest,
-            build_type: "Release",
-            extra_options: "-A x64"
-          }
-        - {
-            name: "Visual Studio 32-bit",
-            os: windows-latest,
-            build_type: "Release",
-            extra_options: "-A Win32 -DFORCE_INTERNAL_ZLIB=ON"
-          }
-        - {
-            name: "macOS Clang",
-            os: macos-latest,
+            name: "Visual Studio - Release",
+            os: windows-2019,
             build_type: "Release"
           }
         - {
-            name: "Linux GCC",
-            os: ubuntu-latest,
+            name: "Visual Studio - Debug",
+            os: windows-2019,
+            build_type: "Debug"
+          }
+        - {
+            name: "macOS Clang - Dynamic Deps",
+            os: macos-10.15,
             build_type: "Release"
           }
         - {
-            name: "Linux Clang",
-            os: ubuntu-latest,
+            name: "macOS Clang - Static Deps",
+            os: macos-10.15,
+            build_type: "Release",
+            extra_options: "-DDYN_FLUIDSYNTH=OFF -DDYN_MPG123=OFF -DDYN_SNDFILE=OFF"
+          }
+        - {
+            name: "Linux GCC - Dynamic Deps",
+            os: ubuntu-20.04,
+            build_type: "Release"
+          }
+        - {
+            name: "Linux GCC - Static Deps",
+            os: ubuntu-20.04,
+            build_type: "Release",
+            extra_options: "-DDYN_FLUIDSYNTH=OFF -DDYN_MPG123=OFF -DDYN_SNDFILE=OFF"
+          }
+        - {
+            name: "Linux Clang - Dynamic Deps",
+            os: ubuntu-20.04,
             build_type: "Release",
             extra_options: "-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++"
+          }
+        - {
+            name: "Linux Clang - Static Deps",
+            os: ubuntu-20.04,
+            build_type: "Release",
+            extra_options: "-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DDYN_FLUIDSYNTH=OFF -DDYN_MPG123=OFF -DDYN_SNDFILE=OFF"
           }
 
     steps:
@@ -47,7 +63,9 @@ jobs:
       run: |
         if [[ "${{ runner.os }}" == 'Linux' ]]; then
           sudo apt update
-          sudo apt install libasound2-dev
+          sudo apt install libasound2-dev libfluidsynth-dev libmpg123-dev libsndfile1-dev
+        elif [[ "${{ runner.os }}" == 'macOS' ]]; then
+          brew install fluidsynth mpg123 libsndfile
         fi
 
     - name: Configure
