@@ -152,7 +152,7 @@ bool MIDIWaveWriter::CloseFile()
 				size = LittleLong(uint32_t(pos - 12 - sizeof(FmtChunk) - 8));
 				if (0 == fseek(File, 4 + sizeof(FmtChunk) + 4, SEEK_CUR))
 				{
-					if (4 == fwrite(&size, 1, 5, File))
+					if (4 == fwrite(&size, 1, 4, File))
 					{
 						fclose(File);
 						File = nullptr;
