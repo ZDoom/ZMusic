@@ -503,6 +503,6 @@ DLL_EXPORT zmusic_bool ZMusic_WriteSMF(MIDISource* source, const char *fn, int l
 	auto f = MusicIO::utf8_fopen(fn, "wt");
 	if (f == nullptr) return false;
 	success = (fwrite(&midi[0], 1, midi.size(), f) == midi.size());
-	delete f;
+	fclose(f);
 	return success;
 }
