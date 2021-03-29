@@ -152,13 +152,14 @@ use_fast_math(zmusiclite)
 
 # Although zmusic-obj puts the public include directory in our private include
 # list, we need to add it to the interface include directories for consumers.
-target_include_directories(zmusic INTERFACE $<INSTALL_INTERFACE:include>)
-target_include_directories(zmusiclite INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(zmusic INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${ZMusic_SOURCE_DIR}/include>)
+target_include_directories(zmusiclite INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${ZMusic_SOURCE_DIR}/include>)
 
 target_link_libraries_hidden(zmusic zmusic-obj adl oplsynth opn timidity timidityplus wildmidi)
 target_link_libraries_hidden(zmusiclite zmusic-obj)
 
-target_compile_definitions(zmusiclite PRIVATE ZMUSIC_LITE=1)
+target_compile_definitions(zmusic PUBLIC $<$<STREQUAL:$<TARGET_PROPERTY:zmusic,TYPE>,STATIC_LIBRARY>:ZMUSIC_STATIC>)
+target_compile_definitions(zmusiclite PRIVATE ZMUSIC_LITE=1 PUBLIC $<$<STREQUAL:$<TARGET_PROPERTY:zmusiclite,TYPE>,STATIC_LIBRARY>:ZMUSIC_STATIC>)
 
 set_target_properties(zmusic zmusiclite
 PROPERTIES
@@ -168,37 +169,39 @@ PROPERTIES
 	SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-install(TARGETS zmusic EXPORT ZMusicFullTargets
-PUBLIC_HEADER
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-	COMPONENT devel
-LIBRARY
-	DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-	COMPONENT full
-	NAMELINK_COMPONENT devel
-)
+if(ZMUSIC_INSTALL)
+	install(TARGETS zmusic EXPORT ZMusicFullTargets
+	PUBLIC_HEADER
+		DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+		COMPONENT devel
+	LIBRARY
+		DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		COMPONENT full
+		NAMELINK_COMPONENT devel
+	)
 
-install(TARGETS zmusiclite EXPORT ZMusicLiteTargets
-PUBLIC_HEADER
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-	COMPONENT devel
-LIBRARY
-	DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-	COMPONENT lite
-	NAMELINK_COMPONENT devel
-)
+	install(TARGETS zmusiclite EXPORT ZMusicLiteTargets
+	PUBLIC_HEADER
+		DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+		COMPONENT devel
+	LIBRARY
+		DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		COMPONENT lite
+		NAMELINK_COMPONENT devel
+	)
 
-install(EXPORT ZMusicFullTargets
-	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic"
-	NAMESPACE ZMusic::
-	COMPONENT devel
-)
+	install(EXPORT ZMusicFullTargets
+		DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic"
+		NAMESPACE ZMusic::
+		COMPONENT devel
+	)
 
-install(EXPORT ZMusicLiteTargets
-	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic"
-	NAMESPACE ZMusic::
-	COMPONENT devel
-)
+	install(EXPORT ZMusicLiteTargets
+		DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic"
+		NAMESPACE ZMusic::
+		COMPONENT devel
+	)
+endif()
 
 if( MSVC )
 	option( ZMUSIC_GENERATE_MAPFILE "Generate .map file for debugging." OFF )
