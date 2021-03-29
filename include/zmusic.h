@@ -264,11 +264,11 @@ typedef struct ZMusicConfigurationSetting_
 
 
 #ifndef ZMUSIC_INTERNAL
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(ZMUSIC_STATIC)
 #define DLL_IMPORT _declspec(dllimport)
-#else // !_MSC_VER
+#else
 #define DLL_IMPORT
-#endif // _MSC_VER
+#endif
 // Note that the internal 'class' definitions are not C compatible!
 typedef struct { int zm1; } *ZMusic_MidiSource;
 typedef struct { int zm2; } *ZMusic_MusicStream;

@@ -12,12 +12,28 @@ include(ZUtility)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# If building standalone give the user the option to build shared or static.
-# Otherwise the vendoring project should set the variable.
 if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+	# This project is being built standalone
+
+	# Give user option to build shared or static
 	option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-elseif(NOT DEFINED BUILD_SHARED_LIBS)
-	set(BUILD_SHARED_LIBS ON)
+
+	# Enable install rules
+	set(ZMUSIC_INSTALL ON)
+else()
+	# This project is being vendored by another project, set option default if
+	# the parent project doesn't provide them.
+
+	if(NOT DEFINED BUILD_SHARED_LIBS)
+		set(BUILD_SHARED_LIBS ON)
+	endif()
+
+	# Although install rules can be avoided with EXCLUDE_FROM_ALL on
+	# add_subdirectory, the EXPORT rules may place certain usage requirements on
+	# targets shared between the two projects.
+	if(NOT DEFINED ZMUSIC_INSTALL)
+		set(ZMUSIC_INSTALL OFF)
+	endif()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -110,10 +126,12 @@ configure_package_config_file(
 	${CMAKE_CURRENT_BINARY_DIR}/ZMusicConfig.cmake
 	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ZMusicConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/ZMusicConfigVersion.cmake
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic
-	COMPONENT devel
-)
+if(ZMUSIC_INSTALL)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ZMusicConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/ZMusicConfigVersion.cmake
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ZMusic
+		COMPONENT devel
+	)
+endif()
 
 if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set(CPACK_PACKAGE_CONTACT "First Last <example@example.com>" CACHE STRING "Contact info for archive maintainer.")
