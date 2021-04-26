@@ -139,9 +139,11 @@ protected:
 #ifdef __APPLE__
 #define FLUIDSYNTHLIB1	"libfluidsynth.1.dylib"
 #define FLUIDSYNTHLIB2	"libfluidsynth.2.dylib"
+#define FLUIDSYNTHLIB3	"libfluidsynth.3.dylib"
 #else // !__APPLE__
 #define FLUIDSYNTHLIB1	"libfluidsynth.so.1"
 #define FLUIDSYNTHLIB2	"libfluidsynth.so.2"
+#define FLUIDSYNTHLIB3	"libfluidsynth.so.3"
 #endif // __APPLE__
 #endif
 
@@ -547,11 +549,19 @@ bool FluidSynthMIDIDevice::LoadFluidSynth(const char *fluid_lib)
 			return true;
 	}
 
+#ifndef FLUIDSYNTHLIB3
 	if(!FluidSynthModule.Load({FLUIDSYNTHLIB1, FLUIDSYNTHLIB2}))
 	{
 		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not load " FLUIDSYNTHLIB1 " or " FLUIDSYNTHLIB2 "\n");
 		return false;
 	}
+#else
+	if(!FluidSynthModule.Load({FLUIDSYNTHLIB1, FLUIDSYNTHLIB2, FLUIDSYNTHLIB3}))
+	{
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not load " FLUIDSYNTHLIB1 " or " FLUIDSYNTHLIB2 " or " FLUIDSYNTHLIB3 "\n");
+		return false;
+	}
+#endif
 
 	return true;
 }
