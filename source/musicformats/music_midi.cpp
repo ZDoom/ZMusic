@@ -1021,7 +1021,7 @@ DLL_EXPORT zmusic_bool ZMusic_MIDIDumpWave(ZMusic_MidiSource source, EMidiDevice
 {
 	try
 	{
-		MIDIStreamer me(devtype, devarg);
+		MIDIStreamer me(devtype, devarg ? devarg : "");
 		me.SetMIDISource(source);
 		me.DumpWave(outname, subsong, samplerate);
 		return true;
