@@ -117,6 +117,7 @@ public:
 	int Resume() override;
 	int Open() override
 	{
+		playDevice->SetCallback(Callback, CallbackData);
 		return playDevice->Open();
 	}
 	int OpenRenderer() override { return playDevice->OpenRenderer();  }
