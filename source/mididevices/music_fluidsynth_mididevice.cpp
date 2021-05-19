@@ -126,21 +126,16 @@ protected:
 #ifdef _WIN32
 
 #ifndef _M_X64
-#define FLUIDSYNTHLIB1	"fluidsynth.dll"
-#define FLUIDSYNTHLIB2	"libfluidsynth.dll"
+#define FLUIDSYNTHLIBS { "fluidsynth.dll", "libfluidsynth.dll" }
 #else
-#define FLUIDSYNTHLIB1	"fluidsynth64.dll"
-#define FLUIDSYNTHLIB2	"libfluidsynth64.dll"
+#define FLUIDSYNTHLIBS { "fluidsynth64.dll", "libfluidsynth64.dll" }
 #endif
 #else
-#include <dlfcn.h>
 
 #ifdef __APPLE__
-#define FLUIDSYNTHLIB1	"libfluidsynth.1.dylib"
-#define FLUIDSYNTHLIB2	"libfluidsynth.2.dylib"
+#define FLUIDSYNTHLIBS { "libfluidsynth.1.dylib", "libfluidsynth.2.dylib" }
 #else // !__APPLE__
-#define FLUIDSYNTHLIB1	"libfluidsynth.so.1"
-#define FLUIDSYNTHLIB2	"libfluidsynth.so.2"
+#define FLUIDSYNTHLIBS { "libfluidsynth.so.1", "libfluidsynth.so.2" }
 #endif // __APPLE__
 #endif
 
@@ -546,9 +541,23 @@ bool FluidSynthMIDIDevice::LoadFluidSynth(const char *fluid_lib)
 
 		if (!is_loaded)
 		{
-			is_loaded = FluidSynthModule.Load({ FLUIDSYNTHLIB1, FLUIDSYNTHLIB2 });
+			is_loaded = FluidSynthModule.Load(FLUIDSYNTHLIBS);
 			if (!is_loaded)
-				ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not load " FLUIDSYNTHLIB1 " or " FLUIDSYNTHLIB2 "\n");
+			{
+				std::string error = "Could not load ";
+				bool need_or = false;
+
+				for (const char *library : FLUIDSYNTHLIBS)
+				{
+					if (need_or)
+						error += " or ";
+					else
+						need_or = true;
+					error += library;
+				}
+
+				ZMusic_Printf(ZMUSIC_MSG_ERROR, "%s\n", error.c_str());
+			}
 		}
 
 		is_checked = true;
