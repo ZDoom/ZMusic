@@ -133,9 +133,9 @@ protected:
 #else
 
 #ifdef __APPLE__
-#define FLUIDSYNTHLIBS { "libfluidsynth.1.dylib", "libfluidsynth.2.dylib" }
+#define FLUIDSYNTHLIBS { "libfluidsynth.1.dylib", "libfluidsynth.2.dylib", "libfluidsynth.3.dylib" }
 #else // !__APPLE__
-#define FLUIDSYNTHLIBS { "libfluidsynth.so.1", "libfluidsynth.so.2" }
+#define FLUIDSYNTHLIBS { "libfluidsynth.so.1", "libfluidsynth.so.2", "libfluidsynth.so.3" }
 #endif // __APPLE__
 #endif
 
