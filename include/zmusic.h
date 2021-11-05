@@ -67,7 +67,8 @@ typedef struct SoundStreamInfo_
 typedef enum SampleType_
 {
 	SampleType_UInt8,
-	SampleType_Int16
+	SampleType_Int16,
+	SampleType_Float32
 } SampleType;
 
 typedef enum ChannelConfig_
