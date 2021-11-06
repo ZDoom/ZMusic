@@ -70,3 +70,13 @@ inline uint8_t ZMusic_ChannelCount(ChannelConfig chans)
     }
     return 0;
 }
+
+inline const char *ZMusic_ChannelConfigName(ChannelConfig chans)
+{
+    switch(chans)
+    {
+    case ChannelConfig_Mono: return "Mono";
+    case ChannelConfig_Stereo: return "Stereo";
+    }
+    return "(unknown)";
+}
