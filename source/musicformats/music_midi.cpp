@@ -88,6 +88,7 @@ public:
 	void SetMIDISource(MIDISource* _source);
 	bool ServiceStream(void* buff, int len) override;
 	SoundStreamInfo GetStreamInfo() const override;
+	SoundStreamInfoEx GetStreamInfoEx() const override;
 
 	int GetDeviceType() const override;
 
@@ -450,6 +451,12 @@ SoundStreamInfo MIDIStreamer::GetStreamInfo() const
 {
 	if (MIDI) return MIDI->GetStreamInfo();
 	else return { 0, 0, 0 };
+}
+
+SoundStreamInfoEx MIDIStreamer::GetStreamInfoEx() const
+{
+	if (MIDI) return MIDI->GetStreamInfoEx();
+	else return {};
 }
 
 //==========================================================================

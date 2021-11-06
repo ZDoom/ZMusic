@@ -460,6 +460,14 @@ DLL_EXPORT void ZMusic_GetStreamInfo(MusInfo *song, SoundStreamInfo *fmt)
 	*fmt = song->GetStreamInfo();
 }
 
+DLL_EXPORT void ZMusic_GetStreamInfoEx(MusInfo *song, SoundStreamInfoEx *fmt)
+{
+	if (!fmt) return;
+	if (!song) *fmt = {};
+	std::lock_guard<FCriticalSection> lock(song->CritSec);
+	*fmt = song->GetStreamInfoEx();
+}
+
 DLL_EXPORT void ZMusic_Close(MusInfo *song)
 {
 	if (!song) return;

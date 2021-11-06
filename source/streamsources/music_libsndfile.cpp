@@ -51,6 +51,7 @@ public:
 	~SndFileSong();
 	std::string GetStats() override;
 	SoundStreamInfo GetFormat() override;
+	SoundStreamInfoEx GetFormatEx() override;
 	bool GetData(void *buffer, size_t len) override;
 	
 protected:
@@ -453,6 +454,16 @@ SoundStreamInfo SndFileSong::GetFormat()
 {
 	// deal with this once the configuration is handled better.
 	return { 64/*snd_streambuffersize*/ * 1024, SampleRate, -Channels };
+}
+
+SoundStreamInfoEx SndFileSong::GetFormatEx()
+{
+	ChannelConfig chans;
+	SampleType stype;
+	int srate;
+
+	Decoder->getInfo(&srate, &chans, &stype);
+	return { 64/*snd_streambuffersize*/ * 1024, srate, stype, chans };
 }
 
 //==========================================================================
