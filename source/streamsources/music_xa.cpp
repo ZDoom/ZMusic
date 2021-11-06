@@ -235,7 +235,6 @@ class XASong : public StreamSource
 {
 public:
 	XASong(MusicIO::FileInterface *readr);
-	SoundStreamInfo GetFormat() override;
 	SoundStreamInfoEx GetFormatEx() override;
 	bool Start() override;
 	bool GetData(void *buffer, size_t len) override;
@@ -259,12 +258,6 @@ XASong::XASong(MusicIO::FileInterface * reader)
 	xad.t1 = xad.t2 = xad.t1_x = xad.t2_x = 0;
 
 	getNextXABlock(&xad, false);
-}
-
-SoundStreamInfo XASong::GetFormat()
-{
-	auto SampleRate = xad.blockIs18K? 18900 : 37800;
-	return { 64*1024, SampleRate, 2};
 }
 
 SoundStreamInfoEx XASong::GetFormatEx()

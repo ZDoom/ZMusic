@@ -54,7 +54,6 @@ public:
 	~OPLMUSSong ();
 	bool Start() override;
 	void ChangeSettingInt(const char *name, int value) override;
-	SoundStreamInfo GetFormat() override;
 	SoundStreamInfoEx GetFormatEx() override;
 
 protected:
@@ -86,18 +85,6 @@ OPLMUSSong::OPLMUSSong(MusicIO::FileInterface* reader, OPLConfig* config)
 		throw std::runtime_error(error);
 	}
 	current_opl_core = config->core;
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-SoundStreamInfo OPLMUSSong::GetFormat()
-{
-	int samples = int(OPL_SAMPLE_RATE / 14);
-	return { samples * 4, int(OPL_SAMPLE_RATE), current_opl_core == 0? 1:2  };
 }
 
 //==========================================================================
