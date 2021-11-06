@@ -64,7 +64,6 @@ public:
 	//bool SetPosition(int ms);
 	bool SetSubsong(int subsong) override;
 	bool Start() override;
-	SoundStreamInfo GetFormat() override;
 	SoundStreamInfoEx GetFormatEx() override;
 	void ChangeSettingNum(const char* setting, double val) override;
 	std::string GetStats() override;
@@ -1027,17 +1026,6 @@ DumbSong::~DumbSong()
 {
 	if (sr) duh_end_sigrenderer(sr);
 	if (duh) unload_duh(duh);
-}
-
-//==========================================================================
-//
-// DumbSong GetFormat
-//
-//==========================================================================
-
-SoundStreamInfo DumbSong::GetFormat()
-{
-	return { 32*1024, srate, 2 };
 }
 
 //==========================================================================

@@ -455,9 +455,24 @@ DLL_EXPORT zmusic_bool ZMusic_IsMIDI(MusInfo *song)
 DLL_EXPORT void ZMusic_GetStreamInfo(MusInfo *song, SoundStreamInfo *fmt)
 {
 	if (!fmt) return;
-	if (!song) *fmt = {};
-	std::lock_guard<FCriticalSection> lock(song->CritSec);
-	*fmt = song->GetStreamInfo();
+	*fmt = {};
+
+	if (!song)
+		return;
+
+	SoundStreamInfoEx fmtex;
+	{
+		std::lock_guard<FCriticalSection> lock(song->CritSec);
+		fmtex = song->GetStreamInfoEx();
+	}
+	if (fmtex.mSampleRate > 0)
+	{
+		fmt->mBufferSize = fmtex.mBufferSize;
+		fmt->mSampleRate = fmtex.mSampleRate;
+		fmt->mNumChannels = ZMusic_ChannelCount(fmtex.mChannelConfig);
+		if (fmtex.mSampleType == SampleType_Int16)
+			fmt->mNumChannels *= -1;
+	}
 }
 
 DLL_EXPORT void ZMusic_GetStreamInfoEx(MusInfo *song, SoundStreamInfoEx *fmt)

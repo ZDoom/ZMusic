@@ -88,22 +88,6 @@ SoftSynthMIDIDevice::~SoftSynthMIDIDevice()
 
 //==========================================================================
 //
-// SoftSynthMIDIDevice :: GetStreamInfo
-//
-//==========================================================================
-
-SoundStreamInfo SoftSynthMIDIDevice::GetStreamInfo() const
-{
-	int chunksize = (SampleRate / StreamBlockSize) * 4;
-	if (!isMono)
-	{
-		chunksize *= 2;
-	}
-	return { chunksize, SampleRate, isMono? 1:2 };
-}
-
-//==========================================================================
-//
 // SoftSynthMIDIDevice :: GetStreamInfoEx
 //
 //==========================================================================

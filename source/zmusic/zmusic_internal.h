@@ -49,3 +49,24 @@ struct CustomFileReader : public MusicIO::FileInterface
 
 
 void ZMusic_Printf(int type, const char* msg, ...);
+
+inline uint8_t ZMusic_SampleTypeSize(SampleType stype)
+{
+    switch(stype)
+    {
+    case SampleType_UInt8: return sizeof(uint8_t);
+    case SampleType_Int16: return sizeof(int16_t);
+    case SampleType_Float32: return sizeof(float);
+    }
+    return 0;
+}
+
+inline uint8_t ZMusic_ChannelCount(ChannelConfig chans)
+{
+    switch(chans)
+    {
+    case ChannelConfig_Mono: return 1;
+    case ChannelConfig_Stereo: return 2;
+    }
+    return 0;
+}

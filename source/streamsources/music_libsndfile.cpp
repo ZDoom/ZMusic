@@ -50,7 +50,6 @@ public:
 	SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t loop_end, bool startass, bool endass);
 	~SndFileSong();
 	std::string GetStats() override;
-	SoundStreamInfo GetFormat() override;
 	SoundStreamInfoEx GetFormatEx() override;
 	bool GetData(void *buffer, size_t len) override;
 	
@@ -448,12 +447,6 @@ SndFileSong::SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t lo
 	Loop_End = sampleLength == 0 ? loop_end : std::min<uint32_t>(loop_end, sampleLength);
 	Decoder = decoder;
 	Channels = iChannels == ChannelConfig_Stereo? 2:1;
-}
-
-SoundStreamInfo SndFileSong::GetFormat()
-{
-	// deal with this once the configuration is handled better.
-	return { 64/*snd_streambuffersize*/ * 1024, SampleRate, -Channels };
 }
 
 SoundStreamInfoEx SndFileSong::GetFormatEx()
