@@ -88,7 +88,7 @@ SoftSynthMIDIDevice::~SoftSynthMIDIDevice()
 
 //==========================================================================
 //
-// SoftSynthMIDIDevice :: GwrStreamInfo
+// SoftSynthMIDIDevice :: GetStreamInfo
 //
 //==========================================================================
 
@@ -100,6 +100,23 @@ SoundStreamInfo SoftSynthMIDIDevice::GetStreamInfo() const
 		chunksize *= 2;
 	}
 	return { chunksize, SampleRate, isMono? 1:2 };
+}
+
+//==========================================================================
+//
+// SoftSynthMIDIDevice :: GetStreamInfoEx
+//
+//==========================================================================
+
+SoundStreamInfoEx SoftSynthMIDIDevice::GetStreamInfoEx() const
+{
+	int chunksize = (SampleRate / StreamBlockSize) * 4;
+	if (!isMono)
+	{
+		chunksize *= 2;
+	}
+	return { chunksize, SampleRate, SampleType_Float32,
+		isMono ? ChannelConfig_Mono : ChannelConfig_Stereo };
 }
 
 //==========================================================================

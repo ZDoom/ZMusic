@@ -65,6 +65,7 @@ public:
 	bool SetSubsong(int subsong) override;
 	bool Start() override;
 	SoundStreamInfo GetFormat() override;
+	SoundStreamInfoEx GetFormatEx() override;
 	void ChangeSettingNum(const char* setting, double val) override;
 	std::string GetStats() override;
 
@@ -1037,6 +1038,17 @@ DumbSong::~DumbSong()
 SoundStreamInfo DumbSong::GetFormat()
 {
 	return { 32*1024, srate, 2 };
+}
+
+//==========================================================================
+//
+// DumbSong GetFormatEx
+//
+//==========================================================================
+
+SoundStreamInfoEx DumbSong::GetFormatEx()
+{
+	return { 32*1024, srate, SampleType_Float32, ChannelConfig_Stereo };
 }
 
 //==========================================================================

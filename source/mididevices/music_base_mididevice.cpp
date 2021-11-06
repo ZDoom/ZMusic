@@ -180,3 +180,14 @@ SoundStreamInfo MIDIDevice::GetStreamInfo() const
 {
 	return { 0, 0, 0 };	// i.e. do not use streaming.
 }
+
+//==========================================================================
+//
+// MIDIDevice :: GetStreamInfoEx
+//
+//==========================================================================
+
+SoundStreamInfoEx MIDIDevice::GetStreamInfoEx() const
+{
+	return {};	// i.e. do not use streaming.
+}
