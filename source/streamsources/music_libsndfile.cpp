@@ -55,9 +55,8 @@ public:
 	
 protected:
 	SoundDecoder *Decoder;
-	int Channels;
-	int SampleRate;
-	
+	unsigned int FrameSize;
+
 	uint32_t Loop_Start;
 	uint32_t Loop_End;
 
@@ -434,29 +433,30 @@ static int32_t Scale(int32_t a, int32_t b, int32_t c)
 
 SndFileSong::SndFileSong(SoundDecoder *decoder, uint32_t loop_start, uint32_t loop_end, bool startass, bool endass)
 {
-	ChannelConfig iChannels;
-	SampleType Type;
-	
-	decoder->getInfo(&SampleRate, &iChannels, &Type);
+	ChannelConfig chanconf;
+	SampleType stype;
+	int srate;
 
-	if (!startass) loop_start = Scale(loop_start, SampleRate, 1000);
-	if (!endass) loop_end = Scale(loop_end, SampleRate, 1000);
+	decoder->getInfo(&srate, &chanconf, &stype);
+
+	if (!startass) loop_start = Scale(loop_start, srate, 1000);
+	if (!endass) loop_end = Scale(loop_end, srate, 1000);
 
 	const uint32_t sampleLength = (uint32_t)decoder->getSampleLength();
 	Loop_Start = loop_start;
 	Loop_End = sampleLength == 0 ? loop_end : std::min<uint32_t>(loop_end, sampleLength);
 	Decoder = decoder;
-	Channels = iChannels == ChannelConfig_Stereo? 2:1;
+	FrameSize = ZMusic_ChannelCount(chanconf) * ZMusic_SampleTypeSize(stype);
 }
 
 SoundStreamInfoEx SndFileSong::GetFormatEx()
 {
-	ChannelConfig chans;
+	ChannelConfig chanconf;
 	SampleType stype;
 	int srate;
 
-	Decoder->getInfo(&srate, &chans, &stype);
-	return { 64/*snd_streambuffersize*/ * 1024, srate, stype, chans };
+	Decoder->getInfo(&srate, &chanconf, &stype);
+	return { 64/*snd_streambuffersize*/ * 1024, srate, stype, chanconf };
 }
 
 //==========================================================================
@@ -483,14 +483,17 @@ std::string SndFileSong::GetStats()
 {
 	char out[80];
 	
-	size_t SamplePos;
+	ChannelConfig chanconf;
+	SampleType stype;
+	int srate;
+	Decoder->getInfo(&srate, &chanconf, &stype);
 	
-	SamplePos = Decoder->getSampleOffset();
-	int time = int (SamplePos / SampleRate);
+	size_t SamplePos = Decoder->getSampleOffset();
+	int time = int (SamplePos / srate);
 	
 	snprintf(out, 80,
 		"Track: %s, %dHz  Time: %02d:%02d",
-		Channels == 2? "Stereo" : "Mono", SampleRate,
+		ZMusic_ChannelConfigName(chanconf), srate,
 		time/60,
 		time % 60);
 	return out;
@@ -507,7 +510,7 @@ bool SndFileSong::GetData(void *vbuff, size_t len)
 	char *buff = (char*)vbuff;
 	
 	size_t currentpos = Decoder->getSampleOffset();
-	size_t framestoread = len / (Channels*2);
+	size_t framestoread = len / FrameSize;
 	bool err = false;
 	if (!m_Looping)
 	{
@@ -519,7 +522,7 @@ bool SndFileSong::GetData(void *vbuff, size_t len)
 		}
 		if (currentpos + framestoread > maxpos)
 		{
-			size_t got = Decoder->read(buff, (maxpos - currentpos) * Channels * 2);
+			size_t got = Decoder->read(buff, (maxpos - currentpos) * FrameSize);
 			memset(buff + got, 0, len - got);
 		}
 		else
@@ -536,7 +539,7 @@ bool SndFileSong::GetData(void *vbuff, size_t len)
 			// Loop can be very short, make sure the current position doesn't exceed it
 			if (currentpos < Loop_End)
 			{
-				size_t endblock = (Loop_End - currentpos) * Channels * 2;
+				size_t endblock = (Loop_End - currentpos) * FrameSize;
 				size_t endlen = Decoder->read(buff, endblock);
 
 				// Even if zero bytes was read give it a chance to start from the beginning
