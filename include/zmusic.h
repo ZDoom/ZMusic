@@ -280,8 +280,8 @@ typedef struct ZMusicConfigurationSetting_
 #define DLL_IMPORT
 #endif
 // Note that the internal 'class' definitions are not C compatible!
-typedef struct { int zm1; } *ZMusic_MidiSource;
-typedef struct { int zm2; } *ZMusic_MusicStream;
+typedef struct _ZMusic_MidiSource_Struct { int zm1; } *ZMusic_MidiSource;
+typedef struct _ZMusic_MusicStream_Struct { int zm2; } *ZMusic_MusicStream;
 struct SoundDecoder;
 #endif
 
