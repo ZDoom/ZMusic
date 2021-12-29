@@ -87,10 +87,10 @@ void WildMIDIDevice::LoadInstruments()
 	{
 		wildMidiConfig.loadedConfig = wildMidiConfig.readerName;
 		wildMidiConfig.instruments.reset(new WildMidi::Instruments(wildMidiConfig.reader, SampleRate));
-		bool success = wildMidiConfig.instruments->LoadConfig(wildMidiConfig.readerName.c_str());
+		int error = wildMidiConfig.instruments->LoadConfig(wildMidiConfig.readerName.c_str());
 		wildMidiConfig.reader = nullptr;
 
-		if (!success)
+		if (error)
 		{
 			wildMidiConfig.instruments.reset();
 			wildMidiConfig.loadedConfig = "";
