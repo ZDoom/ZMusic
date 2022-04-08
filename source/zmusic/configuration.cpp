@@ -503,7 +503,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 		
 		case zmusic_gus_memsize:
 			ChangeAndReturn(gusConfig.gus_memsize, value, pRealValue);
-			return devType() == MDEV_GUS && gusConfig.gus_dmxgus;
+			return devType() == MDEV_GUS;
 #endif
 #ifdef HAVE_TIMIDITY
 		case zmusic_timidity_modulation_wheel:
@@ -518,15 +518,15 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 
 		case zmusic_timidity_reverb:
 			if (value < 0 || value > 4) value = 0;
-			else TimidityPlus_SetReverb();
 			local_timidity_reverb = value;
+			TimidityPlus_SetReverb();
 			if (pRealValue) *pRealValue = value;
 			return false;
 
 		case zmusic_timidity_reverb_level:
 			if (value < 0 || value > 127) value = 0;
-			else TimidityPlus_SetReverb();
 			local_timidity_reverb_level = value;
+			TimidityPlus_SetReverb();
 			if (pRealValue) *pRealValue = value;
 			return false;
 
