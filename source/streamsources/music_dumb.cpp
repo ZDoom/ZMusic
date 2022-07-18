@@ -885,6 +885,18 @@ StreamSource* MOD_OpenSong(MusicIO::FileInterface *reader, int samplerate)
 			duh = dumb_read_okt_quick(f);
 		}
 	}
+	else if (size >= 4 &&
+		 (dstart[0] == MAKE_ID('A','M','F','\xa') ||
+		 dstart[0] == MAKE_ID('A','M','F','\xb') ||
+		 dstart[0] == MAKE_ID('A','M','F','\xc') ||
+		 dstart[0] == MAKE_ID('A','M','F','\xd') ||
+		 dstart[0] == MAKE_ID('A','M','F','\xe')))
+	{
+		if ((f = dumb_read_allfile(&filestate, start, reader, headsize, size)))
+		{
+			duh = dumb_read_amf_quick(f);
+		}
+	}
 
 	if ( ! duh )
 	{
