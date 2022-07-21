@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13...3.19)
 project(ZMusic
-	VERSION 1.1.9
+	VERSION 1.1.10
 	LANGUAGES C CXX
 )
 
