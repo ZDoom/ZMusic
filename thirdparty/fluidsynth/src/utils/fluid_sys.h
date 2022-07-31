@@ -209,7 +209,6 @@ char *fluid_strtok(char **str, char *delim);
 #define FLUID_FILE_TEST_IS_REGULAR G_FILE_TEST_IS_REGULAR
 #define fluid_file_test(path, flags) g_file_test(path, flags)
 
-#define fluid_shell_parse_argv(command_line, argcp, argvp) g_shell_parse_argv(command_line, argcp, argvp, NULL)
 #define fluid_strfreev g_strfreev
 
 #if defined(__OS2__)
