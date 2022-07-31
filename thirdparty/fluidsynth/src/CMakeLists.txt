@@ -26,7 +26,7 @@ if ( LIBINSTPATCH_SUPPORT )
 endif ( LIBINSTPATCH_SUPPORT )
 
 
-set ( libfluidsynth_SOURCES
+set ( fluidsynth_SOURCES
 	config.h
     utils/fluid_conv.c
     utils/fluid_conv.h
@@ -100,8 +100,8 @@ set ( libfluidsynth_SOURCES
 )
 
 if ( WIN32 )
-    set( libfluidsynth_SOURCES
-        ${libfluidsynth_SOURCES}
+    set( fluidsynth_SOURCES
+        ${fluidsynth_SOURCES}
         utils/win32_glibstubs.c
         utils/win32_glibstubs.h
     )
@@ -131,14 +131,14 @@ set ( public_main_HEADER
     ../include/fluidsynth.h
 )
 
-add_library ( libfluidsynth-OBJ OBJECT
+add_library ( fluidsynth OBJECT
     ${config_SOURCES}
-    ${libfluidsynth_SOURCES}
+    ${fluidsynth_SOURCES}
     ${public_HEADERS}
     ${public_main_HEADER}
 )
 
-target_include_directories ( libfluidsynth-OBJ PRIVATE
+target_include_directories ( fluidsynth PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/drivers
     ${CMAKE_CURRENT_SOURCE_DIR}/synth
@@ -152,21 +152,11 @@ target_include_directories ( libfluidsynth-OBJ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/decoder
 )
 
-# Note: by default this target creates a shared object (or dll). To build a
-# static library instead, set the option BUILD_SHARED_LIBS to FALSE.
-# Further note: The headers must be explicitly added here to have CMake install
-# them correctly in case of MACOSX_FRAMEWORK
-set ( BUILD_SHARED_LIBS 0 )
-add_library ( fluidsynth
-    $<TARGET_OBJECTS:libfluidsynth-OBJ>
-    ${public_main_HEADER}
-    ${public_HEADERS}
-)
 
 if (NOT WIN32)
    find_package(PkgConfig REQUIRED)
    pkg_search_module(GLIB REQUIRED glib-2.0)
-   target_include_directories ( libfluidsynth-OBJ PUBLIC ${GLIB_INCLUDE_DIRS} )
-   target_link_libraries ( libfluidsynth-OBJ PUBLIC ${GLIB_LIBRARIES} )
+   target_include_directories ( fluidsynth PUBLIC ${GLIB_INCLUDE_DIRS} )
+   target_link_libraries ( fluidsynth PUBLIC ${pkgcfg_lib_GLIB_glib-2.0} )
 
 endif()
