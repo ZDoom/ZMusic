@@ -157,17 +157,16 @@ target_include_directories ( libfluidsynth-OBJ PRIVATE
 # Further note: The headers must be explicitly added here to have CMake install
 # them correctly in case of MACOSX_FRAMEWORK
 set ( BUILD_SHARED_LIBS 0 )
-add_library ( libfluidsynth
+add_library ( fluidsynth
     $<TARGET_OBJECTS:libfluidsynth-OBJ>
     ${public_main_HEADER}
     ${public_HEADERS}
 )
 
 if (NOT WIN32)
-	if ( TARGET PkgConfig::GLIB )
-		target_link_libraries ( libfluidsynth-OBJ PUBLIC PkgConfig::GLIB )
-	else()
-		target_include_directories ( libfluidsynth-OBJ PUBLIC ${GLIB_INCLUDE_DIRS} )
-		target_link_libraries ( libfluidsynth-OBJ PUBLIC ${GLIB_LIBRARIES} )
-	endif()
+   find_package(PkgConfig REQUIRED)
+   pkg_search_module(GLIB REQUIRED glib-2.0)
+   target_include_directories ( libfluidsynth-OBJ PUBLIC ${GLIB_INCLUDE_DIRS} )
+   target_link_libraries ( libfluidsynth-OBJ PUBLIC ${GLIB_LIBRARIES} )
+
 endif()

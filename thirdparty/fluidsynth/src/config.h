@@ -41,7 +41,9 @@
 /* #undef HAVE_INTTYPES_H */
 
 /* Define to 1 if you have the <io.h> header file. */
+#ifdef _WIN32
 #define HAVE_IO_H 1
+#endif
 
 /* whether or not we are supporting lash */
 /* #undef HAVE_LASH */
@@ -116,7 +118,9 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-/* #undef HAVE_UNISTD_H */
+#ifndef _WIN32
+#define HAVE_UNISTD_H 1
+#endif
 
 /* Define to 1 if you have the <windows.h> header file. */
 #define HAVE_WINDOWS_H 1

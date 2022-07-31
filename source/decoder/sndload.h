@@ -1,7 +1,6 @@
 #ifndef SNDDEF_H
 #define SNDDEF_H
 
-extern "C" bool IsSndFilePresent();
 
 
 #if defined HAVE_SNDFILE && defined DYN_SNDFILE

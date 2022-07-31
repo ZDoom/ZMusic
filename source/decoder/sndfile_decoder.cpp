@@ -50,7 +50,7 @@ FModule SndFileModule{"SndFile"};
 #define SNDFILELIB "libsndfile.so.1"
 #endif
 
-extern "C" bool IsSndFilePresent()
+extern "C" int IsSndFilePresent()
 {
 #if !defined DYN_SNDFILE
 	return true;
@@ -235,7 +235,7 @@ extern "C" int sf_close(SNDFILE * sndfile)
 
 #else // in case someone decided to build without sndfile support
 
-extern "C" bool IsSndFilePresent()
+extern "C" int IsSndFilePresent()
 {
     return false;
 }

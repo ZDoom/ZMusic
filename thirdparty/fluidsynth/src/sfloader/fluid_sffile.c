@@ -2415,6 +2415,8 @@ static sf_count_t sfvio_tell(void *user_data)
     return data->offset;
 }
 
+int IsSndFilePresent();
+
 /**
  * Read Ogg Vorbis compressed data from the Soundfont and decompress it, returning the number of samples
  * in the decompressed WAV. Only 16-bit mono samples are supported.
