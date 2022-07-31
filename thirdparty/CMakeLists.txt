@@ -33,7 +33,7 @@ endif()
 #	message(STATUS "Using internal gme library")
 	# Use MAME as it's a balanced emulator: well-accurate, but doesn't eats lot of CPU
 	# Nuked OPN2 is very accurate emulator, but it eats too much CPU for the workflow
-	set(GME_YM2612_EMU "MAME" CACHE STRING "Which YM2612 emulator to use: \"Nuked\" (LGPLv2.1+), \"MAME\" (GPLv2+), or \"GENS\" (LGPLv2.1+)")
+	set(GME_YM2612_EMU "Nuked" CACHE STRING "Which YM2612 emulator to use: \"Nuked\" (LGPLv2.1+), \"MAME\" (GPLv2+), or \"GENS\" (LGPLv2.1+)")
 	mark_as_advanced(GME_YM2612_EMU)
 	add_subdirectory(game-music-emu)
 #endif()
