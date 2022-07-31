@@ -91,19 +91,6 @@ else()
 	endif()
 endif()
 
-option(DYN_FLUIDSYNTH "Dynamically load fluidsynth" ON)
-if(DYN_FLUIDSYNTH)
-	target_compile_definitions(zmusic-obj INTERFACE HAVE_FLUIDSYNTH DYN_FLUIDSYNTH)
-else()
-	find_package(FluidSynth)
-
-	if(FLUIDSYNTH_FOUND)
-		target_compile_definitions(zmusic-obj INTERFACE HAVE_FLUIDSYNTH)
-		target_link_libraries(zmusic-obj INTERFACE libfluidsynth)
-		determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET libfluidsynth MODULE FluidSynth)
-	endif()
-endif()
-
 # System MIDI support
 if(WIN32)
 	target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
@@ -155,8 +142,8 @@ use_fast_math(zmusiclite)
 target_include_directories(zmusic INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${ZMusic_SOURCE_DIR}/include>)
 target_include_directories(zmusiclite INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${ZMusic_SOURCE_DIR}/include>)
 
-target_link_libraries_hidden(zmusic zmusic-obj adl oplsynth opn timidity timidityplus wildmidi)
-target_link_libraries_hidden(zmusiclite zmusic-obj)
+target_link_libraries_hidden(zmusic zmusic-obj adl oplsynth opn timidity timidityplus wildmidi libfluidsynth)
+target_link_libraries_hidden(zmusiclite zmusic-obj libfluidsynth)
 
 target_compile_definitions(zmusic PUBLIC $<$<STREQUAL:$<TARGET_PROPERTY:zmusic,TYPE>,STATIC_LIBRARY>:ZMUSIC_STATIC>)
 target_compile_definitions(zmusiclite PRIVATE ZMUSIC_LITE=1 PUBLIC $<$<STREQUAL:$<TARGET_PROPERTY:zmusiclite,TYPE>,STATIC_LIBRARY>:ZMUSIC_STATIC>)

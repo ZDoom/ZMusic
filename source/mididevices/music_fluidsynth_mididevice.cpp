@@ -40,22 +40,13 @@
 #include "zmusic/zmusic_internal.h"
 #include "mididevice.h"
 #include "zmusic/mus2midi.h"
+#include "loader/i_module.h"
 
 // FluidSynth implementation of a MIDI device -------------------------------
 
 FluidConfig fluidConfig;
 
-#ifdef HAVE_FLUIDSYNTH
-
-#if !defined DYN_FLUIDSYNTH
-#include <fluidsynth.h>
-#else
-#include "loader/i_module.h"
-extern FModule FluidSynthModule;
-
-struct fluid_settings_t;
-struct fluid_synth_t;
-#endif
+#include "../thirdparty/fluidsynth/include/fluidsynth.h"
 
 class FluidSynthMIDIDevice : public SoftSynthMIDIDevice
 {
@@ -84,63 +75,9 @@ protected:
 	int FluidSettingsResultOk     = FLUID_OK;
 	int FluidSettingsResultFailed = FLUID_FAILED;
 
-#ifdef DYN_FLUIDSYNTH
-	enum { FLUID_FAILED = -1, FLUID_OK = 0 };
-	static TReqProc<FluidSynthModule, void (*)(int *, int*, int*)> fluid_version;
-	static TReqProc<FluidSynthModule, fluid_settings_t *(*)()> new_fluid_settings;
-	static TReqProc<FluidSynthModule, fluid_synth_t *(*)(fluid_settings_t *)> new_fluid_synth;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *)> delete_fluid_synth;
-	static TReqProc<FluidSynthModule, void (*)(fluid_settings_t *)> delete_fluid_settings;
-	static TReqProc<FluidSynthModule, int (*)(fluid_settings_t *, const char *, double)> fluid_settings_setnum;
-	static TReqProc<FluidSynthModule, int (*)(fluid_settings_t *, const char *, const char *)> fluid_settings_setstr;
-	static TReqProc<FluidSynthModule, int (*)(fluid_settings_t *, const char *, int)> fluid_settings_setint;
-	static TReqProc<FluidSynthModule, int (*)(fluid_settings_t *, const char *, int *)> fluid_settings_getint;
-	static TReqProc<FluidSynthModule, void (*)(fluid_synth_t *, int)> fluid_synth_set_reverb_on;
-	static TReqProc<FluidSynthModule, void (*)(fluid_synth_t *, int)> fluid_synth_set_chorus_on;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int)> fluid_synth_set_interp_method;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int)> fluid_synth_set_polyphony;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *)> fluid_synth_get_polyphony;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *)> fluid_synth_get_active_voice_count;
-	static TReqProc<FluidSynthModule, double (*)(fluid_synth_t *)> fluid_synth_get_cpu_load;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *)> fluid_synth_system_reset;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int, int)> fluid_synth_noteon;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int)> fluid_synth_noteoff;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int, int)> fluid_synth_cc;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int)> fluid_synth_program_change;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int)> fluid_synth_channel_pressure;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, int)> fluid_synth_pitch_bend;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, int, void *, int, int, void *, int, int)> fluid_synth_write_float;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, const char *, int)> fluid_synth_sfload;
-	static TReqProc<FluidSynthModule, void (*)(fluid_synth_t *, double, double, double, double)> fluid_synth_set_reverb;
-	static TReqProc<FluidSynthModule, void (*)(fluid_synth_t *, int, double, double, double, int)> fluid_synth_set_chorus;
-	static TReqProc<FluidSynthModule, int (*)(fluid_synth_t *, const char *, int, char *, int *, int *, int)> fluid_synth_sysex;
-	
-	bool LoadFluidSynth(const char *fluid_lib);
-#endif
 };
 
 // MACROS ------------------------------------------------------------------
-
-#ifdef DYN_FLUIDSYNTH
-
-#ifdef _WIN32
-
-#ifndef _M_X64
-#define FLUIDSYNTHLIBS { "fluidsynth.dll", "libfluidsynth.dll" }
-#else
-#define FLUIDSYNTHLIBS { "fluidsynth64.dll", "libfluidsynth64.dll" }
-#endif
-#else
-
-#ifdef __APPLE__
-#define FLUIDSYNTHLIBS { "libfluidsynth.1.dylib", "libfluidsynth.2.dylib", "libfluidsynth.3.dylib" }
-#else // !__APPLE__
-#define FLUIDSYNTHLIBS { "libfluidsynth.so.1", "libfluidsynth.so.2", "libfluidsynth.so.3" }
-#endif // __APPLE__
-#endif
-
-#endif
-
 
 // TYPES -------------------------------------------------------------------
 
@@ -173,21 +110,6 @@ FluidSynthMIDIDevice::FluidSynthMIDIDevice(int samplerate, std::vector<std::stri
 
 	FluidSynth = NULL;
 	FluidSettings = NULL;
-#ifdef DYN_FLUIDSYNTH
-	if (!LoadFluidSynth(fluidConfig.fluid_lib.c_str()))
-	{
-		throw std::runtime_error("Failed to load FluidSynth.\n");
-	}
-#endif
-	int major = 0, minor = 0, micro = 0;
-	fluid_version(&major, &minor, &micro);
-
-	if (major < 2)
-	{
-		// FluidSynth 1.x: fluid_settings_...() functions return 1 on success and 0 otherwise
-		FluidSettingsResultOk = 1;
-		FluidSettingsResultFailed = 0;
-	}
 
 	FluidSettings = new_fluid_settings();
 	if (FluidSettings == NULL)
@@ -484,93 +406,6 @@ std::string FluidSynthMIDIDevice::GetStats()
 	return out;
 }
 
-#ifdef DYN_FLUIDSYNTH
-
-//==========================================================================
-//
-// FluidSynthMIDIDevice :: LoadFluidSynth
-//
-// Returns true if the FluidSynth library was successfully loaded.
-//
-//==========================================================================
-
-FModuleMaybe<DYN_FLUIDSYNTH> FluidSynthModule{"FluidSynth"};
-
-#define DYN_FLUID_SYM(x) decltype(FluidSynthMIDIDevice::x) FluidSynthMIDIDevice::x{#x}
-DYN_FLUID_SYM(fluid_version);
-DYN_FLUID_SYM(new_fluid_settings);
-DYN_FLUID_SYM(new_fluid_synth);
-DYN_FLUID_SYM(delete_fluid_synth);
-DYN_FLUID_SYM(delete_fluid_settings);
-DYN_FLUID_SYM(fluid_settings_setnum);
-DYN_FLUID_SYM(fluid_settings_setstr);
-DYN_FLUID_SYM(fluid_settings_setint);
-DYN_FLUID_SYM(fluid_settings_getint);
-DYN_FLUID_SYM(fluid_synth_set_reverb_on);
-DYN_FLUID_SYM(fluid_synth_set_chorus_on);
-DYN_FLUID_SYM(fluid_synth_set_interp_method);
-DYN_FLUID_SYM(fluid_synth_set_polyphony);
-DYN_FLUID_SYM(fluid_synth_get_polyphony);
-DYN_FLUID_SYM(fluid_synth_get_active_voice_count);
-DYN_FLUID_SYM(fluid_synth_get_cpu_load);
-DYN_FLUID_SYM(fluid_synth_system_reset);
-DYN_FLUID_SYM(fluid_synth_noteon);
-DYN_FLUID_SYM(fluid_synth_noteoff);
-DYN_FLUID_SYM(fluid_synth_cc);
-DYN_FLUID_SYM(fluid_synth_program_change);
-DYN_FLUID_SYM(fluid_synth_channel_pressure);
-DYN_FLUID_SYM(fluid_synth_pitch_bend);
-DYN_FLUID_SYM(fluid_synth_write_float);
-DYN_FLUID_SYM(fluid_synth_sfload);
-DYN_FLUID_SYM(fluid_synth_set_reverb);
-DYN_FLUID_SYM(fluid_synth_set_chorus);
-DYN_FLUID_SYM(fluid_synth_sysex);
-
-bool FluidSynthMIDIDevice::LoadFluidSynth(const char *fluid_lib)
-{
-    static bool is_loaded = false;
-    static bool is_checked = false;
-
-	if (!is_checked)
-	{
-		if (fluid_lib && strlen(fluid_lib) > 0)
-		{
-			is_loaded = FluidSynthModule.Load({ fluid_lib });
-			if (!is_loaded)
-				ZMusic_Printf(ZMUSIC_MSG_ERROR, "Could not load %s\n", fluid_lib);
-		}
-
-		if (!is_loaded)
-		{
-			is_loaded = FluidSynthModule.Load(FLUIDSYNTHLIBS);
-			if (!is_loaded)
-			{
-				std::string error = "Could not load ";
-				bool need_or = false;
-
-				for (const char *library : FLUIDSYNTHLIBS)
-				{
-					if (need_or)
-						error += " or ";
-					else
-						need_or = true;
-					error += library;
-				}
-
-				ZMusic_Printf(ZMUSIC_MSG_ERROR, "%s\n", error.c_str());
-			}
-		}
-
-		is_checked = true;
-	}
-
-	return is_loaded;
-}
-
-#endif
-
-
-//==========================================================================
 //
 // sndfile
 //
@@ -685,12 +520,3 @@ MIDIDevice *CreateFluidSynthMIDIDevice(int samplerate, const char *Args)
 	Fluid_SetupConfig(Args, fluid_patchset, true);
 	return new FluidSynthMIDIDevice(samplerate, fluid_patchset);
 }
-#else
-
-MIDIDevice* CreateFluidSynthMIDIDevice(int samplerate, const char* Args)
-{
-	throw std::runtime_error("FlidSynth device not supported in this configuration");
-}
-
-
-#endif // HAVE_FLUIDSYNTH

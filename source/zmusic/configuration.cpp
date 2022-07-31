@@ -197,9 +197,9 @@ struct MidiDeviceList
 #ifdef HAVE_WILDMIDI
 		devices.push_back({ strdup("WildMidi"), -6, MIDIDEV_SWSYNTH });
 #endif
-#ifdef HAVE_FLUIDSYNTH
+		// this will always exist.
 		devices.push_back({ strdup("FluidSynth"), -5, MIDIDEV_SWSYNTH });
-#endif
+
 #ifdef HAVE_GUS
 		devices.push_back({ strdup("GUS Emulation"), -4, MIDIDEV_SWSYNTH });
 #endif
