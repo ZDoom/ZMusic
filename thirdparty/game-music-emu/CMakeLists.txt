@@ -8,11 +8,6 @@ include (CheckCXXCompilerFlag)
 # When version is changed, also change the one in gme/gme.h to match
 set(GME_VERSION 0.6.2 CACHE INTERNAL "libgme Version")
 
-# I don't plan on debugging this, so make it a release build.
-if( NOT CMAKE_BUILD_TYPE MATCHES "Release" )
-    set( CMAKE_BUILD_TYPE "RelWithDebInfo" )
-endif()
-
 if(COMPILER_IS_GNUCXX_COMPATIBLE)
     add_compile_options(-Wall -Wextra)
     if(NOT PROFILE)
