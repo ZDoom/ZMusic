@@ -141,8 +141,8 @@ FluidSynthMIDIDevice::FluidSynthMIDIDevice(int samplerate, std::vector<std::stri
 		return;
 	}
 
-	delete_fluid_settings(FluidSettings);
 	delete_fluid_synth(FluidSynth);
+	delete_fluid_settings(FluidSettings);
 	FluidSynth = nullptr;
 	FluidSettings = nullptr;
 	throw std::runtime_error("Failed to load any MIDI patches.\n");
