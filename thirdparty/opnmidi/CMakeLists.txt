@@ -22,7 +22,7 @@ PRIVATE
 	chips/mamefm/resampler.cpp
 	chips/mamefm/fm.cpp
 	chips/nuked_opn2.cpp
-	chips/gens/Ym2612_Emu.cpp
+	chips/gens/Ym2612.cpp
 	chips/gx_opn2.cpp
 	chips/pmdwin_opna.cpp
 	chips/nuked/ym3438.c

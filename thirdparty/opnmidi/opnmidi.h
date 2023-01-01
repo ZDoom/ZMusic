@@ -2,7 +2,7 @@
  * libOPNMIDI is a free Software MIDI synthesizer library with OPN2 (YM2612) emulation
  *
  * MIDI parser and player (Original code from ADLMIDI): Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -30,7 +30,7 @@ extern "C" {
 
 #define OPNMIDI_VERSION_MAJOR       1
 #define OPNMIDI_VERSION_MINOR       5
-#define OPNMIDI_VERSION_PATCHLEVEL  0
+#define OPNMIDI_VERSION_PATCHLEVEL  1
 
 #define OPNMIDI_TOSTR_I(s) #s
 #define OPNMIDI_TOSTR(s) OPNMIDI_TOSTR_I(s)
@@ -123,7 +123,26 @@ enum OPNMIDI_VolumeModels
     /*! Logarithmic volume scale, used in Apogee Sound System. */
     OPNMIDI_VolumeModel_APOGEE,
     /*! Aproximated and shorted volume map table. Similar to general, but has less granularity. */
-    OPNMIDI_VolumeModel_9X
+    OPNMIDI_VolumeModel_9X,
+    /*! Count of available volume model modes */
+    OPNMIDI_VolumeModel_Count
+};
+
+/*!
+ * \brief Algorithms of channel allocation for new notes
+ */
+enum OPNMIDI_ChannelAlloc
+{
+    /*! Automatical choise of the method according to the volume model and internal preferrences */
+    OPNMIDI_ChanAlloc_AUTO = -1,
+    /*! Take only channels that has expired sounding delay */
+    OPNMIDI_ChanAlloc_OffDelay,
+    /*! Take any first released channel with the same instrument */
+    OPNMIDI_ChanAlloc_SameInst,
+    /*! Take any first released channel */
+    OPNMIDI_ChanAlloc_AnyReleased,
+    /*! Count of available channel allocation modes */
+    OPNMIDI_ChanAlloc_Count
 };
 
 /**
@@ -186,7 +205,7 @@ struct OPN2_MIDIPlayer
  * @param numChips Count of virtual chips to emulate
  * @return 0 on success, <0 when any error has occurred
  */
-extern OPNMIDI_DECLSPEC int  opn2_setNumChips(struct OPN2_MIDIPlayer *device, int numCards);
+extern OPNMIDI_DECLSPEC int  opn2_setNumChips(struct OPN2_MIDIPlayer *device, int numChips);
 
 /**
  * @brief Get current number of emulated chips
@@ -417,11 +436,43 @@ extern OPNMIDI_DECLSPEC void opn2_setScaleModulators(struct OPN2_MIDIPlayer *dev
 extern OPNMIDI_DECLSPEC void opn2_setFullRangeBrightness(struct OPN2_MIDIPlayer *device, int fr_brightness);
 
 /**
+ * @brief Enable(1) or Disable(0) the automatical arpeggio system
+  *
+ * @param device Instance of the library
+ * @param aaEn 0 - disabled, 1 - enabled
+ */
+extern OPNMIDI_DECLSPEC void opn2_setAutoArpeggio(struct OPN2_MIDIPlayer *device, int aaEn);
+
+/**
+ * @brief Get the state of the automatical arpeggio system enable state
+ * @param device Instalce of the library
+ * @return 0 - disabled, 1 - enabled
+ */
+extern OPNMIDI_DECLSPEC int opn2_getAutoArpeggio(struct OPN2_MIDIPlayer *device);
+
+/**
  * @brief Enable or disable built-in loop (built-in loop supports 'loopStart' and 'loopEnd' tags to loop specific part)
  * @param device Instance of the library
  * @param loopEn 0 - disabled, 1 - enabled
  */
 extern OPNMIDI_DECLSPEC void opn2_setLoopEnabled(struct OPN2_MIDIPlayer *device, int loopEn);
+
+/**
+ * @brief Set how many times loop will be played
+ *
+ * Note: The song will be played once if loop has been disabled with no matter which value of loop count was set
+ *
+ * @param device Instance of the library
+ * @param loopCount Number of loops or -1 to loop infinitely
+ */
+extern OPNMIDI_DECLSPEC void opn2_setLoopCount(struct OPN2_MIDIPlayer *device, int loopCount);
+
+/**
+ * @brief Make song immediately stop on reaching a loop end point
+ * @param device Instance of the library
+ * @param loopHooksOnly 0 - disabled, 1 - enabled
+ */
+extern OPNMIDI_DECLSPEC void opn2_setLoopHooksOnly(struct OPN2_MIDIPlayer *device, int loopHooksOnly);
 
 /**
  * @brief Enable or disable soft panning with chip emulators
@@ -453,9 +504,23 @@ extern OPNMIDI_DECLSPEC void opn2_setVolumeRangeModel(struct OPN2_MIDIPlayer *de
 extern OPNMIDI_DECLSPEC int opn2_getVolumeRangeModel(struct OPN2_MIDIPlayer *device);
 
 /**
+ * @brief Set the channel allocation mode
+ * @param device Instance of the library
+ * @param chanalloc Channel allocation mode (#OPNMIDI_ChannelAlloc)
+ */
+extern OPNMIDI_DECLSPEC void opn2_setChannelAllocMode(struct OPN2_MIDIPlayer *device, int chanalloc);
+
+/**
+ * @brief Get the current channel allocation mode
+ * @param device Instance of the library
+ * @return Channel allocation mode (#OPNMIDI_ChannelAlloc)
+ */
+extern OPNMIDI_DECLSPEC int opn2_getChannelAllocMode(struct OPN2_MIDIPlayer *device);
+
+/**
  * @brief Load WOPN bank file from File System
  *
- * Is recommended to call adl_reset() to apply changes to already-loaded file player or real-time.
+ * Is recommended to call opn2_reset() to apply changes to already-loaded file player or real-time.
  *
  * @param device Instance of the library
  * @param filePath Absolute or relative path to the WOPL bank file. UTF8 encoding is required, even on Windows.
@@ -466,7 +531,7 @@ extern OPNMIDI_DECLSPEC int opn2_openBankFile(struct OPN2_MIDIPlayer *device, co
 /**
  * @brief Load WOPN bank file from memory data
  *
- * Is recommended to call adl_reset() to apply changes to already-loaded file player or real-time.
+ * Is recommended to call opn2_reset() to apply changes to already-loaded file player or real-time.
  *
  * @param device Instance of the library
  * @param mem Pointer to memory block where is raw data of WOPL bank file is stored
@@ -483,7 +548,7 @@ extern OPNMIDI_DECLSPEC int opn2_openBankData(struct OPN2_MIDIPlayer *device, co
  *
  * @return A string that contains a notice to use `opn2_chipEmulatorName` instead of this function.
  */
-OPNMIDI_DEPRECATED("Use `adl_chipEmulatorName(device)` instead")
+OPNMIDI_DEPRECATED("Use `opn2_chipEmulatorName(device)` instead")
 extern OPNMIDI_DECLSPEC const char *opn2_emulatorName();
 
 /**
@@ -601,7 +666,7 @@ extern OPNMIDI_DECLSPEC const char *opn2_errorInfo(struct OPN2_MIDIPlayer *devic
  *        value as `OPN_OPN2_SAMPLE_RATE` or `OPN_OPNA_SAMPLE_RATE` in dependence on the chip
  *
  * @param sample_rate Output sample rate
- * @return Instance of the library. If NULL was returned, check the `adl_errorString` message for more info.
+ * @return Instance of the library. If NULL was returned, check the `opn2_errorString` message for more info.
  */
 extern OPNMIDI_DECLSPEC struct OPN2_MIDIPlayer *opn2_init(long sample_rate);
 
@@ -636,6 +701,27 @@ extern OPNMIDI_DECLSPEC int opn2_openFile(struct OPN2_MIDIPlayer *device, const 
  * @return 0 on success, <0 when any error has occurred
  */
 extern OPNMIDI_DECLSPEC int opn2_openData(struct OPN2_MIDIPlayer *device, const void *mem, unsigned long size);
+
+/**
+ * @brief Switch another song if multi-song file is playing (for example, XMI)
+ *
+ * Note: to set the initial song to load, you should call this function
+ * BBEFORE calling `opn2_openFile` or `opn2_openData`.  When loaded file has more than
+ * one built-in songs (Usually XMIformat), it will be started from the selected number.
+ * You may call this function to switch another song.
+ *
+ * @param device Instance of the library
+ * @param songNumber Identifier of the track to load (or -1 to mix all tracks as one song)
+ * @return
+ */
+extern OPNMIDI_DECLSPEC void opn2_selectSongNum(struct OPN2_MIDIPlayer *device, int songNumber);
+
+/**
+ * @brief Retrive the number of songs in a currently opened file
+ * @param device Instance of the library
+ * @return Number of songs in the file. If 1 or less, means, the file has only one song inside.
+ */
+extern OPNMIDI_DECLSPEC int opn2_getSongsCount(struct OPN2_MIDIPlayer *device);
 
 /**
  * @brief Resets MIDI player (per-channel setup) into initial state
@@ -798,7 +884,7 @@ extern OPNMIDI_DECLSPEC struct Opn2_MarkerEntry opn2_metaMarker(struct OPN2_MIDI
 /**
  * @brief Generate PCM signed 16-bit stereo audio output and iterate MIDI timers
  *
- * Use this function when you are playing MIDI file loaded by `adl_openFile` or by `adl_openData`
+ * Use this function when you are playing MIDI file loaded by `opn2_openFile` or by `opn2_openData`
  * with using of built-in MIDI sequencer.
  *
  * Don't use count of frames, use instead count of samples. One frame is two samples.
@@ -816,7 +902,7 @@ extern OPNMIDI_DECLSPEC int  opn2_play(struct OPN2_MIDIPlayer *device, int sampl
 /**
  * @brief Generate PCM stereo audio output in sample format declared by given context and iterate MIDI timers
  *
- * Use this function when you are playing MIDI file loaded by `adl_openFile` or by `adl_openData`
+ * Use this function when you are playing MIDI file loaded by `opn2_openFile` or by `opn2_openData`
  * with using of built-in MIDI sequencer.
  *
  * Don't use count of frames, use instead count of samples. One frame is two samples.
@@ -905,6 +991,15 @@ enum OPNMIDI_TrackOptions
  * @return 0 on success, <0 when any error has occurred
  */
 extern OPNMIDI_DECLSPEC int opn2_setTrackOptions(struct OPN2_MIDIPlayer *device, size_t trackNumber, unsigned trackOptions);
+
+/**
+ * @brief Sets the channel of the current sequence enable state
+ * @param device Instance of the library
+ * @param channelNumber Number of the channel (from 0 to 15)
+ * @param enabled 1 to enable and 0 to disable
+ * @return 0 on success, <0 when any error has occurred
+ */
+extern OPNMIDI_DECLSPEC int opn2_setChannelEnabled(struct OPN2_MIDIPlayer *device, size_t channelNumber, int enabled);
 
 
 
@@ -1040,12 +1135,12 @@ typedef void (*OPN2_RawEventHook)(void *userdata, OPN2_UInt8 type, OPN2_UInt8 su
 /**
  * @brief Note on/off callback
  * @param userdata Pointer to user data (usually, context of someting)
- * @param adlchn Chip channel where note was played
+ * @param opnchn Chip channel where note was played
  * @param note Note number [between 0 and 127]
  * @param pressure Velocity level, or -1 when it's note off event
  * @param bend Pitch bend offset value
  */
-typedef void (*OPN2_NoteHook)(void *userdata, int adlchn, int note, int ins, int pressure, double bend);
+typedef void (*OPN2_NoteHook)(void *userdata, int opnchn, int note, int ins, int pressure, double bend);
 
 /**
  * @brief Debug messages callback
@@ -1055,7 +1150,18 @@ typedef void (*OPN2_NoteHook)(void *userdata, int adlchn, int note, int ins, int
 typedef void (*OPN2_DebugMessageHook)(void *userdata, const char *fmt, ...);
 
 /**
+ * @brief Loop start/end point reach hook
+ * @param userdata Pointer to user data (usually, context of someting)
+ */
+typedef void (*OPN2_LoopPointHook)(void *userdata);
+
+/**
  * @brief Set raw MIDI event hook
+ *
+ * CAUTION: Don't call any libOPNMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
  * @param device Instance of the library
  * @param rawEventHook Pointer to the callback function which will be called on every MIDI event
  * @param userData Pointer to user data which will be passed through the callback.
@@ -1064,6 +1170,11 @@ extern OPNMIDI_DECLSPEC void opn2_setRawEventHook(struct OPN2_MIDIPlayer *device
 
 /**
  * @brief Set note hook
+ *
+ * CAUTION: Don't call any libOPNMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
  * @param device Instance of the library
  * @param noteHook Pointer to the callback function which will be called on every noteOn MIDI event
  * @param userData Pointer to user data which will be passed through the callback.
@@ -1072,12 +1183,45 @@ extern OPNMIDI_DECLSPEC void opn2_setNoteHook(struct OPN2_MIDIPlayer *device, OP
 
 /**
  * @brief Set debug message hook
+ *
+ * CAUTION: Don't call any libOPNMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
  * @param device Instance of the library
  * @param debugMessageHook Pointer to the callback function which will be called on every debug message
  * @param userData Pointer to user data which will be passed through the callback.
  */
 extern OPNMIDI_DECLSPEC void opn2_setDebugMessageHook(struct OPN2_MIDIPlayer *device, OPN2_DebugMessageHook debugMessageHook, void *userData);
 
+/**
+ * @brief Set the look start point hook
+ *
+ * CAUTION: Don't call any libOPNMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
+ * @param device Instance of the library
+ * @param loopStartHook Pointer to the callback function which will be called on every loop start point passing
+ * @param userData Pointer to user data which will be passed through the callback.
+ */
+extern OPNMIDI_DECLSPEC void opn2_setLoopStartHook(struct OPN2_MIDIPlayer *device, OPN2_LoopPointHook loopStartHook, void *userData);
+
+/**
+ * @brief Set the look start point hook
+ *
+ * CAUTION: Don't call any libOPNMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
+ * If you want to switch the song after calling this hook, suggested to call the function
+ * opn2_setLoopHooksOnly(device, 1) to immediately stop the song on reaching the loop point
+ *
+ * @param device Instance of the library
+ * @param loopStartHook Pointer to the callback function which will be called on every loop start point passing
+ * @param userData Pointer to user data which will be passed through the callback.
+ */
+extern OPNMIDI_DECLSPEC void opn2_setLoopEndHook(struct OPN2_MIDIPlayer *device, OPN2_LoopPointHook loopEndHook, void *userData);
 
 /**
  * @brief Get a textual description of the channel state. For display only.

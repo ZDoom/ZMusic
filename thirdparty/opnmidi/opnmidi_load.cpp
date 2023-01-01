@@ -2,7 +2,7 @@
  * libOPNMIDI is a free Software MIDI synthesizer library with OPN2 (YM2612) emulation
  *
  * MIDI parser and player (Original code from ADLMIDI): Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -115,6 +115,8 @@ bool OPNMIDIplay::LoadBank(FileAndMemReader &fr)
     synth.m_insBankSetup.lfoEnable = (wopn->lfo_freq & 8) != 0;
     synth.m_insBankSetup.lfoFrequency = wopn->lfo_freq & 7;
     synth.m_insBankSetup.chipType = wopn->chip_type;
+    // FIXME: Implement the bank-side flag to enable this
+    synth.m_insBankSetup.mt32defaults = false;
     m_setup.VolumeModel = OPNMIDI_VolumeModel_AUTO;
     m_setup.lfoEnable = -1;
     m_setup.lfoFrequency = -1;
