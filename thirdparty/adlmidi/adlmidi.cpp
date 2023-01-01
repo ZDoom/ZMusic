@@ -2,7 +2,7 @@
  * libADLMIDI is a free Software MIDI synthesizer library with OPL3 emulation
  *
  * Original ADLMIDI code: Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * ADLMIDI Library API:   Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * ADLMIDI Library API:   Copyright (c) 2015-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -551,6 +551,24 @@ ADLMIDI_EXPORT void adl_setFullRangeBrightness(struct ADL_MIDIPlayer *device, in
     play->m_setup.fullRangeBrightnessCC74 = (fr_brightness != 0);
 }
 
+ADLMIDI_EXPORT void adl_setAutoArpeggio(ADL_MIDIPlayer *device, int aaEn)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->m_setup.enableAutoArpeggio = (aaEn != 0);
+}
+
+ADLMIDI_EXPORT int adl_getAutoArpeggio(ADL_MIDIPlayer *device)
+{
+    if(!device)
+        return 0;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    return play->m_setup.enableAutoArpeggio ? 1 : 0;
+}
+
 ADLMIDI_EXPORT void adl_setLoopEnabled(ADL_MIDIPlayer *device, int loopEn)
 {
 #ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
@@ -562,6 +580,34 @@ ADLMIDI_EXPORT void adl_setLoopEnabled(ADL_MIDIPlayer *device, int loopEn)
 #else
     ADL_UNUSED(device);
     ADL_UNUSED(loopEn);
+#endif
+}
+
+ADLMIDI_EXPORT void adl_setLoopCount(ADL_MIDIPlayer *device, int loopCount)
+{
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->m_sequencer->setLoopsCount(loopCount);
+#else
+    ADL_UNUSED(device);
+    ADL_UNUSED(loopCount);
+#endif
+}
+
+ADLMIDI_EXPORT void adl_setLoopHooksOnly(ADL_MIDIPlayer *device, int loopHooksOnly)
+{
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->m_sequencer->setLoopHooksOnly(loopHooksOnly);
+#else
+    ADL_UNUSED(device);
+    ADL_UNUSED(loopHooksOnly);
 #endif
 }
 
@@ -616,6 +662,29 @@ ADLMIDI_EXPORT int adl_getVolumeRangeModel(struct ADL_MIDIPlayer *device)
     MidiPlayer *play = GET_MIDI_PLAYER(device);
     assert(play);
     return play->m_synth->getVolumeScaleModel();
+}
+
+ADLMIDI_EXPORT void adl_setChannelAllocMode(struct ADL_MIDIPlayer *device, int chanalloc)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    Synth &synth = *play->m_synth;
+
+    if(chanalloc < -1 || chanalloc >= ADLMIDI_ChanAlloc_Count)
+        chanalloc = ADLMIDI_ChanAlloc_AUTO;
+
+    synth.m_channelAlloc = static_cast<ADLMIDI_ChannelAlloc>(chanalloc);
+}
+
+ADLMIDI_EXPORT int adl_getChannelAllocMode(struct ADL_MIDIPlayer *device)
+{
+    if(!device)
+        return -1;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    return static_cast<int>(play->m_synth->m_channelAlloc);
 }
 
 ADLMIDI_EXPORT int adl_openBankFile(struct ADL_MIDIPlayer *device, const char *filePath)
@@ -716,6 +785,35 @@ ADLMIDI_EXPORT int adl_openData(ADL_MIDIPlayer *device, const void *mem, unsigne
     return -1;
 }
 
+ADLMIDI_EXPORT void adl_selectSongNum(struct ADL_MIDIPlayer *device, int songNumber)
+{
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    if(!device)
+        return;
+
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->m_sequencer->setSongNum(songNumber);
+#else
+    ADL_UNUSED(device);
+    ADL_UNUSED(songNumber);
+#endif
+}
+
+ADLMIDI_EXPORT int adl_getSongsCount(struct ADL_MIDIPlayer *device)
+{
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    if(!device)
+        return 0;
+
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    return play->m_sequencer->getSongsCount();
+#else
+    ADL_UNUSED(device);
+    return 0;
+#endif
+}
 
 ADLMIDI_EXPORT const char *adl_emulatorName()
 {
@@ -1083,6 +1181,36 @@ ADLMIDI_EXPORT void adl_setDebugMessageHook(struct ADL_MIDIPlayer *device, ADL_D
 #endif
 }
 
+/* Set loop start hook */
+ADLMIDI_EXPORT void adl_setLoopStartHook(struct ADL_MIDIPlayer *device, ADL_LoopPointHook loopStartHook, void *userData)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->hooks.onLoopStart = loopStartHook;
+    play->hooks.onLoopStart_userData = userData;
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    play->m_sequencerInterface->onloopStart = loopStartHook;
+    play->m_sequencerInterface->onloopStart_userData = userData;
+#endif
+}
+
+/* Set loop end hook */
+ADLMIDI_EXPORT void adl_setLoopEndHook(struct ADL_MIDIPlayer *device, ADL_LoopPointHook loopEndHook, void *userData)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->hooks.onLoopEnd = loopEndHook;
+    play->hooks.onLoopEnd_userData = userData;
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    play->m_sequencerInterface->onloopEnd = loopEndHook;
+    play->m_sequencerInterface->onloopEnd_userData = userData;
+#endif
+}
+
 #ifndef ADLMIDI_HW_OPL
 
 #   ifndef __WATCOMC__
@@ -1310,74 +1438,69 @@ ADLMIDI_EXPORT int adl_playFormat(ADL_MIDIPlayer *device, int sampleCount,
 
     while(left > 0)
     {
-        {//...
-            if(setup.delay <= 0.0)
-                setup.delay = double(left / 2) / double(setup.PCM_RATE);
-            const double eat_delay = setup.delay < setup.maxdelay ? setup.delay : setup.maxdelay;
-            if(hasSkipped)
+        const double eat_delay = setup.delay < setup.maxdelay ? setup.delay : setup.maxdelay;
+        if(hasSkipped)
+        {
+            size_t samples = setup.tick_skip_samples_delay > sampleCount ? sampleCount : setup.tick_skip_samples_delay;
+            n_periodCountStereo = samples / 2;
+        }
+        else
+        {
+            setup.delay -= eat_delay;
+            setup.carry += double(setup.PCM_RATE) * eat_delay;
+            n_periodCountStereo = static_cast<ssize_t>(setup.carry);
+            setup.carry -= double(n_periodCountStereo);
+        }
+
+        //if(setup.SkipForward > 0)
+        //    setup.SkipForward -= 1;
+        //else
+        {
+            if((player->m_sequencer->positionAtEnd()) && (setup.delay <= 0.0))
+                break;//Stop to fetch samples at reaching the song end with disabled loop
+
+            ssize_t leftSamples = left / 2;
+            if(n_periodCountStereo > leftSamples)
             {
-                size_t samples = setup.tick_skip_samples_delay > sampleCount ? sampleCount : setup.tick_skip_samples_delay;
-                n_periodCountStereo = samples / 2;
+                setup.tick_skip_samples_delay = (n_periodCountStereo - leftSamples) * 2;
+                n_periodCountStereo = leftSamples;
             }
-            else
+            //! Count of stereo samples
+            ssize_t in_generatedStereo = (n_periodCountStereo > 512) ? 512 : n_periodCountStereo;
+            //! Total count of samples
+            ssize_t in_generatedPhys = in_generatedStereo * 2;
+            //! Unsigned total sample count
+            //fill buffer with zeros
+            int32_t *out_buf = player->m_outBuf;
+            std::memset(out_buf, 0, static_cast<size_t>(in_generatedPhys) * sizeof(out_buf[0]));
+            Synth &synth = *player->m_synth;
+            unsigned int chips = synth.m_numChips;
+            if(chips == 1)
             {
-                setup.delay -= eat_delay;
-                setup.carry += double(setup.PCM_RATE) * eat_delay;
-                n_periodCountStereo = static_cast<ssize_t>(setup.carry);
-                setup.carry -= double(n_periodCountStereo);
+                synth.m_chips[0]->generate32(out_buf, (size_t)in_generatedStereo);
             }
-
-            //if(setup.SkipForward > 0)
-            //    setup.SkipForward -= 1;
-            //else
+            else if(n_periodCountStereo > 0)
             {
-                if((player->m_sequencer->positionAtEnd()) && (setup.delay <= 0.0))
-                    break;//Stop to fetch samples at reaching the song end with disabled loop
-
-                ssize_t leftSamples = left / 2;
-                if(n_periodCountStereo > leftSamples)
-                {
-                    setup.tick_skip_samples_delay = (n_periodCountStereo - leftSamples) * 2;
-                    n_periodCountStereo = leftSamples;
-                }
-                //! Count of stereo samples
-                ssize_t in_generatedStereo = (n_periodCountStereo > 512) ? 512 : n_periodCountStereo;
-                //! Total count of samples
-                ssize_t in_generatedPhys = in_generatedStereo * 2;
-                //! Unsigned total sample count
-                //fill buffer with zeros
-                int32_t *out_buf = player->m_outBuf;
-                std::memset(out_buf, 0, static_cast<size_t>(in_generatedPhys) * sizeof(out_buf[0]));
-                Synth &synth = *player->m_synth;
-                unsigned int chips = synth.m_numChips;
-                if(chips == 1)
-                {
-                    synth.m_chips[0]->generate32(out_buf, (size_t)in_generatedStereo);
-                }
-                else if(n_periodCountStereo > 0)
-                {
-                    /* Generate data from every chip and mix result */
-                    for(size_t card = 0; card < chips; ++card)
-                        synth.m_chips[card]->generateAndMix32(out_buf, (size_t)in_generatedStereo);
-                }
-
-                /* Process it */
-                if(SendStereoAudio(sampleCount, in_generatedStereo, out_buf, gotten_len, out_left, out_right, format) == -1)
-                    return 0;
-
-                left -= (int)in_generatedPhys;
-                gotten_len += (in_generatedPhys) /* - setup.stored_samples*/;
+                /* Generate data from every chip and mix result */
+                for(size_t card = 0; card < chips; ++card)
+                    synth.m_chips[card]->generateAndMix32(out_buf, (size_t)in_generatedStereo);
             }
 
-            if(hasSkipped)
-            {
-                setup.tick_skip_samples_delay -= n_periodCountStereo * 2;
-                hasSkipped = setup.tick_skip_samples_delay > 0;
-            }
-            else
-                setup.delay = player->Tick(eat_delay, setup.mindelay);
+            /* Process it */
+            if(SendStereoAudio(sampleCount, in_generatedStereo, out_buf, gotten_len, out_left, out_right, format) == -1)
+                return 0;
 
-        }//...
+            left -= (int)in_generatedPhys;
+            gotten_len += (in_generatedPhys) /* - setup.stored_samples*/;
+        }
+
+        if(hasSkipped)
+        {
+            setup.tick_skip_samples_delay -= n_periodCountStereo * 2;
+            hasSkipped = setup.tick_skip_samples_delay > 0;
+        }
+        else
+            setup.delay = player->Tick(eat_delay, setup.mindelay);
     }
 
     return static_cast<int>(gotten_len);
@@ -1420,47 +1543,45 @@ ADLMIDI_EXPORT int adl_generateFormat(struct ADL_MIDIPlayer *device, int sampleC
 
     while(left > 0)
     {
-        {//...
-            if(delay <= 0.0)
-                delay = double(left / 2) / double(setup.PCM_RATE);
-            const double eat_delay = delay < setup.maxdelay ? delay : setup.maxdelay;
-            delay -= eat_delay;
-            setup.carry += double(setup.PCM_RATE) * eat_delay;
-            n_periodCountStereo = static_cast<ssize_t>(setup.carry);
-            setup.carry -= double(n_periodCountStereo);
+        if(delay <= 0.0)
+            delay = double(left / 2) / double(setup.PCM_RATE);
+        const double eat_delay = delay < setup.maxdelay ? delay : setup.maxdelay;
+        delay -= eat_delay;
+        setup.carry += double(setup.PCM_RATE) * eat_delay;
+        n_periodCountStereo = static_cast<ssize_t>(setup.carry);
+        setup.carry -= double(n_periodCountStereo);
 
+        {
+            ssize_t leftSamples = left / 2;
+            if(n_periodCountStereo > leftSamples)
+                n_periodCountStereo = leftSamples;
+            //! Count of stereo samples
+            ssize_t in_generatedStereo = (n_periodCountStereo > 512) ? 512 : n_periodCountStereo;
+            //! Total count of samples
+            ssize_t in_generatedPhys = in_generatedStereo * 2;
+            //! Unsigned total sample count
+            //fill buffer with zeros
+            int32_t *out_buf = player->m_outBuf;
+            std::memset(out_buf, 0, static_cast<size_t>(in_generatedPhys) * sizeof(out_buf[0]));
+            Synth &synth = *player->m_synth;
+            unsigned int chips = synth.m_numChips;
+            if(chips == 1)
+                synth.m_chips[0]->generate32(out_buf, (size_t)in_generatedStereo);
+            else if(n_periodCountStereo > 0)
             {
-                ssize_t leftSamples = left / 2;
-                if(n_periodCountStereo > leftSamples)
-                    n_periodCountStereo = leftSamples;
-                //! Count of stereo samples
-                ssize_t in_generatedStereo = (n_periodCountStereo > 512) ? 512 : n_periodCountStereo;
-                //! Total count of samples
-                ssize_t in_generatedPhys = in_generatedStereo * 2;
-                //! Unsigned total sample count
-                //fill buffer with zeros
-                int32_t *out_buf = player->m_outBuf;
-                std::memset(out_buf, 0, static_cast<size_t>(in_generatedPhys) * sizeof(out_buf[0]));
-                Synth &synth = *player->m_synth;
-                unsigned int chips = synth.m_numChips;
-                if(chips == 1)
-                    synth.m_chips[0]->generate32(out_buf, (size_t)in_generatedStereo);
-                else if(n_periodCountStereo > 0)
-                {
-                    /* Generate data from every chip and mix result */
-                    for(unsigned card = 0; card < chips; ++card)
-                        synth.m_chips[card]->generateAndMix32(out_buf, (size_t)in_generatedStereo);
-                }
-                /* Process it */
-                if(SendStereoAudio(sampleCount, in_generatedStereo, out_buf, gotten_len, out_left, out_right, format) == -1)
-                    return 0;
-
-                left -= (int)in_generatedPhys;
-                gotten_len += (in_generatedPhys) /* - setup.stored_samples*/;
+                /* Generate data from every chip and mix result */
+                for(unsigned card = 0; card < chips; ++card)
+                    synth.m_chips[card]->generateAndMix32(out_buf, (size_t)in_generatedStereo);
             }
+            /* Process it */
+            if(SendStereoAudio(sampleCount, in_generatedStereo, out_buf, gotten_len, out_left, out_right, format) == -1)
+                return 0;
 
-            player->TickIterators(eat_delay);
-        }//...
+            left -= (int)in_generatedPhys;
+            gotten_len += (in_generatedPhys) /* - setup.stored_samples*/;
+        }
+
+        player->TickIterators(eat_delay);
     }
 
     return static_cast<int>(gotten_len);
@@ -1548,6 +1669,27 @@ ADLMIDI_EXPORT int adl_setTrackOptions(struct ADL_MIDIPlayer *device, size_t tra
     ADL_UNUSED(device);
     ADL_UNUSED(trackNumber);
     ADL_UNUSED(trackOptions);
+    return -1;
+#endif
+}
+
+ADLMIDI_EXPORT int adl_setChannelEnabled(struct ADL_MIDIPlayer *device, size_t channelNumber, int enabled)
+{
+#ifndef ADLMIDI_DISABLE_MIDI_SEQUENCER
+    if(!device)
+        return -1;
+
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    MidiSequencer &seq = *play->m_sequencer;
+
+    if(!seq.setChannelEnabled(channelNumber, (bool)enabled))
+        return -1;
+    return 0;
+#else
+    ADL_UNUSED(device);
+    ADL_UNUSED(channelNumber);
+    ADL_UNUSED(enabled);
     return -1;
 #endif
 }

@@ -2,7 +2,7 @@
  * libADLMIDI is a free Software MIDI synthesizer library with OPL3 emulation
  *
  * Original ADLMIDI code: Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * ADLMIDI Library API:   Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * ADLMIDI Library API:   Copyright (c) 2015-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -21,13 +21,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !defined(_WIN32)
-#include <pthread.h>
+#ifndef DOSBOX_NO_MUTEX
+#   if defined(USE_LIBOGC_MUTEX)
+#       include <ogc/mutex.h>
+typedef mutex_t MutexNativeObject;
+#   elif defined(USE_WUT_MUTEX)
+#       if __cplusplus < 201103L || (defined(_MSC_VER) && _MSC_VER < 1900)
+#           define static_assert(x, y)
+#       endif
+#       include <coreinit/mutex.h>
+typedef OSMutex MutexNativeObject;
+#   elif !defined(_WIN32)
+#       include <pthread.h>
 typedef pthread_mutex_t MutexNativeObject;
-#else
-#include <windows.h>
+#   else
+#       include <windows.h>
 typedef CRITICAL_SECTION MutexNativeObject;
+#   endif
 #endif
+
 
 class Mutex
 {
@@ -37,7 +49,9 @@ public:
     void lock();
     void unlock();
 private:
+#if !defined(DOSBOX_NO_MUTEX)
     MutexNativeObject m;
+#endif
     Mutex(const Mutex &);
     Mutex &operator=(const Mutex &);
 };
@@ -53,7 +67,65 @@ private:
     MutexHolder &operator=(const MutexHolder &);
 };
 
-#if !defined(_WIN32)
+#if defined(DOSBOX_NO_MUTEX) // No mutex, just a dummy
+
+inline Mutex::Mutex()
+{}
+
+inline Mutex::~Mutex()
+{}
+
+inline void Mutex::lock()
+{}
+
+inline void Mutex::unlock()
+{}
+
+#elif defined(USE_WUT_MUTEX)
+
+inline Mutex::Mutex()
+{
+    OSInitMutex(&m);
+}
+
+inline Mutex::~Mutex()
+{}
+
+inline void Mutex::lock()
+{
+    OSLockMutex(&m);
+}
+
+inline void Mutex::unlock()
+{
+    OSUnlockMutex(&m);
+}
+
+#elif defined(USE_LIBOGC_MUTEX)
+
+inline Mutex::Mutex()
+{
+    m = LWP_MUTEX_NULL;
+    LWP_MutexInit(&m, 0);
+}
+
+inline Mutex::~Mutex()
+{
+    LWP_MutexDestroy(m);
+}
+
+inline void Mutex::lock()
+{
+    LWP_MutexLock(m);
+}
+
+inline void Mutex::unlock()
+{
+    LWP_MutexUnlock(m);
+}
+
+#elif !defined(_WIN32) // pthread
+
 inline Mutex::Mutex()
 {
     pthread_mutex_init(&m, NULL);
@@ -73,7 +145,9 @@ inline void Mutex::unlock()
 {
     pthread_mutex_unlock(&m);
 }
-#else
+
+#else // Win32
+
 inline Mutex::Mutex()
 {
     InitializeCriticalSection(&m);

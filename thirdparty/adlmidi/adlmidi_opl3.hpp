@@ -2,7 +2,7 @@
  * libADLMIDI is a free Software MIDI synthesizer library with OPL3 emulation
  *
  * Original ADLMIDI code: Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * ADLMIDI Library API:   Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * ADLMIDI Library API:   Copyright (c) 2015-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -161,6 +161,9 @@ public:
         //! HMI Sound Operating System volume scale model, older variant
         VOLUME_HMI_OLD
     } m_volumeScale;
+
+    //! Channel allocation algorithm
+    ADLMIDI_ChannelAlloc m_channelAlloc;
 
     //! Reserved
     char _padding3[8];
