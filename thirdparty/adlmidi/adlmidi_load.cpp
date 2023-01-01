@@ -2,7 +2,7 @@
  * libADLMIDI is a free Software MIDI synthesizer library with OPL3 emulation
  *
  * Original ADLMIDI code: Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * ADLMIDI Library API:   Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * ADLMIDI Library API:   Copyright (c) 2015-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -117,6 +117,7 @@ bool MIDIplay::LoadBank(FileAndMemReader &fr)
     synth.m_insBankSetup.scaleModulators = false;
     synth.m_insBankSetup.deepTremolo = (wopl->opl_flags & WOPL_FLAG_DEEP_TREMOLO) != 0;
     synth.m_insBankSetup.deepVibrato = (wopl->opl_flags & WOPL_FLAG_DEEP_VIBRATO) != 0;
+    synth.m_insBankSetup.mt32defaults = (wopl->opl_flags & WOPL_FLAG_MT32) != 0;
     synth.m_insBankSetup.volumeModel = wopl->volume_model;
     m_setup.deepTremoloMode = -1;
     m_setup.deepVibratoMode = -1;

@@ -2,7 +2,7 @@
  * libADLMIDI is a free Software MIDI synthesizer library with OPL3 emulation
  *
  * Original ADLMIDI code: Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * ADLMIDI Library API:   Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * ADLMIDI Library API:   Copyright (c) 2015-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -36,7 +36,8 @@ enum { MasterVolumeDefault = 127 };
 
 inline bool isXgPercChannel(uint8_t msb, uint8_t lsb)
 {
-    return (msb == 0x7E || msb == 0x7F) && (lsb == 0);
+    ADL_UNUSED(lsb);
+    return (msb == 0x7E || msb == 0x7F);
 }
 
 void MIDIplay::AdlChannel::addAge(int64_t us)
@@ -90,6 +91,7 @@ MIDIplay::MIDIplay(unsigned long sampleRate):
     //m_setup.SkipForward = 0;
     m_setup.scaleModulators     = -1;
     m_setup.fullRangeBrightnessCC74 = false;
+    m_setup.enableAutoArpeggio = false;
     m_setup.delay = 0.0;
     m_setup.carry = 0.0;
     m_setup.tick_skip_samples_delay = 0;
@@ -126,6 +128,7 @@ void MIDIplay::applySetup()
         synth.m_insBankSetup.volumeModel = (b.bankSetup & 0x00FF);
         synth.m_insBankSetup.deepTremolo = (b.bankSetup >> 8 & 0x0001) != 0;
         synth.m_insBankSetup.deepVibrato = (b.bankSetup >> 8 & 0x0002) != 0;
+        synth.m_insBankSetup.mt32defaults = (b.bankSetup >> 8 & 0x0004) != 0;
     }
 #endif
 
@@ -200,15 +203,15 @@ void MIDIplay::resetMIDIDefaults(int offset)
     for(size_t c = offset, n = m_midiChannels.size(); c < n; ++c)
     {
         MIDIchannel &ch = m_midiChannels[c];
-        if(synth.m_musicMode == Synth::MODE_XMIDI)
+
+        if(synth.m_musicMode == Synth::MODE_RSXX)
+            ch.def_volume = 127;
+        else if(synth.m_insBankSetup.mt32defaults)
         {
             ch.def_volume = 127;
             ch.def_bendsense_lsb = 0;
             ch.def_bendsense_msb = 12;
         }
-        else
-        if(synth.m_musicMode == Synth::MODE_RSXX)
-            ch.def_volume = 127;
     }
 }
 
@@ -290,10 +293,11 @@ bool MIDIplay::realTime_NoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
         if(!i.is_end())
         {
             MIDIchannel::NoteInfo &ni = i->value;
-            const int veloffset = ni.ains->midiVelocityOffset;
+            const int veloffset = ni.ains ? ni.ains->midiVelocityOffset : 0;
             velocity = (uint8_t)std::min(127, std::max(1, (int)velocity + veloffset));
             ni.vol = velocity;
-            noteUpdate(channel, i, Upd_Volume);
+            if(ni.ains)
+                noteUpdate(channel, i, Upd_Volume);
             return false;
         }
     }
@@ -329,7 +333,7 @@ bool MIDIplay::realTime_NoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
             // Let XG Percussion bank will use (0...127 LSB range in WOPN file)
 
             // Choose: SFX or Drum Kits
-            bank = midiins + ((bank == 0x7E00) ? 128 : 0);
+            bank = midiins + ((midiChan.bank_msb == 0x7E) ? 128 : 0);
         }
         else
         {
@@ -357,8 +361,8 @@ bool MIDIplay::realTime_NoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
             caughtMissingBank = true;
     }
 
-    //Or fall back to bank ignoring LSB (GS)
-    if((ains->flags & OplInstMeta::Flag_NoSound) && ((m_synthMode & Mode_GS) != 0))
+    //Or fall back to bank ignoring LSB (GS/XG)
+    if(ains->flags & OplInstMeta::Flag_NoSound)
     {
         size_t fallback = bank & ~(size_t)0x7F;
         if(fallback != bank)
@@ -1345,6 +1349,17 @@ int64_t MIDIplay::calculateChipChannelGoodness(size_t c, const MIDIchannel::Note
     const AdlChannel &chan = m_chipChannels[c];
     int64_t koff_ms = chan.koff_time_until_neglible_us / 1000;
     int64_t s = -koff_ms;
+    ADLMIDI_ChannelAlloc allocType = synth.m_channelAlloc;
+
+    if(allocType == ADLMIDI_ChanAlloc_AUTO)
+    {
+        if(synth.m_musicMode == Synth::MODE_CMF)
+            allocType = ADLMIDI_ChanAlloc_SameInst;
+        else if(synth.m_volumeScale == Synth::VOLUME_HMI)
+            allocType = ADLMIDI_ChanAlloc_AnyReleased; // HMI doesn't care about the same instrument
+        else
+            allocType = ADLMIDI_ChanAlloc_OffDelay;
+    }
 
     // Rate channel with a releasing note
     if(s < 0 && chan.users.empty())
@@ -1353,19 +1368,22 @@ int64_t MIDIplay::calculateChipChannelGoodness(size_t c, const MIDIchannel::Note
         s -= 40000;
 
         // If it's same instrument, better chance to get it when no free channels
-        if(synth.m_musicMode == Synth::MODE_CMF)
+        switch(allocType)
         {
+        case ADLMIDI_ChanAlloc_SameInst:
             if(isSame)
                 s = 0; // Re-use releasing channel with the same instrument
-        }
-        else if(synth.m_volumeScale == Synth::VOLUME_HMI)
-        {
-            s = 0; // HMI doesn't care about the same instrument
-        }
-        else
-        {
+            break;
+
+        case ADLMIDI_ChanAlloc_AnyReleased:
+            s = 0; // Re-use any releasing channel
+            break;
+
+        default:
+        case ADLMIDI_ChanAlloc_OffDelay:
             if(isSame)
                 s =  -koff_ms; // Wait until releasing sound will complete
+            break;
         }
 
         return s;
@@ -1501,6 +1519,9 @@ void MIDIplay::killOrEvacuate(size_t from_channel,
     for(uint32_t c = 0; c < synth.m_numChannels; ++c)
     {
         uint16_t cs = static_cast<uint16_t>(c);
+
+        if(!m_setup.enableAutoArpeggio)
+            break; // Arpeggio disabled completely
 
         if(c >= maxChannels)
             break;
@@ -1724,6 +1745,13 @@ void MIDIplay::updateArpeggio(double) // amount = amount of time passed
     // simulated on the same channel, arpeggio them.
 
     Synth &synth = *m_synth;
+
+    if(!m_setup.enableAutoArpeggio) // Arpeggio was disabled
+    {
+        if(m_arpeggioCounter != 0)
+            m_arpeggioCounter = 0;
+        return;
+    }
 
 #if 0
     const unsigned desired_arpeggio_rate = 40; // Hz (upper limit)

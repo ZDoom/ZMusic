@@ -2,7 +2,7 @@
  * libADLMIDI is a free Software MIDI synthesizer library with OPL3 emulation
  *
  * Original ADLMIDI code: Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * ADLMIDI Library API:   Copyright (c) 2015-2020 Vitaly Novichkov <admin@wohlnet.ru>
+ * ADLMIDI Library API:   Copyright (c) 2015-2022 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -868,12 +868,14 @@ OPL3::OPL3() :
     m_softPanning(false),
     m_masterVolume(MasterVolumeDefault),
     m_musicMode(MODE_MIDI),
-    m_volumeScale(VOLUME_Generic)
+    m_volumeScale(VOLUME_Generic),
+    m_channelAlloc(ADLMIDI_ChanAlloc_AUTO)
 {
     m_insBankSetup.volumeModel = OPL3::VOLUME_Generic;
     m_insBankSetup.deepTremolo = false;
     m_insBankSetup.deepVibrato = false;
     m_insBankSetup.scaleModulators = false;
+    m_insBankSetup.mt32defaults = false;
 
 #ifdef DISABLE_EMBEDDED_BANKS
     m_embeddedBank = CustomBankTag;
@@ -913,6 +915,7 @@ void OPL3::setEmbeddedBank(uint32_t bank)
     const BanksDump::BankEntry &bankEntry = g_embeddedBanks[m_embeddedBank];
     m_insBankSetup.deepTremolo = ((bankEntry.bankSetup >> 8) & 0x01) != 0;
     m_insBankSetup.deepVibrato = ((bankEntry.bankSetup >> 8) & 0x02) != 0;
+    m_insBankSetup.mt32defaults = ((bankEntry.bankSetup >> 8) & 0x04) != 0;
     m_insBankSetup.volumeModel = (bankEntry.bankSetup & 0xFF);
     m_insBankSetup.scaleModulators = false;
 
@@ -1628,6 +1631,7 @@ void OPL3::setVolumeScaleModel(ADLMIDI_VolumeModels volumeModel)
 {
     switch(volumeModel)
     {
+    default:
     case ADLMIDI_VolumeModel_AUTO://Do nothing until restart playing
         break;
 
