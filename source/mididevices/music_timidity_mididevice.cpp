@@ -97,6 +97,7 @@ void TimidityMIDIDevice::LoadInstruments()
 	if (gusConfig.reader)
 	{
 		// Check if we got some GUS data before using it.
+		bool prepareInstruments = gusConfig.readerName == "DMXGUS" ? false : true;
 		std::string ultradir;
 		const char *ret = getenv("ULTRADIR");
 		if (ret) ultradir = std::string(ret);
@@ -105,12 +106,20 @@ void TimidityMIDIDevice::LoadInstruments()
 		{
 			ultradir += "/midi";
 			gusConfig.reader->add_search_path(ultradir.c_str());
+			prepareInstruments = true;
 		}
 		// Load DMXGUS lump and patches from gus_patchdir
-		if (gusConfig.gus_patchdir.length() != 0) gusConfig.reader->add_search_path(gusConfig.gus_patchdir.c_str());
+		if (gusConfig.gus_patchdir.length() != 0)
+		{
+			gusConfig.reader->add_search_path(gusConfig.gus_patchdir.c_str());
+			prepareInstruments = true;
+		}
 		
-		gusConfig.instruments.reset(new Timidity::Instruments(gusConfig.reader));
-		gusConfig.loadedConfig = gusConfig.readerName;
+		if (prepareInstruments)
+		{
+			gusConfig.instruments.reset(new Timidity::Instruments(gusConfig.reader));
+			gusConfig.loadedConfig = gusConfig.readerName;
+		}
 	}
 
 	if (gusConfig.instruments == nullptr)
@@ -256,8 +265,6 @@ void TimidityMIDIDevice::ComputeOutput(float *buffer, int len)
 bool GUS_SetupConfig(const char* args)
 {
 	if (*args == 0) args = gusConfig.gus_config.c_str();
-	if (gusConfig.gus_dmxgus && *args == 0) args = "DMXGUS";
-	//if (stricmp(gusConfig.loadedConfig.c_str(), args) == 0) return false; // aleady loaded
 
 	MusicIO::SoundFontReaderInterface* reader = MusicIO::ClientOpenSoundFont(args, SF_GUS);
 	if (!reader && MusicIO::fileExists(args))
@@ -277,6 +284,7 @@ bool GUS_SetupConfig(const char* args)
 
 	if (!reader && gusConfig.gus_dmxgus)
 	{
+		args = "DMXGUS";
 		reader = new MusicIO::FileSystemSoundFontReader(args, true);
 	}
 
