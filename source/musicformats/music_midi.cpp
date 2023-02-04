@@ -34,8 +34,9 @@
 
 // HEADER FILES ------------------------------------------------------------
 
-#include <string>
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 #include <assert.h>
 #include "zmusic/zmusic_internal.h"
 #include "zmusic/musinfo.h"

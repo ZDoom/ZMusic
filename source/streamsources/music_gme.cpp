@@ -38,9 +38,11 @@
 //#define GME_DLL
 
 #include <algorithm>
+#include <mutex>
+#include <stdexcept>
+
 #include "streamsource.h"
 #include <gme/gme.h>
-#include <mutex>
 #include "fileio.h"
 
 // MACROS ------------------------------------------------------------------
