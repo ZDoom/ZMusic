@@ -38,6 +38,7 @@
 #include "mididevice.h"
 #include "zmusic/m_swap.h"
 #include "fileio.h"
+#include <stdexcept>
 #include <errno.h>
 
 // MACROS ------------------------------------------------------------------

@@ -35,6 +35,7 @@
 // HEADER FILES ------------------------------------------------------------
 
 #include <mutex>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 #include "zmusic/zmusic_internal.h"
