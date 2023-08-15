@@ -4,6 +4,12 @@ project(ZMusic
 	LANGUAGES C CXX
 )
 
+if (VCPKG_TOOLCHAIN)
+	if(VCPKG_TARGET_TRIPLET MATCHES "-static$")
+ 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+ 	endif()
+endif()
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include(CMakePackageConfigHelpers)
