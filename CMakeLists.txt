@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.13...3.19)
+
+if (VCPKG_LIBSNDFILE)
+	list(APPEND VCPKG_MANIFEST_FEATURES "vcpkg-libsndfile")
+endif()
+
 project(ZMusic
 	VERSION 1.1.12
 	LANGUAGES C CXX
@@ -8,6 +13,8 @@ if (VCPKG_TOOLCHAIN)
 	if(VCPKG_TARGET_TRIPLET MATCHES "-static$")
  		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
  	endif()
+
+	option(VCPKG_LIBSNDFILE "Import libsndfile from vcpkg" OFF)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)

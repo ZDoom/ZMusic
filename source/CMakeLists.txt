@@ -156,6 +156,10 @@ PROPERTIES
 	SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
+if (VCPKG_TOOLCHAIN)
+	x_vcpkg_install_local_dependencies(TARGETS zmusic zmusiclite DESTINATION ".")
+endif()
+
 if(ZMUSIC_INSTALL)
 	install(TARGETS zmusic EXPORT ZMusicFullTargets
 	PUBLIC_HEADER

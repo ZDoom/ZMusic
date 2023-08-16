@@ -5,14 +5,18 @@
     "description": "GZDoom's music system as a standalone library",
     "features":
     {
+        "vcpkg-libsndfile":
+        {
             "description": "Use libsndfile provided by vcpkg.",
-            "dependencies": [
+            "dependencies":
+            [
                 {
                     "name": "libsndfile",
                     "default-features": false,
                     "features": [ "mpeg", "external-libs" ]
                 }
             ]
+        }
     },
     "dependencies": [
         {
