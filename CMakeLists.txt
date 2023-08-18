@@ -15,6 +15,8 @@ if (VCPKG_TOOLCHAIN)
  	endif()
 
 	option(VCPKG_LIBSNDFILE "Import libsndfile from vcpkg" OFF)
+else()
+	set(VCPKG_MANIFEST_FEATURES)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
