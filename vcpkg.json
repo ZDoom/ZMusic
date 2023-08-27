@@ -22,6 +22,9 @@
         {
             "name": "alsa",
             "platform": "linux"
+        },
+        {
+            "name": "zlib"
         }
     ]
 }
