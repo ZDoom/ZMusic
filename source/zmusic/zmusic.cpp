@@ -36,7 +36,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
-#include <zlib.h>
+#include <miniz.h>
 #include "m_swap.h"
 #include "zmusic_internal.h"
 #include "midiconfig.h"
