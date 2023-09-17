@@ -1,22 +1,3 @@
-if(NOT TARGET ZLIB::ZLIB)
-	option(FORCE_INTERNAL_ZLIB "Use internal zlib" OFF)
-	find_package(ZLIB QUIET)
-	if(ZLIB_FOUND AND NOT FORCE_INTERNAL_ZLIB)
-		message(STATUS "Using system zlib, includes found at ${ZLIB_INCLUDE_DIRS}")
-		set_property(TARGET ZLIB::ZLIB PROPERTY IMPORTED_GLOBAL TRUE)
-		determine_package_config_dependency(ZMUSIC_PACKAGE_DEPENDENCIES TARGET ZLIB::ZLIB MODULE ZLIB)
-	else()
-		message(STATUS "Using internal zlib")
-		set(SKIP_INSTALL_ALL TRUE) # Avoid installing zlib alongside ZMusic
-		add_subdirectory(zlib)
-		add_library(ZLIB::ZLIB ALIAS z)
-
-		# Setup variables for GME's CMakeLists
-		set(ZLIB_LIBRARY ZLIB::ZLIB)
-		get_property(ZLIB_INCLUDE_DIR TARGET ZLIB::ZLIB PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-	endif()
-endif()
-
 # GME is not currently released in a way that's conducive to using as a system
 # library. Nevertheless at least one person tried, and so the ability to use a
 # system copy exists soley to placate people following distro guidelines to the
@@ -38,6 +19,7 @@ endif()
 	add_subdirectory(game-music-emu)
 #endif()
 
+add_subdirectory(miniz)
 add_subdirectory(dumb)
 add_subdirectory(adlmidi)
 add_subdirectory(opnmidi)

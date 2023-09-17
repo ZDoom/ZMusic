@@ -127,7 +127,7 @@ if(WIN32)
 	)
 endif()
 
-target_link_libraries(zmusic-obj INTERFACE dumb gme ZLIB::ZLIB ${CMAKE_DL_LIBS})
+target_link_libraries(zmusic-obj INTERFACE dumb gme miniz ${CMAKE_DL_LIBS})
 
 target_include_directories(zmusic-obj
 INTERFACE
