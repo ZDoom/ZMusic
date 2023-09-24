@@ -90,7 +90,7 @@ else()
 endif()
 if(DYN_MPG123)
 	target_compile_definitions(zmusic-obj INTERFACE HAVE_MPG123 DYN_MPG123)
-else()
+elseif(NOT ("vcpkg-libsndfile" IN_LIST VCPKG_MANIFEST_FEATURES))
 	find_package(MPG123)
 
 	if(MPG123_FOUND)
