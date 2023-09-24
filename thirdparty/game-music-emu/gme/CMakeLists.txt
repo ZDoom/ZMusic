@@ -21,7 +21,8 @@ if(NOT BUILD_SHARED_LIBS)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 endif()
 
-find_package(ZLIB QUIET)
+# [ZMusic] We use miniz now.
+# find_package(ZLIB QUIET)
 
 # Ay_Apu is very popular around here
 if (USE_GME_AY OR USE_GME_KSS)
@@ -165,17 +166,20 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 # Add library to be compiled.
 add_library(gme OBJECT ${libgme_SRCS})
 
-if(ZLIB_FOUND)
-    message(" ** ZLib library located, compressed file formats will be supported")
+# Commented our since we use miniz
+#if(ZLIB_FOUND)
+#   message(" ** ZLib library located, compressed file formats will be supported")
     target_compile_definitions(gme PRIVATE -DHAVE_ZLIB_H)
+    target_link_libraries(gme PRIVATE miniz)
+
     # [ZMusic] Switch to modern target for better transitive handling.
-    target_link_libraries(gme PRIVATE ZLIB::ZLIB)
+    # target_link_libraries(gme PRIVATE ZLIB::ZLIB)
     # Is not to be installed though
 
-    set(PKG_CONFIG_ZLIB -lz) # evaluated in libgme.pc.in
-else()
-    message("ZLib library not found, disabling support for compressed formats such as VGZ")
-endif()
+#   set(PKG_CONFIG_ZLIB -lz) # evaluated in libgme.pc.in
+#else()
+#    message("ZLib library not found, disabling support for compressed formats such as VGZ")
+#endif()
 
 # [ZMusic] Interface include directories
 target_include_directories(gme INTERFACE ..)

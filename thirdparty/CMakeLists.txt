@@ -1,3 +1,4 @@
+add_subdirectory(miniz)
 # GME is not currently released in a way that's conducive to using as a system
 # library. Nevertheless at least one person tried, and so the ability to use a
 # system copy exists soley to placate people following distro guidelines to the
@@ -19,7 +20,6 @@
 	add_subdirectory(game-music-emu)
 #endif()
 
-add_subdirectory(miniz)
 add_subdirectory(dumb)
 add_subdirectory(adlmidi)
 add_subdirectory(opnmidi)
