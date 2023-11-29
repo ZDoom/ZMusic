@@ -221,6 +221,9 @@ struct VectorReader : public MemoryReader
 	{
 		mVector.resize(size);
 		memcpy(mVector.data(), data, size);
+		mData = mVector.data();
+		mLength = (long)size;
+		mPos = 0;
 	}
 };
 
