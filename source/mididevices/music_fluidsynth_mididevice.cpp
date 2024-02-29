@@ -239,9 +239,10 @@ void FluidSynthMIDIDevice::HandleEvent(int status, int parm1, int parm2)
 
 void FluidSynthMIDIDevice::HandleLongEvent(const uint8_t *data, int len)
 {
-	if (len > 1 && (data[0] == 0xF0 || data[0] == 0xF7))
+	constexpr int excludedByteCount = 2;						// 0xF0 (first byte) and 0xF7 (last byte) are not given to FluidSynth.
+	if (len > excludedByteCount && data[0] == 0xF0 && data[len - 1] == 0xF7)
 	{
-		fluid_synth_sysex(FluidSynth, (const char *)data + 1, len - 1, NULL, NULL, NULL, 0);
+		fluid_synth_sysex(FluidSynth, (const char *)data + 1, len - excludedByteCount, NULL, NULL, NULL, 0);
 	}
 }
 
