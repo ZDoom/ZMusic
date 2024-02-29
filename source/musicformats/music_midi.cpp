@@ -815,13 +815,22 @@ int MIDIStreamer::FillBuffer(int buffer_num, int max_events, uint32_t max_time)
 	if (InitialPlayback)
 	{
 		InitialPlayback = false;
-		// Send the GS System Reset SysEx message.
+		// Send the GM System Enable SysEx message.
 		events[0] = 0;								// dwDeltaTime
 		events[1] = 0;								// dwStreamID
 		events[2] = (MEVENT_LONGMSG << 24) | 6;		// dwEvent
 		events[3] = MAKE_ID(0xf0, 0x7e, 0x7f, 0x09);	// dwParms[0]
 		events[4] = MAKE_ID(0x01, 0xf7, 0x00, 0x00);	// dwParms[1]
 		events += 5;
+
+		// Send the GS DT1 MODE SET GS Reset SysEx message.
+		events[0] = 0;									// dwDeltaTime
+		events[1] = 0;									// dwStreamID
+		events[2] = (MEVENT_LONGMSG << 24) | 11;		// dwEvent
+		events[3] = MAKE_ID(0xf0, 0x41, 0x7f, 0x42);	// dwParms[0]
+		events[4] = MAKE_ID(0x12, 0x40, 0x00, 0x7f);	// dwParms[1]
+		events[5] = MAKE_ID(0x00, 0x41, 0xf7, 0x00);	// dwParms[2]
+		events += 6;
 
 		// Send the full master volume SysEx message.
 		events[0] = 0;								// dwDeltaTime
