@@ -678,8 +678,8 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 		case zmusic_fluid_reverb_roomsize:
 			if (value < 0)
 				value = 0;
-			else if (value > 1.2f)
-				value = 1.2f;
+			else if (value > 1.0f)
+				value = 1.0f;
 
 			if (currSong != NULL)
 				currSong->ChangeSettingNum("fluidsynth.z.reverb", value);
@@ -736,8 +736,8 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 			return false;
 
 		case zmusic_fluid_chorus_speed:
-			if (value < 0.29f)
-				value = 0.29f;
+			if (value < 0.1f)
+				value = 0.1f;
 			else if (value > 5)
 				value = 5;
 
@@ -751,8 +751,8 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 		case zmusic_fluid_chorus_depth:
 			if (value < 0)
 				value = 0;
-			else if (value > 21)
-				value = 21;
+			else if (value > 256)
+				value = 256;
 
 			if (currSong != NULL)
 				currSong->ChangeSettingNum("fluidsynth.z.chorus", value);
