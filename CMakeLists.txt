@@ -5,7 +5,7 @@ if (VCPKG_LIBSNDFILE)
 endif()
 
 project(ZMusic
-	VERSION 1.1.12
+	VERSION 1.1.13
 	LANGUAGES C CXX
 )
 
