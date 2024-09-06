@@ -130,10 +130,16 @@ FluidSynthMIDIDevice::FluidSynthMIDIDevice(int samplerate, std::vector<std::stri
 		throw std::runtime_error("Failed to create FluidSynth.\n");
 	}
 	fluid_synth_set_interp_method(FluidSynth, -1, fluidConfig.fluid_interp);
-	fluid_synth_set_reverb(FluidSynth, fluidConfig.fluid_reverb_roomsize, fluidConfig.fluid_reverb_damping,
-		fluidConfig.fluid_reverb_width, fluidConfig.fluid_reverb_level);
-	fluid_synth_set_chorus(FluidSynth, fluidConfig.fluid_chorus_voices, fluidConfig.fluid_chorus_level,
-		fluidConfig.fluid_chorus_speed, fluidConfig.fluid_chorus_depth, fluidConfig.fluid_chorus_type);
+	fluid_synth_set_reverb_group_roomsize(FluidSynth, -1, fluidConfig.fluid_reverb_roomsize);
+	fluid_synth_set_reverb_group_damp(FluidSynth, -1, fluidConfig.fluid_reverb_damping);
+	fluid_synth_set_reverb_group_width(FluidSynth, -1, fluidConfig.fluid_reverb_width);
+	fluid_synth_set_reverb_group_level(FluidSynth, -1, fluidConfig.fluid_reverb_level);
+	fluid_synth_set_chorus_group_nr(FluidSynth, -1, fluidConfig.fluid_chorus_voices);
+	fluid_synth_set_chorus_group_level(FluidSynth, -1, fluidConfig.fluid_chorus_level);
+	fluid_synth_set_chorus_group_speed(FluidSynth, -1, fluidConfig.fluid_chorus_speed);
+	fluid_synth_set_chorus_group_depth(FluidSynth, -1, fluidConfig.fluid_chorus_depth);
+	fluid_synth_set_chorus_group_type(FluidSynth, -1, fluidConfig.fluid_chorus_type);
+
 
 	// try loading a patch set that got specified with $mididevice.
 
@@ -320,11 +326,11 @@ void FluidSynthMIDIDevice::ChangeSettingInt(const char *setting, int value)
 	// fluid_settings_setint succeeded; update these settings in the running synth, too
 	else if (strcmp(setting, "synth.reverb.active") == 0)
 	{
-		fluid_synth_set_reverb_on(FluidSynth, value);
+		fluid_synth_reverb_on(FluidSynth, -1, value);
 	}
 	else if (strcmp(setting, "synth.chorus.active") == 0)
 	{
-		fluid_synth_set_chorus_on(FluidSynth, value);
+		fluid_synth_chorus_on(FluidSynth, -1, value);
 	}
 }
 
@@ -346,11 +352,18 @@ void FluidSynthMIDIDevice::ChangeSettingNum(const char *setting, double value)
 
 	if (strcmp(setting, "z.reverb") == 0)
 	{
-		fluid_synth_set_reverb(FluidSynth, fluidConfig.fluid_reverb_roomsize, fluidConfig.fluid_reverb_damping, fluidConfig.fluid_reverb_width, fluidConfig.fluid_reverb_level);
+		fluid_synth_set_reverb_group_roomsize(FluidSynth, -1, fluidConfig.fluid_reverb_roomsize);
+		fluid_synth_set_reverb_group_damp(FluidSynth, -1, fluidConfig.fluid_reverb_damping);
+		fluid_synth_set_reverb_group_width(FluidSynth, -1, fluidConfig.fluid_reverb_width);
+		fluid_synth_set_reverb_group_level(FluidSynth, -1, fluidConfig.fluid_reverb_level);
 	}
 	else if (strcmp(setting, "z.chorus") == 0)
 	{
-		fluid_synth_set_chorus(FluidSynth, fluidConfig.fluid_chorus_voices, fluidConfig.fluid_chorus_level, fluidConfig.fluid_chorus_speed, fluidConfig.fluid_chorus_depth, fluidConfig.fluid_chorus_type);
+		fluid_synth_set_chorus_group_nr(FluidSynth, -1, fluidConfig.fluid_chorus_voices);
+		fluid_synth_set_chorus_group_level(FluidSynth, -1, fluidConfig.fluid_chorus_level);
+		fluid_synth_set_chorus_group_speed(FluidSynth, -1, fluidConfig.fluid_chorus_speed);
+		fluid_synth_set_chorus_group_depth(FluidSynth, -1, fluidConfig.fluid_chorus_depth);
+		fluid_synth_set_chorus_group_type(FluidSynth, -1, fluidConfig.fluid_chorus_type);
 	}
 	else if (FluidSettingsResultFailed == fluid_settings_setnum(FluidSettings, setting, value))
 	{

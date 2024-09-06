@@ -1469,6 +1469,7 @@ double EnvelopeGenerator::getEnvelope(OPL3 *OPL3, int egt, int am) {
 				envelope = 0;
 				stage = DECAY;
 			}
+			[[fallthrough]];
 		case DECAY:   
 			// The decay and release are linear.                
 			if(envelope>envelopeSustainLevel) {
@@ -1477,6 +1478,7 @@ double EnvelopeGenerator::getEnvelope(OPL3 *OPL3, int egt, int am) {
 			}
 			else 
 				stage = SUSTAIN;
+			[[fallthrough]];
 		case SUSTAIN:
 			// The Sustain stage is mantained all the time of the Key ON,
 			// even if we are in non-sustaining mode.

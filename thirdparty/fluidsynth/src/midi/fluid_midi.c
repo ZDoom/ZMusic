@@ -2489,7 +2489,10 @@ int fluid_player_set_bpm(fluid_player_t *player, int bpm)
         return FLUID_FAILED; /* to avoid a division by 0 */
     }
 
-    return fluid_player_set_midi_tempo(player, 60000000L / bpm);
+    player->miditempo = 60000000L / bpm;
+
+    fluid_player_update_tempo(player);
+    return FLUID_OK;
 }
 
 /**
