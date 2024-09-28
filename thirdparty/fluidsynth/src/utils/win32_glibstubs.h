@@ -4,6 +4,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #include <assert.h>
+#include <stdio.h>
 
 /* Miscellaneous stubs */
 #define GLIB_CHECK_VERSION(x, y, z) 0 /* Evaluate to 0 to get FluidSynth to use the "old" thread API */
@@ -25,6 +26,9 @@ typedef void *gpointer;
 #define G_LIKELY(expr) (expr)
 #define G_UNLIKELY(expr) (expr)
 #endif
+
+#define g_vsnprintf(b, c, f, a) vsnprintf(b, c, f, a)
+#define g_snprintf(b, c, f, ...) snprintf(b, c, f, __VA_ARGS__)
 
 #define g_return_val_if_fail(expr, val) if (expr) {} else { return val; }
 #define g_clear_error(err) do {} while (0)
