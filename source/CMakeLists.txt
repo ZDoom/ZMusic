@@ -25,6 +25,7 @@ INTERFACE
 	streamsources/music_dumb.cpp
 	streamsources/music_gme.cpp
 	streamsources/music_libsndfile.cpp
+	streamsources/music_libxmp.cpp
 	streamsources/music_opl.cpp
 	streamsources/music_xa.cpp
 	musicformats/music_stream.cpp
@@ -127,7 +128,7 @@ if(WIN32)
 	)
 endif()
 
-target_link_libraries(zmusic-obj INTERFACE dumb gme miniz ${CMAKE_DL_LIBS})
+target_link_libraries(zmusic-obj INTERFACE dumb gme libxmp miniz ${CMAKE_DL_LIBS})
 
 target_include_directories(zmusic-obj
 INTERFACE
