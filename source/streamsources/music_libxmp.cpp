@@ -38,7 +38,7 @@
 #include <stdint.h>
 #include "streamsource.h"
 
-
+#define LIBXMP_STATIC 1
 #include "../libxmp/include/xmp.h"
 #include "zmusic/m_swap.h"
 #include "zmusic/mididefs.h"
