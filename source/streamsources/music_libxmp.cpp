@@ -36,6 +36,7 @@
 #include <mutex>
 #include <string>
 #include <stdint.h>
+#include <limits.h>
 #include "streamsource.h"
 
 #define LIBXMP_STATIC 1
