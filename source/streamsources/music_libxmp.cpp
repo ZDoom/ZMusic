@@ -49,39 +49,43 @@ extern DumbConfig dumbConfig;
 
 static unsigned long xmp_read(void *dest, unsigned long len, unsigned long nmemb, void *priv)
 {
-    if (len == 0 || nmemb == 0)
-        return (unsigned long)0;
-    
-    MusicIO::FileInterface* interface = (MusicIO::FileInterface*)priv;
+	if (len == 0 || nmemb == 0)
+		return (unsigned long)0;
 
-    auto origpos = interface->tell();
-    auto length = interface->read(dest, (int32_t)(len * nmemb));
-    
-    if (length != len * nmemb)
-    {
-        // Let's hope the compiler doesn't misoptimize this.
-        interface->seek(origpos + (length / len) * len, SEEK_SET);
-    }
-    return length / len;
+	MusicIO::FileInterface* interface = (MusicIO::FileInterface*)priv;
+
+	auto origpos = interface->tell();
+	auto length = interface->read(dest, (int32_t)(len * nmemb));
+
+	if (length != len * nmemb)
+	{
+		// Let's hope the compiler doesn't misoptimize this.
+		interface->seek(origpos + (length / len) * len, SEEK_SET);
+	}
+	return length / len;
 }
 
 static struct xmp_callbacks callbacks =
 {
-    xmp_read,
-    [](void *priv, long offset, int whence) -> int { return ((MusicIO::FileInterface*)priv)->seek(offset, whence); },
-    [](void *priv) -> long { return ((MusicIO::FileInterface*)priv)->tell(); },
-    [](void *priv) -> int { return 0; }
+	xmp_read,
+	[](void *priv, long offset, int whence) -> int { return ((MusicIO::FileInterface*)priv)->seek(offset, whence); },
+	[](void *priv) -> long { return ((MusicIO::FileInterface*)priv)->tell(); },
+	[](void *priv) -> int { return 0; }
 };
 
 class XMPSong : public StreamSource
 {
 private:
-    xmp_context context = nullptr;
-    int samplerate = 44100;
-    int subsong = 0;
+	xmp_context context = nullptr;
+	int samplerate = 44100;
+	int subsong = 0;
+
+	// libxmp can't output in float.
+	std::vector<int16_t> int16_buffer;
 
 public:
-    XMPSong(xmp_context ctx, int samplerate);
+	XMPSong(xmp_context ctx, int samplerate);
+	~XMPSong();
 	bool SetSubsong(int subsong) override;
 	bool Start() override;
 	SoundStreamInfoEx GetFormatEx() override;
@@ -92,62 +96,81 @@ protected:
 
 XMPSong::XMPSong(xmp_context ctx, int rate)
 {
-    context = ctx;
-    samplerate = (dumbConfig.mod_samplerate != 0) ? dumbConfig.mod_samplerate : rate;
-    xmp_set_player(context, XMP_PLAYER_VOLUME, dumbConfig.mod_dumb_mastervolume * 100);
-    xmp_set_player(context, XMP_PLAYER_INTERP, dumbConfig.mod_interp);
+	context = ctx;
+	samplerate = (dumbConfig.mod_samplerate != 0) ? dumbConfig.mod_samplerate : rate;
+	xmp_set_player(context, XMP_PLAYER_VOLUME, 100);
+	xmp_set_player(context, XMP_PLAYER_INTERP, dumbConfig.mod_interp);
+
+	int16_buffer.reserve(16 * 1024);
+}
+
+XMPSong::~XMPSong()
+{
+	xmp_end_player(context);
+	xmp_free_context(context);
 }
 
 SoundStreamInfoEx XMPSong::GetFormatEx()
 {
-	return { 32 * 1024, samplerate, SampleType_Int16, ChannelConfig_Stereo };
+	return { 32 * 1024, samplerate, SampleType_Float32, ChannelConfig_Stereo };
 }
 
 bool XMPSong::SetSubsong(int subsong)
 {
-    this->subsong = subsong;
-    if (xmp_get_player(context, XMP_PLAYER_STATE) >= XMP_STATE_PLAYING)
-        return xmp_set_position(context, subsong) >= 0;
-    return true;
+	this->subsong = subsong;
+	if (xmp_get_player(context, XMP_PLAYER_STATE) >= XMP_STATE_PLAYING)
+		return xmp_set_position(context, subsong) >= 0;
+	return true;
 }
 
 bool XMPSong::GetData(void *buffer, size_t len)
 {
-    int ret = xmp_play_buffer(context, buffer, len, 0);
-    // These two calls are very lightweight.
-    xmp_set_player(context, XMP_PLAYER_VOLUME, dumbConfig.mod_dumb_mastervolume * 100);
-    xmp_set_player(context, XMP_PLAYER_INTERP, dumbConfig.mod_interp);
-    if (ret < 0 && m_Looping)
-    {
-        xmp_restart_module(context);
-        xmp_set_position(context, subsong);
-        return true;
-    }
+	if ((len / 4) < int16_buffer.size())
+		int16_buffer.resize(len / 4);
 
-    return ret >= 0;
+	int ret = xmp_play_buffer(context, (void*)int16_buffer.data(), len / 2, 0);
+	xmp_set_player(context, XMP_PLAYER_INTERP, dumbConfig.mod_interp);
+
+	if (ret >= 0)
+	{
+		float* soundbuffer = (float*)buffer;
+		for (unsigned int i = 0; i < len / 4; i++)
+		{
+			soundbuffer[i] = ((int16_buffer[i] < 0.) ? (int16_buffer[i] / 32768.) : (int16_buffer[i] / 32767.)) * dumbConfig.mod_dumb_mastervolume;
+		}
+	}
+
+	if (ret < 0 && m_Looping)
+	{
+		xmp_restart_module(context);
+		xmp_set_position(context, subsong);
+		return true;
+	}
+
+	return ret >= 0;
 }
 
 bool XMPSong::Start()
 {
-    return xmp_start_player(context, samplerate, 0) >= 0;
+	return xmp_start_player(context, samplerate, 0) >= 0;
 }
 
 StreamSource* XMP_OpenSong(MusicIO::FileInterface* reader, int samplerate)
 {
-    if (xmp_test_module_from_callbacks((void*)reader, callbacks, nullptr) < 0)
-        return nullptr;
-    
-    xmp_context ctx = xmp_create_context();
-    if (!ctx)
-        return nullptr;
-    
-    reader->seek(0, SEEK_SET);
+	if (xmp_test_module_from_callbacks((void*)reader, callbacks, nullptr) < 0)
+		return nullptr;
 
-    if (xmp_load_module_from_callbacks(ctx, (void*)reader, callbacks) < 0)
-    {
-        return nullptr;
-    }
+	xmp_context ctx = xmp_create_context();
+	if (!ctx)
+		return nullptr;
 
-    return new XMPSong(ctx, samplerate);
+	reader->seek(0, SEEK_SET);
+
+	if (xmp_load_module_from_callbacks(ctx, (void*)reader, callbacks) < 0)
+	{
+		return nullptr;
+	}
+
+	return new XMPSong(ctx, samplerate);
 }
 
