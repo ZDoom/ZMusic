@@ -652,6 +652,10 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			miscConfig.snd_outputrate = value;
 			return false;
 
+		case zmusic_mod_preferredplayer:
+			dumbConfig.mod_preferred_player = value;
+			return false;
+
 	}
 	return false;
 }
@@ -942,6 +946,7 @@ static ZMusicConfigurationSetting config[] = {
 	{"zmusic_mod_autochip_size_force", zmusic_mod_autochip_size_force, ZMUSIC_VAR_INT, 100},
 	{"zmusic_mod_autochip_size_scan", zmusic_mod_autochip_size_scan, ZMUSIC_VAR_INT, 500},
 	{"zmusic_mod_autochip_scan_threshold", zmusic_mod_autochip_scan_threshold, ZMUSIC_VAR_INT, 12},
+	{"zmusic_mod_preferred_player", zmusic_mod_preferredplayer, ZMUSIC_VAR_INT, 0},
 	{"zmusic_mod_dumb_mastervolume", zmusic_mod_dumb_mastervolume, ZMUSIC_VAR_FLOAT, 1},
 
 	{"zmusic_gme_stereodepth", zmusic_gme_stereodepth, ZMUSIC_VAR_FLOAT, 0},

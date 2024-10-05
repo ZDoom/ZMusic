@@ -129,6 +129,7 @@ struct DumbConfig
     int  mod_autochip_size_force = 100;
     int  mod_autochip_size_scan = 500;
     int  mod_autochip_scan_threshold = 12;
+	int  mod_preferred_player = 0;
     float mod_dumb_mastervolume = 1;
 };
 

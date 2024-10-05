@@ -263,11 +263,20 @@ static  MusInfo *ZMusic_OpenSongInternal (MusicIO::FileInterface *reader, EMidiD
 			}
 			else
 			{
-				streamsource = XMP_OpenSong(reader, miscConfig.snd_outputrate);
-				if (!streamsource) {
-					ZMusic_Printf(ZMUSIC_MSG_WARNING, "Fallback to DUMB\n");
-					reader->seek(0, SEEK_SET);
+				// give the calling app an option to select between XMP and DUMB.
+				if (dumbConfig.mod_preferred_player != 0)
+				{
 					streamsource = MOD_OpenSong(reader, miscConfig.snd_outputrate);
+				}
+				if (!streamsource)
+				{
+					reader->seek(0, SEEK_SET);
+					streamsource = XMP_OpenSong(reader, miscConfig.snd_outputrate);
+					if (!streamsource && dumbConfig.mod_preferred_player == 0)
+					{
+						reader->seek(0, SEEK_SET);
+						streamsource = MOD_OpenSong(reader, miscConfig.snd_outputrate);
+					}
 				}
 			}
 			if (streamsource == nullptr)
