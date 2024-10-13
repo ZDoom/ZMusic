@@ -43,11 +43,11 @@ FModule SndFileModule{"SndFile"};
 
 
 #ifdef _WIN32
-#define SNDFILELIB "libsndfile-1.dll"
+static const char* libnames[] = { "sndfile.dll", "libsndfile-1.dll" };
 #elif defined(__APPLE__)
-#define SNDFILELIB "libsndfile.1.dylib"
+static const char* libnames[] = { "libsndfile.1.dylib" };
 #else
-#define SNDFILELIB "libsndfile.so.1"
+static const char* libnames[] = { "libsndfile.so.1" };
 #endif
 
 extern "C" int IsSndFilePresent()
@@ -61,8 +61,12 @@ extern "C" int IsSndFilePresent()
 	if (!done)
 	{
 		done = true;
-		auto abspath = FModule_GetProgDir() + "/" SNDFILELIB;
-		cached_result = SndFileModule.Load({abspath.c_str(), SNDFILELIB});
+        for (auto libname : libnames)
+        {
+            auto abspath = FModule_GetProgDir() + "/" + libname;
+            cached_result = SndFileModule.Load({ abspath.c_str(), libname });
+            if (cached_result) break;
+        }
 	}
 	return cached_result;
 #endif
