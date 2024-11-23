@@ -153,7 +153,10 @@ bool XMPSong::GetData(void *buffer, size_t len)
 
 bool XMPSong::Start()
 {
-	return xmp_start_player(context, samplerate, 0) >= 0;
+	int ret = xmp_start_player(context, samplerate, 0);
+	if (ret >= 0)
+		xmp_set_position(context, subsong);
+	return ret >= 0;
 }
 
 StreamSource* XMP_OpenSong(MusicIO::FileInterface* reader, int samplerate)
