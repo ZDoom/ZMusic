@@ -126,7 +126,7 @@ bool XMPSong::SetSubsong(int subsong)
 
 bool XMPSong::GetData(void *buffer, size_t len)
 {
-	if ((len / 4) < int16_buffer.size())
+	if ((len / 4) > int16_buffer.size())
 		int16_buffer.resize(len / 4);
 
 	int ret = xmp_play_buffer(context, (void*)int16_buffer.data(), len / 2, m_Looping? INT_MAX : 0);
