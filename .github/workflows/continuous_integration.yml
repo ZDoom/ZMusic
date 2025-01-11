@@ -31,6 +31,7 @@ jobs:
         - name: Linux GCC - Dynamic Deps
           os: ubuntu-latest
           build_type: Release
+          deps_cmd: sudo apt update && sudo apt install libglib2.0-dev
 
         - name: Linux GCC - Static Deps
           os: ubuntu-latest
@@ -42,6 +43,7 @@ jobs:
           os: ubuntu-latest
           build_type: Release
           cmake_options: -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+          deps_cmd: sudo apt update && sudo apt install libglib2.0-dev
           
         - name: Linux Clang - Static Deps
           os: ubuntu-latest
