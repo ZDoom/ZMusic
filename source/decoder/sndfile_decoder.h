@@ -43,6 +43,8 @@ private:
     static sf_count_t file_tell(void *user_data);
 };
 
+#else
+#include "../thirdparty/sndfile.h"
 #endif
 
 #endif /* SNDFILE_DECODER_H */
