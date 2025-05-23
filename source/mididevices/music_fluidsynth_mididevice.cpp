@@ -117,6 +117,7 @@ FluidSynthMIDIDevice::FluidSynthMIDIDevice(int samplerate, std::vector<std::stri
 	{
 		throw std::runtime_error("Failed to create FluidSettings.\n");
 	}
+	fluid_settings_setint(FluidSettings, "synth.dynamic-sample-loading", 1);
 	fluid_settings_setnum(FluidSettings, "synth.sample-rate", SampleRate);
 	fluid_settings_setnum(FluidSettings, "synth.gain", fluidConfig.fluid_gain);
 	fluid_settings_setint(FluidSettings, "synth.reverb.active", fluidConfig.fluid_reverb);
