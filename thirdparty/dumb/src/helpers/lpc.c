@@ -49,6 +49,10 @@ Carsten Bormann
 #include "internal/stack_alloc.h"
 #include "internal/lpc.h"
 
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 /* Autocorrelation LPC coeff generation algorithm invented by
    N. Levinson in 1947, modified by J. Durbin in 1959. */
 

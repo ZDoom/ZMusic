@@ -2,6 +2,12 @@ make_release_only()
 
 include(CheckFunctionExists)
 include(CheckCXXCompilerFlag)
+include(CheckIncludeFile)
+
+check_include_file(alloca.h HAVE_ALLOCA_H)
+if(HAVE_ALLOCA_H)
+add_compile_definitions(HAVE_ALLOCA_H=1)
+endif()
 
 add_library(dumb OBJECT
 	src/core/unload.c
