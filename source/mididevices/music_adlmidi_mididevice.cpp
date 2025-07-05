@@ -223,7 +223,10 @@ void ADLMIDIDevice::ChangeSettingInt(const char *setting, int value)
 		if (update)
 		{
 			if (!LoadCustomBank(nullptr))
+			{
 				adl_setBank(Renderer, last_bank);
+				initGain();
+			}
 		}
 	}
 	else if (strcmp(setting, "banknum") == 0)
@@ -233,6 +236,7 @@ void ADLMIDIDevice::ChangeSettingInt(const char *setting, int value)
 		if (update)
 		{
 			adl_setBank(Renderer, last_bank);
+			initGain();
 		}
 	}
 }
@@ -283,6 +287,7 @@ void ADLMIDIDevice::ChangeSettingString(const char *setting, const char *value)
 		{
 			if (!LoadCustomBank(nullptr))
 				adl_setBank(Renderer, last_bank);
+			initGain();
 		}
 	}
 }
