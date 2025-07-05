@@ -2,7 +2,7 @@
  * libOPNMIDI is a free Software MIDI synthesizer library with OPN2 (YM2612) emulation
  *
  * MIDI parser and player (Original code from ADLMIDI): Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2022 Vitaly Novichkov <admin@wohlnet.ru>
+ * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2025 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -307,14 +307,18 @@ bool OPNMIDIplay::realTime_NoteOn(uint8_t channel, uint8_t note, uint8_t velocit
 
     if(static_cast<size_t>(channel) > m_midiChannels.size())
         channel = channel % 16;
-    noteOff(channel, note, velocity != 0);
+
+    // noteOff(channel, note, velocity != 0);
     // On Note on, Keyoff the note first, just in case keyoff
     // was omitted; this fixes Dance of sugar-plum fairy
     // by Microsoft. Now that we've done a Keyoff,
     // check if we still need to do a Keyon.
     // vol=0 and event 8x are both Keyoff-only.
     if(velocity == 0)
+    {
+        noteOff(channel, note, false);
         return false;
+    }
 
     MIDIchannel &midiChan = m_midiChannels[channel];
 
@@ -462,7 +466,7 @@ bool OPNMIDIplay::realTime_NoteOn(uint8_t channel, uint8_t note, uint8_t velocit
     if(isBlankNote)
     {
         // Don't even try to play the blank instrument! But, insert the dummy note.
-        MIDIchannel::notes_iterator i = midiChan.ensure_find_or_create_activenote(note);
+        MIDIchannel::notes_iterator i = midiChan.ensure_create_activenote(note);
         MIDIchannel::NoteInfo &dummy = i->value;
         dummy.isBlank = true;
         dummy.isOnExtendedLifeTime = false;
@@ -543,7 +547,7 @@ bool OPNMIDIplay::realTime_NoteOn(uint8_t channel, uint8_t note, uint8_t velocit
         velocity = static_cast<uint8_t>(std::floor(static_cast<float>(velocity) * 0.8f));
 
     // Allocate active note for MIDI channel
-    MIDIchannel::notes_iterator ir = midiChan.ensure_find_or_create_activenote(note);
+    MIDIchannel::notes_iterator ir = midiChan.ensure_create_activenote(note);
     MIDIchannel::NoteInfo &ni = ir->value;
     ni.vol     = velocity;
     ni.vibrato = midiChan.noteAftertouch[note];
@@ -1376,6 +1380,25 @@ void OPNMIDIplay::prepareChipChannelForNewNote(size_t c, const MIDIchannel::Note
 
     Synth &synth = *m_synth;
 
+    if(!m_setup.enableAutoArpeggio)
+    {
+        // Kill all notes on this channel with no mercy
+        for(OpnChannel::users_iterator jnext = m_chipChannels[c].users.begin(); !jnext.is_end();)
+        {
+            OpnChannel::users_iterator j = jnext;
+            OpnChannel::LocationData &jd = j->value;
+            ++jnext;
+
+            m_midiChannels[jd.loc.MidCh].clear_all_phys_users(c);
+            m_chipChannels[c].users.erase(j);
+        }
+
+        synth.noteOff(c);
+        assert(m_chipChannels[c].users.empty()); // No users should remain!
+
+        return;
+    }
+
     //bool doing_arpeggio = false;
     for(OpnChannel::users_iterator jnext = m_chipChannels[c].users.begin(); !jnext.is_end();)
     {
@@ -1391,9 +1414,7 @@ void OPNMIDIplay::prepareChipChannelForNewNote(size_t c, const MIDIchannel::Note
             (m_midiChannels[jd.loc.MidCh].ensure_find_activenote(jd.loc.note));
 
             // Check if we can do arpeggio.
-            if((jd.vibdelay_us < 70000
-                || jd.kon_time_until_neglible_us > 20000000)
-               && jd.ins == ins)
+            if((jd.vibdelay_us < 70000 || jd.kon_time_until_neglible_us > 20000000) && jd.ins == ins)
             {
                 // Do arpeggio together with this note.
                 //doing_arpeggio = true;
@@ -1433,9 +1454,6 @@ void OPNMIDIplay::killOrEvacuate(size_t from_channel,
     for(uint32_t c = 0; c < synth.m_numChannels; ++c)
     {
         uint16_t cs = static_cast<uint16_t>(c);
-
-        if(!m_setup.enableAutoArpeggio)
-            break; // Arpeggio disabled completely
 
         if(c >= maxChannels)
             break;

@@ -1,26 +1,5 @@
 make_release_only()
 
-if(MSVC)
-	check_cxx_compiler_flag("/std:c++14" COMPILER_SUPPORTS_CXX14)
-	if(COMPILER_SUPPORTS_CXX14)
-		set(FLAG_CPP14 "/std:c++14")
-	endif()
-	if(MSVC_VERSION LESS 1910)
-		unset(COMPILER_SUPPORTS_CXX14) # MSVC older than 2017 fails to build YMFM
-	endif()
-else()
-	check_cxx_compiler_flag("-std=c++14" COMPILER_SUPPORTS_CXX14)
-	if(COMPILER_SUPPORTS_CXX14)
-		set(FLAG_CPP14 "-std=c++14")
-	endif()
-endif()
-
-if(COMPILER_SUPPORTS_CXX14)
-	message("== Your C++ compiler supports C++14, YMFM emulator will be ENABLED")
-else()
-	message("== Your C++ compiler does NOT supports C++14, YMFM emulator will be DISABLED")
-endif()
-
 add_library(adl OBJECT)
 
 target_sources(adl

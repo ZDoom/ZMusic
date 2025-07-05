@@ -1,7 +1,7 @@
 /*
  * Interfaces over Yamaha OPN2 (YM2612) chip emulators
  *
- * Copyright (c) 2017-2022 Vitaly Novichkov (Wohlstand)
+ * Copyright (c) 2017-2025 Vitaly Novichkov (Wohlstand)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ MameOPN2::MameOPN2(OPNFamily f)
     : OPNChipBaseT(f)
 {
     chip = NULL;
-    setRate(m_rate, m_clock);
+    MameOPN2::setRate(m_rate, m_clock);
 }
 
 MameOPN2::~MameOPN2()

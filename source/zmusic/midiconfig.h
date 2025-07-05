@@ -18,6 +18,7 @@ struct ADLConfig
 	int adl_run_at_pcm_rate = 0;
 	int adl_fullpan = 1;
 	int adl_use_custom_bank = false;
+	int adl_auto_arpeggio = false;
 	std::string adl_custom_bank;
 };
 
@@ -56,9 +57,12 @@ struct OpnConfig
 {
 	int opn_chips_count = 8;
 	int opn_emulator_id = 0;
+	int opn_volume_model = 0; // Automatical volume model (by bank properties)
+	int opn_chan_alloc = -1; // Automatical channel allocation mode
 	int opn_run_at_pcm_rate = false;
 	int opn_fullpan = 1;
 	int opn_use_custom_bank = false;
+	int opn_auto_arpeggio = false;
 	std::string opn_custom_bank;
 	std::vector<uint8_t> default_bank;
 };
