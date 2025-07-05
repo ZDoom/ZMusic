@@ -46,14 +46,21 @@ OpnConfig opnConfig;
 class OPNMIDIDevice : public SoftSynthMIDIDevice
 {
 	struct OPN2_MIDIPlayer *Renderer;
+	float OutputGainFactor;
+	std::vector<uint8_t> default_bank;
+	std::string custom_bank;
+	bool use_custom_bank;
+
 public:
 	OPNMIDIDevice(const OpnConfig *config);
 	~OPNMIDIDevice();
-	
-	
+
 	int OpenRenderer() override;
 	int GetDeviceType() const override { return MDEV_OPN; }
-	
+	void ChangeSettingInt(const char *setting, int value) override;
+	void ChangeSettingNum(const char *setting, double value) override;
+	void ChangeSettingString(const char *setting, const char *value) override;
+
 protected:
 	void HandleEvent(int status, int parm1, int parm2) override;
 	void HandleLongEvent(const uint8_t *data, int len) override;
@@ -61,6 +68,7 @@ protected:
 	
 private:
 	int LoadCustomBank(const OpnConfig *config);
+	void LoadDefaultBank();
 };
 
 
@@ -87,16 +95,16 @@ OPNMIDIDevice::OPNMIDIDevice(const OpnConfig *config)
 	:SoftSynthMIDIDevice(44100)
 {
 	Renderer = opn2_init(44100);	// todo: make it configurable
+	OutputGainFactor = 4.0f;
+
 	if (Renderer != nullptr)
 	{
+		default_bank = config->default_bank;
+
 		if (!LoadCustomBank(config))
-		{
-			if(config->default_bank.size() == 0)
-			{
-				opn2_openBankData(Renderer, xg_default, sizeof(xg_default));
-			}
-			else opn2_openBankData(Renderer, config->default_bank.data(), (long)config->default_bank.size());
-		}
+			LoadDefaultBank();
+
+		OutputGainFactor *= config->opn_gain;
 
 		opn2_switchEmulator(Renderer, (int)config->opn_emulator_id);
 		opn2_setRunAtPcmRate(Renderer, (int)config->opn_run_at_pcm_rate);
@@ -139,12 +147,40 @@ OPNMIDIDevice::~OPNMIDIDevice()
 
 int OPNMIDIDevice::LoadCustomBank(const OpnConfig *config)
 {
-	const char *bankfile = config->opn_custom_bank.c_str();
-	if(!config->opn_use_custom_bank)
+	if (config)
+	{
+		custom_bank = config->opn_custom_bank;
+		use_custom_bank = config->opn_use_custom_bank;
+	}
+
+	const char *bankfile = custom_bank.c_str();
+	if(!use_custom_bank)
 		return 0;
 	if(!*bankfile)
 		return 0;
 	return (opn2_openBankFile(Renderer, bankfile) == 0);
+}
+
+//==========================================================================
+//
+// OPNMIDIDevice :: LoadDefaultBank
+//
+// Loads default bank for libOPNMIDI
+//
+//==========================================================================
+
+void OPNMIDIDevice::LoadDefaultBank()
+{
+	if (Renderer == nullptr)
+	{
+		return;
+	}
+
+	if(default_bank.size() == 0)
+	{
+		opn2_openBankData(Renderer, xg_default, sizeof(xg_default));
+	}
+	else opn2_openBankData(Renderer, default_bank.data(), (long)default_bank.size());
 }
 
 //==========================================================================
@@ -159,6 +195,111 @@ int OPNMIDIDevice::OpenRenderer()
 {
 	opn2_rt_resetState(Renderer);
 	return 0;
+}
+
+//==========================================================================
+//
+// OPNMIDIDevice :: ChangeSettingInt
+//
+// Changes an integer setting.
+//
+//==========================================================================
+
+void OPNMIDIDevice::ChangeSettingInt(const char *setting, int value)
+{
+	if (Renderer == nullptr || strncmp(setting, "libopn.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "volumemodel") == 0)
+	{
+		opn2_setVolumeRangeModel(Renderer, value);
+	}
+	else if (strcmp(setting, "chanalloc") == 0)
+	{
+		opn2_setChannelAllocMode(Renderer, value);
+	}
+	else if (strcmp(setting, "emulator") == 0)
+	{
+		opn2_switchEmulator(Renderer, value);
+	}
+	else if (strcmp(setting, "numchips") == 0)
+	{
+		opn2_setNumChips(Renderer, value);
+	}
+	else if (strcmp(setting, "fullpan") == 0)
+	{
+		opn2_setSoftPanEnabled(Renderer, value);
+	}
+	else if (strcmp(setting, "runatpcmrate") == 0)
+	{
+		opn2_setRunAtPcmRate(Renderer, value);
+	}
+	else if (strcmp(setting, "autoarpeggio") == 0)
+	{
+		opn2_setAutoArpeggio(Renderer, value);
+	}
+	else if (strcmp(setting, "usecustombank") == 0)
+	{
+		bool update = (value != use_custom_bank);
+		use_custom_bank = value;
+		if (update)
+		{
+			if (!LoadCustomBank(nullptr))
+				LoadDefaultBank();
+		}
+	}
+}
+
+//==========================================================================
+//
+// OPNMIDIDevice :: ChangeSettingNum
+//
+// Changes a numeric setting.
+//
+//==========================================================================
+
+void OPNMIDIDevice::ChangeSettingNum(const char *setting, double value)
+{
+	if (Renderer == nullptr || strncmp(setting, "libopn.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "gain") == 0)
+	{
+		OutputGainFactor = 4.0f * value;
+	}
+}
+
+//==========================================================================
+//
+// OPNMIDIDevice :: ChangeSettingString
+//
+// Changes a string setting.
+//
+//==========================================================================
+
+void OPNMIDIDevice::ChangeSettingString(const char *setting, const char *value)
+{
+	if (Renderer == nullptr || strncmp(setting, "libopn.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "custombank") == 0)
+	{
+		custom_bank = value;
+		if (use_custom_bank)
+		{
+			if (!LoadCustomBank(nullptr))
+				LoadDefaultBank();
+		}
+	}
 }
 
 //==========================================================================
@@ -232,7 +373,11 @@ void OPNMIDIDevice::ComputeOutput(float *buffer, int len)
 {
 	OPN2_UInt8* left = reinterpret_cast<OPN2_UInt8*>(buffer);
 	OPN2_UInt8* right = reinterpret_cast<OPN2_UInt8*>(buffer + 1);
-	opn2_generateFormat(Renderer, len * 2, left, right, &audio_output_format);
+	auto result = opn2_generateFormat(Renderer, len * 2, left, right, &audio_output_format);
+	for(int i=0; i < result; i++)
+	{
+		buffer[i] *= OutputGainFactor;
+	}
 }
 
 //==========================================================================

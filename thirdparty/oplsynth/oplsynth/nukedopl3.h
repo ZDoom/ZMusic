@@ -231,6 +231,7 @@ private:
 public:
 	void Reset();
 	void Update(float* sndptr, int numsamples);
+	void UpdateS(short *buffer, int length);
 	void WriteReg(int reg, int v);
 	void SetPanning(int c, float left, float right);
 

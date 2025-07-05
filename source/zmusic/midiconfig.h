@@ -19,7 +19,11 @@ struct ADLConfig
 	int adl_fullpan = 1;
 	int adl_use_custom_bank = false;
 	int adl_auto_arpeggio = false;
+	float adl_gain = 1.0f;
 	std::string adl_custom_bank;
+	int adl_use_genmidi = false;
+	int adl_genmidi_set = false;
+	uint8_t adl_genmidi_bank[36 * 175]; // it really is 'struct GenMidiInstrument OPLinstruments[GENMIDI_NUM_TOTAL]'; but since this is a public header it cannot pull in a dependency from oplsynth.
 };
 
 struct FluidConfig
@@ -51,6 +55,7 @@ struct OPLConfig
 	int fullpan = true;
 	int genmidiset = false;
 	uint8_t OPLinstruments[36 * 175]; // it really is 'struct GenMidiInstrument OPLinstruments[GENMIDI_NUM_TOTAL]'; but since this is a public header it cannot pull in a dependency from oplsynth.
+	float gain = 1.0f;
 };
 
 struct OpnConfig
@@ -63,6 +68,7 @@ struct OpnConfig
 	int opn_fullpan = 1;
 	int opn_use_custom_bank = false;
 	int opn_auto_arpeggio = false;
+	float opn_gain = 1.0f;
 	std::string opn_custom_bank;
 	std::vector<uint8_t> default_bank;
 };

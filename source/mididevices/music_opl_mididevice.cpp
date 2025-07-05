@@ -62,6 +62,7 @@ OPLConfig oplConfig;
 
 class OPLMIDIDevice : public SoftSynthMIDIDevice, protected OPLmusicBlock
 {
+	float OutputGainFactor;
 public:
 	OPLMIDIDevice(int core);
 	int OpenRenderer() override;
@@ -77,6 +78,7 @@ protected:
 	void ComputeOutput(float *buffer, int len) override;
 	bool ServiceStream(void *buff, int numbytes) override;
 	int GetDeviceType() const override { return MDEV_OPL; }
+	void ChangeSettingNum(const char *setting, double value) override;
 };
 
 
@@ -95,6 +97,7 @@ OPLMIDIDevice::OPLMIDIDevice(int core)
 {
 	FullPan = oplConfig.fullpan;
 	memcpy(OPLinstruments, oplConfig.OPLinstruments, sizeof(OPLinstruments));
+	OutputGainFactor = oplConfig.gain;
 	StreamBlockSize = 14;
 }
 
@@ -284,7 +287,36 @@ void OPLMIDIDevice::ComputeOutput(float *buffer, int len)
 
 bool OPLMIDIDevice::ServiceStream(void *buff, int numbytes)
 {
-	return OPLmusicBlock::ServiceStream(buff, numbytes);
+	float *samples = (float *)buff;
+	bool ret = OPLmusicBlock::ServiceStream(buff, numbytes);
+	int numsamples = numbytes / sizeof(float);
+	for(int i=0; i < numsamples; i++)
+	{
+		samples[i] *= OutputGainFactor;
+	}
+	return ret;
+}
+
+//==========================================================================
+//
+// OPLMIDIDevice :: ChangeSettingNum
+//
+// Changes a numeric setting.
+//
+//==========================================================================
+
+void OPLMIDIDevice::ChangeSettingNum(const char *setting, double value)
+{
+	if (strncmp(setting, "oplemu.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "gain") == 0)
+	{
+		OutputGainFactor = value;
+	}
 }
 
 //==========================================================================
