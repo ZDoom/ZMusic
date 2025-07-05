@@ -360,6 +360,14 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 		case zmusic_adl_volume_model: 
 			ChangeAndReturn(adlConfig.adl_volume_model, value, pRealValue);
 			return devType() == MDEV_ADL;
+
+		case zmusic_adl_chan_alloc:
+			ChangeAndReturn(adlConfig.adl_chan_alloc, value, pRealValue);
+			return devType() == MDEV_ADL;
+
+		case zmusic_adl_auto_arpeggio:
+			ChangeAndReturn(adlConfig.adl_auto_arpeggio, value, pRealValue);
+			return devType() == MDEV_ADL;
 #endif
 
 		case zmusic_fluid_reverb: 
@@ -491,6 +499,18 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 		case zmusic_opn_use_custom_bank:
 			ChangeAndReturn(opnConfig.opn_use_custom_bank, value, pRealValue);
 			return devType() == MDEV_OPN;
+
+		case zmusic_opn_volume_model:
+			ChangeAndReturn(opnConfig.opn_volume_model, value, pRealValue);
+			return devType() == MDEV_ADL;
+
+		case zmusic_opn_chan_alloc:
+			ChangeAndReturn(opnConfig.opn_chan_alloc, value, pRealValue);
+			return devType() == MDEV_ADL;
+
+		case zmusic_opn_auto_arpeggio:
+			ChangeAndReturn(opnConfig.opn_auto_arpeggio, value, pRealValue);
+			return devType() == MDEV_ADL;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_dmxgus:
