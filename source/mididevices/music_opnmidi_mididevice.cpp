@@ -46,6 +46,7 @@ OpnConfig opnConfig;
 class OPNMIDIDevice : public SoftSynthMIDIDevice
 {
 	struct OPN2_MIDIPlayer *Renderer;
+	float OutputGainFactor;
 public:
 	OPNMIDIDevice(const OpnConfig *config);
 	~OPNMIDIDevice();
@@ -87,6 +88,8 @@ OPNMIDIDevice::OPNMIDIDevice(const OpnConfig *config)
 	:SoftSynthMIDIDevice(44100)
 {
 	Renderer = opn2_init(44100);	// todo: make it configurable
+	OutputGainFactor = 4.0f;
+
 	if (Renderer != nullptr)
 	{
 		if (!LoadCustomBank(config))
@@ -232,7 +235,11 @@ void OPNMIDIDevice::ComputeOutput(float *buffer, int len)
 {
 	OPN2_UInt8* left = reinterpret_cast<OPN2_UInt8*>(buffer);
 	OPN2_UInt8* right = reinterpret_cast<OPN2_UInt8*>(buffer + 1);
-	opn2_generateFormat(Renderer, len * 2, left, right, &audio_output_format);
+	auto result = opn2_generateFormat(Renderer, len * 2, left, right, &audio_output_format);
+	for(int i=0; i < result; i++)
+	{
+		buffer[i] *= OutputGainFactor;
+	}
 }
 
 //==========================================================================
