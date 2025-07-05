@@ -334,20 +334,32 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			
 #ifdef HAVE_ADL
 		case zmusic_adl_chips_count: 
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.numchips", value);
+
 			ChangeAndReturn(adlConfig.adl_chips_count, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_emulator_id: 
-			ChangeAndReturn(adlConfig.adl_emulator_id, value, pRealValue);
-			return devType() == MDEV_ADL;
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.emulator", value);
 
-		case zmusic_adl_run_at_pcm_rate: 
+			ChangeAndReturn(adlConfig.adl_emulator_id, value, pRealValue);
+			return false;
+
+		case zmusic_adl_run_at_pcm_rate:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.runatpcmrate", value);
+
 			ChangeAndReturn(adlConfig.adl_run_at_pcm_rate, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_fullpan: 
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.fullpan", value);
+
 			ChangeAndReturn(adlConfig.adl_fullpan, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_bank: 
 			ChangeAndReturn(adlConfig.adl_bank, value, pRealValue);
@@ -358,16 +370,25 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return devType() == MDEV_ADL;
 
 		case zmusic_adl_volume_model: 
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.volumemodel", value);
+
 			ChangeAndReturn(adlConfig.adl_volume_model, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_chan_alloc:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.chanalloc", value);
+
 			ChangeAndReturn(adlConfig.adl_chan_alloc, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_auto_arpeggio:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.autoarpeggio", value);
+
 			ChangeAndReturn(adlConfig.adl_auto_arpeggio, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 #endif
 
 		case zmusic_fluid_reverb: 
@@ -481,36 +502,57 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 #endif
 #ifdef HAVE_OPN
 		case zmusic_opn_chips_count:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.numchips", value);
+
 			ChangeAndReturn(opnConfig.opn_chips_count, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_emulator_id:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.emulator", value);
+
 			ChangeAndReturn(opnConfig.opn_emulator_id, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_run_at_pcm_rate:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.runatpcmrate", value);
+
 			ChangeAndReturn(opnConfig.opn_run_at_pcm_rate, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_fullpan:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.fullpan", value);
+
 			ChangeAndReturn(opnConfig.opn_fullpan, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_use_custom_bank:
 			ChangeAndReturn(opnConfig.opn_use_custom_bank, value, pRealValue);
 			return devType() == MDEV_OPN;
 
 		case zmusic_opn_volume_model:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.volumemodel", value);
+
 			ChangeAndReturn(opnConfig.opn_volume_model, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_chan_alloc:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.chanalloc", value);
+
 			ChangeAndReturn(opnConfig.opn_chan_alloc, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_auto_arpeggio:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.autoarpeggio", value);
+
 			ChangeAndReturn(opnConfig.opn_auto_arpeggio, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_dmxgus:
@@ -807,6 +849,34 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 			return false;
 #endif
 
+#ifdef HAVE_ADL
+		case zmusic_adl_gain:
+			if (value < 0)
+				value = 0;
+			else if (value > 10)
+				value = 10;
+
+			if (currSong != NULL)
+				currSong->ChangeSettingNum("libadl.gain", value);
+
+			ChangeAndReturn(adlConfig.adl_gain, value, pRealValue);
+			return false;
+#endif
+
+#ifdef HAVE_ADL
+		case zmusic_opn_gain:
+			if (value < 0)
+				value = 0;
+			else if (value > 10)
+				value = 10;
+
+			if (currSong != NULL)
+				currSong->ChangeSettingNum("libopn.gain", value);
+
+			ChangeAndReturn(opnConfig.opn_gain, value, pRealValue);
+			return false;
+#endif
+
 		case zmusic_gme_stereodepth:
 			if (currSong != nullptr)
 				currSong->ChangeSettingNum("GME.stereodepth", value);
@@ -896,6 +966,7 @@ static ZMusicConfigurationSetting config[] = {
 	{"zmusic_adl_use_custom_bank", zmusic_adl_use_custom_bank, ZMUSIC_VAR_BOOL, 0},
 	{"zmusic_adl_volume_model", zmusic_adl_volume_model, ZMUSIC_VAR_INT, 3},
 	{"zmusic_adl_custom_bank", zmusic_adl_custom_bank, ZMUSIC_VAR_STRING, 0},
+	{"zmusic_adl_gain", zmusic_adl_gain, ZMUSIC_VAR_FLOAT, 1.0f},
 #endif
 	{"zmusic_fluid_reverb", zmusic_fluid_reverb, ZMUSIC_VAR_BOOL, 0},
 	{"zmusic_fluid_chorus", zmusic_fluid_chorus, ZMUSIC_VAR_BOOL, 0},
@@ -926,6 +997,7 @@ static ZMusicConfigurationSetting config[] = {
 	{"zmusic_opn_fullpan", zmusic_opn_fullpan, ZMUSIC_VAR_BOOL, 2},
 	{"zmusic_opn_use_custom_bank", zmusic_opn_use_custom_bank, ZMUSIC_VAR_BOOL, 0},
 	{"zmusic_opn_custom_bank", zmusic_opn_custom_bank, ZMUSIC_VAR_STRING, 0},
+	{"zmusic_opn_gain", zmusic_opn_gain, ZMUSIC_VAR_FLOAT, 1.0f},
 #endif
 #ifdef HAVE_GUS
 	{"zmusic_gus_dmxgus", zmusic_gus_dmxgus, ZMUSIC_VAR_BOOL, 0},
