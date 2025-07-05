@@ -94,6 +94,7 @@ typedef enum EIntConfigKey_
 	zmusic_adl_fullpan,
 	zmusic_adl_bank,
 	zmusic_adl_use_custom_bank,
+	zmusic_adl_use_genmidi,
 	zmusic_adl_volume_model,
 	zmusic_adl_chan_alloc,
 	zmusic_adl_auto_arpeggio,

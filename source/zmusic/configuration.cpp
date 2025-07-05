@@ -142,6 +142,10 @@ DLL_EXPORT void ZMusic_SetGenMidi(const uint8_t* data)
 	memcpy(oplConfig.OPLinstruments, data, 175 * 36);
 	oplConfig.genmidiset = true;
 #endif
+#ifdef HAVE_ADL
+	memcpy(adlConfig.adl_genmidi_bank, data, 175 * 36);
+	adlConfig.adl_genmidi_set = true;
+#endif
 }
 
 DLL_EXPORT void ZMusic_SetWgOpn(const void* data, unsigned len)
@@ -391,6 +395,16 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			}
 
 			ChangeAndReturn(adlConfig.adl_use_custom_bank, value, pRealValue);
+			return false;
+
+		case zmusic_adl_use_genmidi:
+			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
+				currSong->ChangeSettingInt("libadl.usegenmidi", value);
+			}
+
+			ChangeAndReturn(adlConfig.adl_use_genmidi, value, pRealValue);
 			return false;
 
 		case zmusic_adl_volume_model: 
