@@ -335,63 +335,90 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 #ifdef HAVE_ADL
 		case zmusic_adl_chips_count: 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.numchips", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_chips_count, value, pRealValue);
 			return false;
 
 		case zmusic_adl_emulator_id: 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.emulator", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_emulator_id, value, pRealValue);
 			return false;
 
 		case zmusic_adl_run_at_pcm_rate:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.runatpcmrate", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_run_at_pcm_rate, value, pRealValue);
 			return false;
 
 		case zmusic_adl_fullpan: 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.fullpan", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_fullpan, value, pRealValue);
 			return false;
 
 		case zmusic_adl_bank: 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.banknum", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_bank, value, pRealValue);
 			return false;
 
 		case zmusic_adl_use_custom_bank: 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.usecustombank", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_use_custom_bank, value, pRealValue);
 			return false;
 
 		case zmusic_adl_volume_model: 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.volumemodel", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_volume_model, value, pRealValue);
 			return false;
 
 		case zmusic_adl_chan_alloc:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.chanalloc", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_chan_alloc, value, pRealValue);
 			return false;
 
 		case zmusic_adl_auto_arpeggio:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.autoarpeggio", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_auto_arpeggio, value, pRealValue);
 			return false;
@@ -509,56 +536,80 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 #ifdef HAVE_OPN
 		case zmusic_opn_chips_count:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.numchips", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_chips_count, value, pRealValue);
 			return false;
 
 		case zmusic_opn_emulator_id:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.emulator", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_emulator_id, value, pRealValue);
 			return false;
 
 		case zmusic_opn_run_at_pcm_rate:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.runatpcmrate", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_run_at_pcm_rate, value, pRealValue);
 			return false;
 
 		case zmusic_opn_fullpan:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.fullpan", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_fullpan, value, pRealValue);
 			return false;
 
 		case zmusic_opn_use_custom_bank:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.usecustombank", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_use_custom_bank, value, pRealValue);
 			return false;
 
 		case zmusic_opn_volume_model:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.volumemodel", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_volume_model, value, pRealValue);
 			return false;
 
 		case zmusic_opn_chan_alloc:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.chanalloc", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_chan_alloc, value, pRealValue);
 			return false;
 
 		case zmusic_opn_auto_arpeggio:
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.autoarpeggio", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_auto_arpeggio, value, pRealValue);
 			return false;
@@ -866,7 +917,10 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 				value = 10;
 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingNum("libadl.gain", value);
+			}
 
 			ChangeAndReturn(adlConfig.adl_gain, value, pRealValue);
 			return false;
@@ -880,7 +934,10 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 				value = 10;
 
 			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingNum("libopn.gain", value);
+			}
 
 			ChangeAndReturn(opnConfig.opn_gain, value, pRealValue);
 			return false;
@@ -924,6 +981,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 		case zmusic_adl_custom_bank: 
 			if (currSong != nullptr)
 			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				const char* info;
 				if (musicCallbacks.PathForSoundfont)
 				{
@@ -960,6 +1018,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 		case zmusic_opn_custom_bank: 
 			if (currSong != nullptr)
 			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				const char* info;
 				if (musicCallbacks.PathForSoundfont)
 				{
