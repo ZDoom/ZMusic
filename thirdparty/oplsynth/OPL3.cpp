@@ -595,6 +595,7 @@ public:
 	void Reset();
 	void WriteReg(int reg, int v);
 	void Update(float *buffer, int length);
+	void UpdateS(short *sndptr, int numsamples);
 	void SetPanning(int c, float left, float right);
 };
 
@@ -626,6 +627,13 @@ void OPL3::Update(float *output, int numsamples) {
 		if(tremoloIndex >= OPL3DataStruct::tremoloTableLength) tremoloIndex = 0;
 		output += 2;
 	}
+}
+
+void OPL3::UpdateS(short *sndptr, int numsamples)
+{
+	// DUMMY
+	(void)sndptr;
+	(void)numsamples;
 }
 
 void OPL3::write(int array, int address, int data) {

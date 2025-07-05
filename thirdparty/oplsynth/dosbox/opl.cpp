@@ -1420,6 +1420,13 @@ void DBOPL::Update(float* sndptr, int numsamples) {
 	}
 }
 
+void DBOPL::UpdateS(short *sndptr, int numsamples)
+{
+	// DUMMY
+	(void)sndptr;
+	(void)numsamples;
+}
+
 void DBOPL::SetPanning(int c, float left, float right)
 {
 	if (FullPan)
