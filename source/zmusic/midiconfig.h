@@ -55,6 +55,7 @@ struct OPLConfig
 	int fullpan = true;
 	int genmidiset = false;
 	uint8_t OPLinstruments[36 * 175]; // it really is 'struct GenMidiInstrument OPLinstruments[GENMIDI_NUM_TOTAL]'; but since this is a public header it cannot pull in a dependency from oplsynth.
+	float gain = 1.0f;
 };
 
 struct OpnConfig
