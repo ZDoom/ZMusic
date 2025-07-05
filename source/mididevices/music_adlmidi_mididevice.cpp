@@ -230,7 +230,7 @@ void ADLMIDIDevice::ChangeSettingInt(const char *setting, int value)
 	{
 		bool update = (value != last_bank);
 		last_bank = value;
-		if (!update)
+		if (update)
 		{
 			adl_setBank(Renderer, last_bank);
 		}
