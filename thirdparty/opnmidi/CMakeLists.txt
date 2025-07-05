@@ -23,8 +23,6 @@ PRIVATE
 	chips/mamefm/fm.cpp
 	chips/nuked_opn2.cpp
 	chips/gens/Ym2612.cpp
-	chips/gx_opn2.cpp
-	chips/pmdwin_opna.cpp
 	chips/nuked/ym3438.c
 	chips/mamefm/emu2149.c
 	chips/mame/mame_ym2612fm.c
