@@ -554,14 +554,19 @@ static const int8_t lfo_pm_table[8*8*2] = {
 
 
 /* work table */
-static signed int phase_modulation;		/* phase modulation input (SLOT 2) */
-static signed int output;
+struct FM_WorkTable
+{
+	int32_t phase_modulation;		/* phase modulation input (SLOT 2) */
+	int32_t output;
 
-static uint32_t	LFO_AM;
-static int32_t	LFO_PM;
+	uint32_t	LFO_AM;
+	int32_t	LFO_PM;
+};
 
-static bool CalcVoice (FM_OPL *OPL, int voice, float *buffer, int length);
-static bool CalcRhythm (FM_OPL *OPL, float *buffer, int length);
+static bool CalcVoice (FM_WorkTable *wt, FM_OPL *OPL, int voice, float *buffer, int length);
+static bool CalcVoice (FM_WorkTable *wt, FM_OPL *OPL, int voice, short *buffer, int length);
+static bool CalcRhythm (FM_WorkTable *wt, FM_OPL *OPL, float *buffer, int length);
+static bool CalcRhythm (FM_WorkTable *wt, FM_OPL *OPL, short *buffer, int length);
 
 
 
@@ -604,7 +609,7 @@ static inline void OPL_STATUSMASK_SET(FM_OPL *OPL,int flag)
 
 
 /* advance LFO to next sample */
-static inline void advance_lfo(FM_OPL *OPL)
+static inline void advance_lfo(FM_WorkTable *wt, FM_OPL *OPL)
 {
 	uint8_t tmp;
 
@@ -616,16 +621,16 @@ static inline void advance_lfo(FM_OPL *OPL)
 	tmp = lfo_am_table[ OPL->lfo_am_cnt >> LFO_SH ];
 
 	if (OPL->lfo_am_depth)
-		LFO_AM = tmp;
+		wt->LFO_AM = tmp;
 	else
-		LFO_AM = tmp>>2;
+		wt->LFO_AM = tmp>>2;
 
 	OPL->lfo_pm_cnt += OPL->lfo_pm_inc;
-	LFO_PM = ((OPL->lfo_pm_cnt>>LFO_SH) & 7) | OPL->lfo_pm_depth_range;
+	wt->LFO_PM = ((OPL->lfo_pm_cnt>>LFO_SH) & 7) | OPL->lfo_pm_depth_range;
 }
 
 /* advance to next sample */
-static inline void advance(FM_OPL *OPL, int loch, int hich)
+static inline void advance(FM_WorkTable *wt, FM_OPL *OPL, int loch, int hich)
 {
 	OPL_CH *CH;
 	OPL_SLOT *op;
@@ -726,7 +731,7 @@ static inline void advance(FM_OPL *OPL, int loch, int hich)
 
 				unsigned int fnum_lfo   = (block_fnum&0x0380) >> 7;
 
-				signed int lfo_fn_table_index_offset = lfo_pm_table[LFO_PM + 16*fnum_lfo ];
+	signed int lfo_fn_table_index_offset = lfo_pm_table[wt->LFO_PM + 16*fnum_lfo ];
 
 				if (lfo_fn_table_index_offset)	/* LFO phase modulation active */
 				{
@@ -812,16 +817,16 @@ static inline signed int op_calc1(uint32_t phase, unsigned int env, signed int p
 }
 
 
-#define volume_calc(OP) ((OP)->TLL + ((uint32_t)(OP)->volume) + (LFO_AM & (OP)->AMmask))
+#define volume_calc(OP) ((OP)->TLL + ((uint32_t)(OP)->volume) + (wt->LFO_AM & (OP)->AMmask))
 
 /* calculate output */
-static inline float OPL_CALC_CH( OPL_CH *CH )
+static inline float OPL_CALC_CH( FM_WorkTable *wt, OPL_CH *CH )
 {
 	OPL_SLOT *SLOT;
 	unsigned int env;
 	signed int out;
 
-	phase_modulation = 0;
+	wt->phase_modulation = 0;
 
 	/* SLOT 1 */
 	SLOT = &CH->SLOT[SLOT1];
@@ -842,9 +847,42 @@ static inline float OPL_CALC_CH( OPL_CH *CH )
 	env = volume_calc(SLOT);
 	if( env < ENV_QUIET )
 	{
-		output += op_calc(SLOT->Cnt, env, phase_modulation, SLOT->wavetable);
+		wt->output += op_calc(SLOT->Cnt, env, wt->phase_modulation, SLOT->wavetable);
 		/* [RH] Convert to floating point. */
-		return float(output) / 10240;
+		return float(wt->output) / 10240;
+	}
+	return 0;
+}
+
+static inline short OPL_CALC_CH_S( FM_WorkTable *wt, OPL_CH *CH )
+{
+	OPL_SLOT *SLOT;
+	unsigned int env;
+	signed int out;
+
+	wt->phase_modulation = 0;
+
+	/* SLOT 1 */
+	SLOT = &CH->SLOT[SLOT1];
+	env  = volume_calc(SLOT);
+	out  = SLOT->op1_out[0] + SLOT->op1_out[1];
+	SLOT->op1_out[0] = SLOT->op1_out[1];
+	*SLOT->connect1 += SLOT->op1_out[0];
+	SLOT->op1_out[1] = 0;
+	if( env < ENV_QUIET )
+	{
+		if (!SLOT->FB)
+			out = 0;
+		SLOT->op1_out[1] = op_calc1(SLOT->Cnt, env, (out<<SLOT->FB), SLOT->wavetable );
+	}
+
+	/* SLOT 2 */
+	SLOT++;
+	env = volume_calc(SLOT);
+	if( env < ENV_QUIET )
+	{
+		wt->output += op_calc(SLOT->Cnt, env, wt->phase_modulation, SLOT->wavetable);
+		return wt->output;
 	}
 	return 0;
 }
@@ -886,7 +924,7 @@ number   number    BLK/FNUM2 FNUM    Drum  Hat   Drum  Tom  Cymbal
 
 /* calculate rhythm */
 
-static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
+static inline void OPL_CALC_RH( FM_WorkTable *wt, OPL_CH *CH, unsigned int noise )
 {
 	OPL_SLOT *SLOT;
 	signed int out;
@@ -900,7 +938,7 @@ static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
 	  - output sample always is multiplied by 2
 	*/
 
-	phase_modulation = 0;
+	wt->phase_modulation = 0;
 	/* SLOT 1 */
 	SLOT = &CH[6].SLOT[SLOT1];
 	env = volume_calc(SLOT);
@@ -909,7 +947,7 @@ static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
 	SLOT->op1_out[0] = SLOT->op1_out[1];
 
 	if (!SLOT->CON)
-		phase_modulation = SLOT->op1_out[0];
+		wt->phase_modulation = SLOT->op1_out[0];
 	/* else ignore output of operator 1 */
 
 	SLOT->op1_out[1] = 0;
@@ -924,7 +962,7 @@ static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
 	SLOT++;
 	env = volume_calc(SLOT);
 	if( env < ENV_QUIET )
-		output += op_calc(SLOT->Cnt, env, phase_modulation, SLOT->wavetable) * 2;
+		wt->output += op_calc(SLOT->Cnt, env, wt->phase_modulation, SLOT->wavetable) * 2;
 
 
 	/* Phase generation is based on: */
@@ -992,7 +1030,7 @@ static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
 				phase = 0xd0>>2;
 		}
 
-		output += op_calc(phase<<FREQ_SH, env, 0, CH[7].SLOT[SLOT1].wavetable) * 2;
+		wt->output += op_calc(phase<<FREQ_SH, env, 0, CH[7].SLOT[SLOT1].wavetable) * 2;
 	}
 
 	/* Snare Drum (verified on real YM3812) */
@@ -1013,13 +1051,13 @@ static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
 		if (noise)
 			phase ^= 0x100;
 
-		output += op_calc(phase<<FREQ_SH, env, 0, CH[7].SLOT[SLOT2].wavetable) * 2;
+		wt->output += op_calc(phase<<FREQ_SH, env, 0, CH[7].SLOT[SLOT2].wavetable) * 2;
 	}
 
 	/* Tom Tom (verified on real YM3812) */
 	env = volume_calc(&CH[8].SLOT[SLOT1]);
 	if( env < ENV_QUIET )
-		output += op_calc(CH[8].SLOT[SLOT1].Cnt, env, 0, CH[8].SLOT[SLOT2].wavetable) * 2;
+		wt->output += op_calc(CH[8].SLOT[SLOT1].Cnt, env, 0, CH[8].SLOT[SLOT2].wavetable) * 2;
 
 	/* Top Cymbal (verified on real YM3812) */
 	env = volume_calc(&CH[8].SLOT[SLOT2]);
@@ -1046,7 +1084,7 @@ static inline void OPL_CALC_RH( OPL_CH *CH, unsigned int noise )
 		if (res2)
 			phase = 0x300;
 
-		output += op_calc(phase<<FREQ_SH, env, 0, CH[8].SLOT[SLOT2].wavetable) * 2;
+		wt->output += op_calc(phase<<FREQ_SH, env, 0, CH[8].SLOT[SLOT2].wavetable) * 2;
 	}
 }
 
@@ -1295,7 +1333,7 @@ static inline void set_sl_rr(FM_OPL *OPL,int slot,int v)
 
 
 /* write a value v to register r on OPL chip */
-static void WriteRegister(FM_OPL *OPL, int r, int v)
+static void WriteRegister(FM_WorkTable *wt, FM_OPL *OPL, int r, int v)
 {
 	OPL_CH *CH;
 	int slot;
@@ -1478,7 +1516,7 @@ static void WriteRegister(FM_OPL *OPL, int r, int v)
 		CH = &OPL->P_CH[r&0x0f];
 		CH->SLOT[SLOT1].FB  = (v>>1)&7 ? ((v>>1)&7) + 7 : 0;
 		CH->SLOT[SLOT1].CON = v&1;
-		CH->SLOT[SLOT1].connect1 = CH->SLOT[SLOT1].CON ? &output : &phase_modulation;
+		CH->SLOT[SLOT1].connect1 = CH->SLOT[SLOT1].CON ? &wt->output : &wt->phase_modulation;
 		break;
 	case 0xe0: /* waveform select */
 		/* simply ignore write to the waveform select register if selecting not enabled in test register */
@@ -1494,7 +1532,7 @@ static void WriteRegister(FM_OPL *OPL, int r, int v)
 	}
 }
 
-static void OPLResetChip(FM_OPL *OPL)
+static void OPLResetChip(FM_WorkTable *wt, FM_OPL *OPL)
 {
 	int c,s;
 	int i;
@@ -1507,11 +1545,11 @@ static void OPLResetChip(FM_OPL *OPL)
 	OPL_STATUS_RESET(OPL,0x7f);
 
 	/* reset with register write */
-	WriteRegister(OPL,0x01,0); /* wavesel disable */
-	WriteRegister(OPL,0x02,0); /* Timer1 */
-	WriteRegister(OPL,0x03,0); /* Timer2 */
-	WriteRegister(OPL,0x04,0); /* IRQ mask clear */
-	for(i = 0xff ; i >= 0x20 ; i-- ) WriteRegister(OPL,i,0);
+	WriteRegister(wt,OPL,0x01,0); /* wavesel disable */
+	WriteRegister(wt,OPL,0x02,0); /* Timer1 */
+	WriteRegister(wt,OPL,0x03,0); /* Timer2 */
+	WriteRegister(wt,OPL,0x04,0); /* IRQ mask clear */
+	for(i = 0xff ; i >= 0x20 ; i-- ) WriteRegister(wt,OPL,i,0);
 
 	/* reset operator parameters */
 	for( c = 0 ; c < 9 ; c++ )
@@ -1532,11 +1570,13 @@ class YM3812 : public OPLEmul
 {
 private:
 	FM_OPL Chip;
+	FM_WorkTable WorkTable;
 
 public:
 	/* Create one of virtual YM3812 */
 	YM3812(bool stereo)
 	{
+		memset(&WorkTable, 0, sizeof(WorkTable));
 		init_tables();
 
 		/* clear */
@@ -1553,12 +1593,12 @@ public:
 	/* YM3812 I/O interface */
 	void WriteReg(int reg, int v)
 	{
-		WriteRegister(&Chip, reg & 0xff, v);
+		WriteRegister(&WorkTable, &Chip, reg & 0xff, v);
 	}
 
 	void Reset()
 	{
-		OPLResetChip(&Chip);
+		OPLResetChip(&WorkTable, &Chip);
 	}
 
 	/* [RH] Full support for MIDI panning */
@@ -1594,7 +1634,7 @@ public:
 			Chip.lfo_am_cnt = lfo_am_cnt_bak;
 			Chip.eg_timer = eg_timer_bak;
 			Chip.eg_cnt = eg_cnt_bak;
-			if (CalcVoice (&Chip, i, buffer, length))
+			if (CalcVoice (&WorkTable, &Chip, i, buffer, length))
 			{
 				lfo_am_cnt_out = Chip.lfo_am_cnt;
 				eg_timer_out = Chip.eg_timer;
@@ -1611,7 +1651,47 @@ public:
 			Chip.lfo_am_cnt = lfo_am_cnt_bak;
 			Chip.eg_timer = eg_timer_bak;
 			Chip.eg_cnt = eg_cnt_bak;
-			CalcRhythm (&Chip, buffer, length);
+			CalcRhythm (&WorkTable, &Chip, buffer, length);
+		}
+	}
+
+	void UpdateS(short *buffer, int length)
+	{
+		int i;
+
+		uint8_t		rhythm = Chip.rhythm&0x20;
+
+		uint32_t lfo_am_cnt_bak = Chip.lfo_am_cnt;
+		uint32_t eg_timer_bak = Chip.eg_timer;
+		uint32_t eg_cnt_bak = Chip.eg_cnt;
+
+		uint32_t lfo_am_cnt_out = lfo_am_cnt_bak;
+		uint32_t eg_timer_out = eg_timer_bak;
+		uint32_t eg_cnt_out = eg_cnt_bak;
+
+		for (i = 0; i <= (rhythm ? 5 : 8); ++i)
+		{
+			Chip.lfo_am_cnt = lfo_am_cnt_bak;
+			Chip.eg_timer = eg_timer_bak;
+			Chip.eg_cnt = eg_cnt_bak;
+			if (CalcVoice (&WorkTable, &Chip, i, buffer, length))
+			{
+				lfo_am_cnt_out = Chip.lfo_am_cnt;
+				eg_timer_out = Chip.eg_timer;
+				eg_cnt_out = Chip.eg_cnt;
+			}
+		}
+
+		Chip.lfo_am_cnt = lfo_am_cnt_out;
+		Chip.eg_timer = eg_timer_out;
+		Chip.eg_cnt = eg_cnt_out;
+
+		if (rhythm)		/* Rhythm part */
+		{
+			Chip.lfo_am_cnt = lfo_am_cnt_bak;
+			Chip.eg_timer = eg_timer_bak;
+			Chip.eg_cnt = eg_cnt_bak;
+			CalcRhythm (&WorkTable, &Chip, buffer, length);
 		}
 	}
 
@@ -1649,7 +1729,7 @@ OPLEmul *YM3812Create(bool stereo)
 // [RH] Render a whole voice at once. If nothing else, it lets us avoid
 // wasting a lot of time on voices that aren't playing anything.
 
-static bool CalcVoice (FM_OPL *OPL, int voice, float *buffer, int length)
+static bool CalcVoice (FM_WorkTable *wt, FM_OPL *OPL, int voice, float *buffer, int length)
 {
 	OPL_CH *const CH = &OPL->P_CH[voice];
 	int i;
@@ -1661,10 +1741,10 @@ static bool CalcVoice (FM_OPL *OPL, int voice, float *buffer, int length)
 
 	for (i = 0; i < length; ++i)
 	{
-		advance_lfo(OPL);
+		advance_lfo(wt, OPL);
 
-		output = 0;
-		float sample = OPL_CALC_CH(CH);
+		wt->output = 0;
+		float sample = OPL_CALC_CH(wt, CH);
 		if (!OPL->IsStereo)
 		{
 			buffer[i] += sample;
@@ -1675,23 +1755,55 @@ static bool CalcVoice (FM_OPL *OPL, int voice, float *buffer, int length)
 			buffer[i*2+1] += sample * CH->RightVol;
 		}
 
-		advance(OPL, voice, voice);
+		advance(wt, OPL, voice, voice);
 	}
 	return true;
 }
 
-static bool CalcRhythm (FM_OPL *OPL, float *buffer, int length)
+static bool CalcVoice (FM_WorkTable *wt, FM_OPL *OPL, int voice, short *buffer, int length)
+{
+	OPL_CH *const CH = &OPL->P_CH[voice];
+	int i;
+
+	if (CH->SLOT[0].state == EG_OFF && CH->SLOT[1].state == EG_OFF)
+	{ // Voice is not playing, so don't do anything for it
+		return false;
+	}
+
+	for (i = 0; i < length; ++i)
+	{
+		advance_lfo(wt, OPL);
+
+		wt->output = 0;
+		short sample = OPL_CALC_CH_S(wt, CH);
+
+		if (!OPL->IsStereo)
+		{
+			buffer[i] += sample;
+		}
+		else
+		{
+			buffer[i*2] += sample * CH->LeftVol;
+			buffer[i*2+1] += sample * CH->RightVol;
+		}
+
+		advance(wt, OPL, voice, voice);
+	}
+	return true;
+}
+
+static bool CalcRhythm (FM_WorkTable *wt, FM_OPL *OPL, float *buffer, int length)
 {
 	int i;
 
 	for (i = 0; i < length; ++i)
 	{
-		advance_lfo(OPL);
+		advance_lfo(wt, OPL);
 
-		output = 0;
-		OPL_CALC_RH(&OPL->P_CH[0], OPL->noise_rng & 1);
+		wt->output = 0;
+		OPL_CALC_RH(wt, &OPL->P_CH[0], OPL->noise_rng & 1);
 		/* [RH] Convert to floating point. */
-		float sample = float(output) / 10240;
+		float sample = float(wt->output) / 10240;
 		if (!OPL->IsStereo)
 		{
 			buffer[i] += sample;
@@ -1704,7 +1816,36 @@ static bool CalcRhythm (FM_OPL *OPL, float *buffer, int length)
 			buffer[i*2+1] += sample * CENTER_PANNING_POWER;
 		}
 
-		advance(OPL, 6, 8);
+		advance(wt, OPL, 6, 8);
+		advance_noise(OPL);
+	}
+	return true;
+}
+
+static bool CalcRhythm (FM_WorkTable *wt, FM_OPL *OPL, short *buffer, int length)
+{
+	int i;
+
+	for (i = 0; i < length; ++i)
+	{
+		advance_lfo(wt, OPL);
+
+		wt->output = 0;
+		OPL_CALC_RH(wt, &OPL->P_CH[0], OPL->noise_rng & 1);
+
+		if (!OPL->IsStereo)
+		{
+			buffer[i] += wt->output;
+		}
+		else
+		{
+			// [RH] Always use center panning for rhythm.
+			// The MIDI player doesn't use the rhythm section anyway.
+			buffer[i*2] += wt->output * CENTER_PANNING_POWER;
+			buffer[i*2+1] += wt->output * CENTER_PANNING_POWER;
+		}
+
+		advance(wt, OPL, 6, 8);
 		advance_noise(OPL);
 	}
 	return true;
