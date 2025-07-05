@@ -338,7 +338,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			
 #ifdef HAVE_ADL
 		case zmusic_adl_chips_count: 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.numchips", value);
@@ -348,7 +348,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_emulator_id: 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.emulator", value);
@@ -358,7 +358,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_run_at_pcm_rate:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.runatpcmrate", value);
@@ -368,7 +368,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_fullpan: 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.fullpan", value);
@@ -378,7 +378,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_bank: 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.banknum", value);
@@ -388,7 +388,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_use_custom_bank: 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.usecustombank", value);
@@ -398,7 +398,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_use_genmidi:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.usegenmidi", value);
@@ -408,7 +408,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_volume_model: 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.volumemodel", value);
@@ -418,7 +418,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_chan_alloc:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.chanalloc", value);
@@ -428,7 +428,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_auto_arpeggio:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libadl.autoarpeggio", value);
@@ -531,7 +531,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			else if (value > MAXOPL2CHIPS)
 				value = MAXOPL2CHIPS;
 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPL)
 				currSong->ChangeSettingInt("opl.numchips", value);
 
 			ChangeAndReturn(oplConfig.numchips, value, pRealValue);
@@ -549,7 +549,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 #endif
 #ifdef HAVE_OPN
 		case zmusic_opn_chips_count:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.numchips", value);
@@ -559,7 +559,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_emulator_id:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.emulator", value);
@@ -569,7 +569,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_run_at_pcm_rate:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.runatpcmrate", value);
@@ -579,7 +579,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_fullpan:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.fullpan", value);
@@ -589,7 +589,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_use_custom_bank:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.usecustombank", value);
@@ -599,7 +599,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_volume_model:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.volumemodel", value);
@@ -609,7 +609,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_chan_alloc:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.chanalloc", value);
@@ -619,7 +619,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_auto_arpeggio:
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingInt("libopn.autoarpeggio", value);
@@ -929,7 +929,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 			else if (value > 10)
 				value = 10;
 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingNum("oplemu.gain", value);
@@ -945,7 +945,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 			else if (value > 10)
 				value = 10;
 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingNum("libadl.gain", value);
@@ -962,7 +962,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 			else if (value > 10)
 				value = 10;
 
-			if (currSong != NULL)
+			if (currSong != NULL && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				currSong->ChangeSettingNum("libopn.gain", value);
@@ -1008,7 +1008,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 			
 #ifdef HAVE_ADL
 		case zmusic_adl_custom_bank: 
-			if (currSong != nullptr)
+			if (currSong != nullptr && devType() == MDEV_ADL)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				const char* info;
@@ -1045,7 +1045,7 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 
 #ifdef HAVE_OPN
 		case zmusic_opn_custom_bank: 
-			if (currSong != nullptr)
+			if (currSong != nullptr && devType() == MDEV_OPN)
 			{
 				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
 				const char* info;
