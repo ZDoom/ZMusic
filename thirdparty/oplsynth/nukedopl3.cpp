@@ -1008,6 +1008,15 @@ void NukedOPL3::Update(float* sndptr, int numsamples) {
 	}
 }
 
+void NukedOPL3::UpdateS(short *sndptr, int numsamples) {
+	Bit16s buffer[2];
+	for (Bit32u i = 0; i < (Bit32u)numsamples; i++) {
+		chip_generate(&opl3, buffer);
+		*sndptr++ += buffer[0] * 2;
+		*sndptr++ += buffer[1] * 2;
+	}
+}
+
 void NukedOPL3::SetPanning(int c, float left, float right) {
 	if (FullPan) {
 		opl3.channel[c].fcha = left;
