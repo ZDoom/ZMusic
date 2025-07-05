@@ -502,15 +502,15 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 
 		case zmusic_opn_volume_model:
 			ChangeAndReturn(opnConfig.opn_volume_model, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == MDEV_OPN;
 
 		case zmusic_opn_chan_alloc:
 			ChangeAndReturn(opnConfig.opn_chan_alloc, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == MDEV_OPN;
 
 		case zmusic_opn_auto_arpeggio:
 			ChangeAndReturn(opnConfig.opn_auto_arpeggio, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return devType() == MDEV_OPN;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_dmxgus:
