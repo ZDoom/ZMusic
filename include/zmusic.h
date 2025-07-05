@@ -95,6 +95,8 @@ typedef enum EIntConfigKey_
 	zmusic_adl_bank,
 	zmusic_adl_use_custom_bank,
 	zmusic_adl_volume_model,
+	zmusic_adl_chan_alloc,
+	zmusic_adl_auto_arpeggio,
 
 	zmusic_fluid_reverb,
 	zmusic_fluid_chorus,
@@ -114,6 +116,9 @@ typedef enum EIntConfigKey_
 	zmusic_opn_run_at_pcm_rate,
 	zmusic_opn_fullpan,
 	zmusic_opn_use_custom_bank,
+	zmusic_opn_volume_model,
+	zmusic_opn_chan_alloc,
+	zmusic_opn_auto_arpeggio,
 
 	zmusic_gus_dmxgus,
 	zmusic_gus_midi_voices,
