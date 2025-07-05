@@ -922,7 +922,22 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingFloat(EFloatConfigKey key, MusInfo* cur
 			if (pRealValue) *pRealValue = value;
 			return false;
 #endif
+#ifdef HAVE_OPL
+		case zmusic_opl_gain:
+			if (value < 0)
+				value = 0;
+			else if (value > 10)
+				value = 10;
 
+			if (currSong != NULL)
+			{
+				std::lock_guard<FCriticalSection> lock(currSong->CritSec);
+				currSong->ChangeSettingNum("oplemu.gain", value);
+			}
+
+			ChangeAndReturn(oplConfig.gain, value, pRealValue);
+			return false;
+#endif
 #ifdef HAVE_ADL
 		case zmusic_adl_gain:
 			if (value < 0)

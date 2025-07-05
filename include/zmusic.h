@@ -173,6 +173,8 @@ typedef enum EFloatConfigKey_
 	zmusic_fluid_chorus_speed,
 	zmusic_fluid_chorus_depth,
 
+	zmusic_opl_gain,
+
 	zmusic_adl_gain,
 
 	zmusic_opn_gain,
