@@ -50,11 +50,12 @@ class OPNMIDIDevice : public SoftSynthMIDIDevice
 public:
 	OPNMIDIDevice(const OpnConfig *config);
 	~OPNMIDIDevice();
-	
-	
+
 	int OpenRenderer() override;
 	int GetDeviceType() const override { return MDEV_OPN; }
-	
+	void ChangeSettingInt(const char *setting, int value) override;
+	void ChangeSettingNum(const char *setting, double value) override;
+
 protected:
 	void HandleEvent(int status, int parm1, int parm2) override;
 	void HandleLongEvent(const uint8_t *data, int len) override;
@@ -100,6 +101,8 @@ OPNMIDIDevice::OPNMIDIDevice(const OpnConfig *config)
 			}
 			else opn2_openBankData(Renderer, config->default_bank.data(), (long)config->default_bank.size());
 		}
+
+		OutputGainFactor *= config->opn_gain;
 
 		opn2_switchEmulator(Renderer, (int)config->opn_emulator_id);
 		opn2_setRunAtPcmRate(Renderer, (int)config->opn_run_at_pcm_rate);
@@ -162,6 +165,74 @@ int OPNMIDIDevice::OpenRenderer()
 {
 	opn2_rt_resetState(Renderer);
 	return 0;
+}
+
+//==========================================================================
+//
+// OPNMIDIDevice :: ChangeSettingInt
+//
+// Changes an integer setting.
+//
+//==========================================================================
+
+void OPNMIDIDevice::ChangeSettingInt(const char *setting, int value)
+{
+	if (Renderer == nullptr || strncmp(setting, "libopn.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "volumemodel") == 0)
+	{
+		opn2_setVolumeRangeModel(Renderer, value);
+	}
+	else if (strcmp(setting, "chanalloc") == 0)
+	{
+		opn2_setChannelAllocMode(Renderer, value);
+	}
+	else if (strcmp(setting, "emulator") == 0)
+	{
+		opn2_switchEmulator(Renderer, value);
+	}
+	else if (strcmp(setting, "numchips") == 0)
+	{
+		opn2_setNumChips(Renderer, value);
+	}
+	else if (strcmp(setting, "fullpan") == 0)
+	{
+		opn2_setSoftPanEnabled(Renderer, value);
+	}
+	else if (strcmp(setting, "runatpcmrate") == 0)
+	{
+		opn2_setRunAtPcmRate(Renderer, value);
+	}
+	else if (strcmp(setting, "autoarpeggio") == 0)
+	{
+		opn2_setAutoArpeggio(Renderer, value);
+	}
+}
+
+//==========================================================================
+//
+// OPNMIDIDevice :: ChangeSettingNum
+//
+// Changes a numeric setting.
+//
+//==========================================================================
+
+void OPNMIDIDevice::ChangeSettingNum(const char *setting, double value)
+{
+	if (Renderer == nullptr || strncmp(setting, "libopn.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "gain") == 0)
+	{
+		OutputGainFactor = 4.0f * value;
+	}
 }
 
 //==========================================================================

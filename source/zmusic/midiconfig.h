@@ -19,6 +19,7 @@ struct ADLConfig
 	int adl_fullpan = 1;
 	int adl_use_custom_bank = false;
 	int adl_auto_arpeggio = false;
+	float adl_gain = 1.0f;
 	std::string adl_custom_bank;
 };
 
@@ -63,6 +64,7 @@ struct OpnConfig
 	int opn_fullpan = 1;
 	int opn_use_custom_bank = false;
 	int opn_auto_arpeggio = false;
+	float opn_gain = 1.0f;
 	std::string opn_custom_bank;
 	std::vector<uint8_t> default_bank;
 };
