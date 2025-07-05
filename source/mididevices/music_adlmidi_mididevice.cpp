@@ -50,6 +50,9 @@ class ADLMIDIDevice : public SoftSynthMIDIDevice
 	struct ADL_MIDIPlayer *Renderer;
 	float OutputGainFactor;
 	float ConfigGainFactor;
+	std::string custom_bank;
+	bool use_custom_bank;
+	int last_bank;
 public:
 	ADLMIDIDevice(const ADLConfig *config);
 	~ADLMIDIDevice();
@@ -58,6 +61,7 @@ public:
 	int GetDeviceType() const override { return MDEV_ADL; }
 	void ChangeSettingInt(const char *setting, int value) override;
 	void ChangeSettingNum(const char *setting, double value) override;
+	void ChangeSettingString(const char *setting, const char *value) override;
 
 protected:
 	
@@ -98,6 +102,7 @@ ADLMIDIDevice::ADLMIDIDevice(const ADLConfig *config)
 	{
 		adl_switchEmulator(Renderer, config->adl_emulator_id);
 		adl_setRunAtPcmRate(Renderer, config->adl_run_at_pcm_rate);
+		last_bank = config->adl_bank;
 		if (!LoadCustomBank(config))
 			adl_setBank(Renderer, config->adl_bank);
 		adl_setNumChips(Renderer, config->adl_chips_count);
@@ -137,8 +142,14 @@ ADLMIDIDevice::~ADLMIDIDevice()
 
 int ADLMIDIDevice::LoadCustomBank(const ADLConfig *config)
 {
-	const char *bankfile = config->adl_custom_bank.c_str();
-	if(!config->adl_use_custom_bank)
+	if (config)
+	{
+		custom_bank = config->adl_custom_bank;
+		use_custom_bank = config->adl_use_custom_bank;
+	}
+
+	const char *bankfile = custom_bank.c_str();
+	if(!use_custom_bank)
 		return 0;
 	if(!*bankfile)
 		return 0;
@@ -162,7 +173,7 @@ int ADLMIDIDevice::OpenRenderer()
 
 //==========================================================================
 //
-// OPNMIDIDevice :: ChangeSettingInt
+// ADLMIDIDevice :: ChangeSettingInt
 //
 // Changes an integer setting.
 //
@@ -205,11 +216,30 @@ void ADLMIDIDevice::ChangeSettingInt(const char *setting, int value)
 	{
 		adl_setAutoArpeggio(Renderer, value);
 	}
+	else if (strcmp(setting, "usecustombank") == 0)
+	{
+		bool update = (value != use_custom_bank);
+		use_custom_bank = value;
+		if (update)
+		{
+			if (!LoadCustomBank(nullptr))
+				adl_setBank(Renderer, last_bank);
+		}
+	}
+	else if (strcmp(setting, "banknum") == 0)
+	{
+		bool update = (value != last_bank);
+		last_bank = value;
+		if (!update)
+		{
+			adl_setBank(Renderer, last_bank);
+		}
+	}
 }
 
 //==========================================================================
 //
-// OPNMIDIDevice :: ChangeSettingNum
+// ADLMIDIDevice :: ChangeSettingNum
 //
 // Changes a numeric setting.
 //
@@ -227,6 +257,33 @@ void ADLMIDIDevice::ChangeSettingNum(const char *setting, double value)
 	{
 		ConfigGainFactor = value;
 		initGain();
+	}
+}
+
+//==========================================================================
+//
+// ADLMIDIDevice :: ChangeSettingString
+//
+// Changes a string setting.
+//
+//==========================================================================
+
+void ADLMIDIDevice::ChangeSettingString(const char *setting, const char *value)
+{
+	if (Renderer == nullptr || strncmp(setting, "libadl.", 7))
+	{
+		return;
+	}
+	setting += 7;
+
+	if (strcmp(setting, "custombank") == 0)
+	{
+		custom_bank = value;
+		if (use_custom_bank)
+		{
+			if (!LoadCustomBank(nullptr))
+				adl_setBank(Renderer, last_bank);
+		}
 	}
 }
 

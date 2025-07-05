@@ -362,12 +362,18 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_adl_bank: 
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.banknum", value);
+
 			ChangeAndReturn(adlConfig.adl_bank, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_use_custom_bank: 
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libadl.usecustombank", value);
+
 			ChangeAndReturn(adlConfig.adl_use_custom_bank, value, pRealValue);
-			return devType() == MDEV_ADL;
+			return false;
 
 		case zmusic_adl_volume_model: 
 			if (currSong != NULL)
@@ -530,8 +536,11 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingInt(EIntConfigKey key, MusInfo *currSon
 			return false;
 
 		case zmusic_opn_use_custom_bank:
+			if (currSong != NULL)
+				currSong->ChangeSettingInt("libopn.usecustombank", value);
+
 			ChangeAndReturn(opnConfig.opn_use_custom_bank, value, pRealValue);
-			return devType() == MDEV_OPN;
+			return false;
 
 		case zmusic_opn_volume_model:
 			if (currSong != NULL)
@@ -913,8 +922,28 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 			
 #ifdef HAVE_ADL
 		case zmusic_adl_custom_bank: 
+			if (currSong != nullptr)
+			{
+				const char* info;
+				if (musicCallbacks.PathForSoundfont)
+				{
+					info = musicCallbacks.PathForSoundfont(value, SF_WOPL);
+				}
+				else
+				{
+					info = value;
+				}
+
+				if (info == nullptr)
+				{
+					info = "";
+				}
+
+				currSong->ChangeSettingString("libadl.custombank", info);
+			}
+
 			adlConfig.adl_custom_bank = value;
-			return devType() == MDEV_ADL;
+			return false;
 #endif
 		case zmusic_fluid_lib: 
 			fluidConfig.fluid_lib = value;
@@ -929,8 +958,28 @@ DLL_EXPORT zmusic_bool ChangeMusicSettingString(EStringConfigKey key, MusInfo* c
 
 #ifdef HAVE_OPN
 		case zmusic_opn_custom_bank: 
+			if (currSong != nullptr)
+			{
+				const char* info;
+				if (musicCallbacks.PathForSoundfont)
+				{
+					info = musicCallbacks.PathForSoundfont(value, SF_WOPN);
+				}
+				else
+				{
+					info = value;
+				}
+
+				if (info == nullptr)
+				{
+					info = "";
+				}
+
+				currSong->ChangeSettingString("libopn.custombank", info);
+			}
+
 			opnConfig.opn_custom_bank = value;
-			return devType() == MDEV_OPN && opnConfig.opn_use_custom_bank;
+			return false;
 #endif
 #ifdef HAVE_GUS
 		case zmusic_gus_config:
