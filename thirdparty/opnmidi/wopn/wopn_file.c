@@ -1,7 +1,7 @@
 /*
  * Wohlstand's OPN2 Bank File - a bank format to store OPN2 timbre data and setup
  *
- * Copyright (c) 2018-2022 Vitaly Novichkov <admin@wohlnet.ru>
+ * Copyright (c) 2018-2025 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -151,7 +151,7 @@ static void WOPN_parseInstrument(WOPNInstrument *ins, uint8_t *cursor, uint16_t 
 {
     int l;
     strncpy(ins->inst_name, (const char*)cursor, 32);
-    ins->inst_name[32] = '\0';
+    ins->inst_name[31] = '\0';
     ins->note_offset = toSint16BE(cursor + 32);
     ins->midi_velocity_offset = 0;  /* TODO: for future version > 2 */
     ins->percussion_key_number = cursor[34];
@@ -549,7 +549,7 @@ int WOPN_SaveBankToMem(WOPNFile *file, void *dest_mem, size_t length, uint16_t v
             {
                 if(length < 34)
                     return WOPN_ERR_UNEXPECTED_ENDING;
-                strncpy((char*)cursor, bankslots[i][j].bank_name, 32);
+                memcpy(cursor, bankslots[i][j].bank_name, 32);
                 cursor[32] = bankslots[i][j].bank_midi_lsb;
                 cursor[33] = bankslots[i][j].bank_midi_msb;
                 GO_FORWARD(34);

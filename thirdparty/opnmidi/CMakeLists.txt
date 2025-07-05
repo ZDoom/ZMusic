@@ -26,21 +26,34 @@ PRIVATE
 	chips/gx_opn2.cpp
 	chips/pmdwin_opna.cpp
 	chips/nuked/ym3438.c
-	chips/gx/gx_ym2612.c
-	chips/pmdwin/opna.c
-	chips/pmdwin/psg.c
-	chips/pmdwin/rhythmdata.c
 	chips/mamefm/emu2149.c
 	chips/mame/mame_ym2612fm.c
 	wopn/wopn_file.c
 )
 
+if(COMPILER_SUPPORTS_CXX14)
+	set(YMFM_SOURCES
+		chips/ymfm_opn2.cpp
+		chips/ymfm_opna.cpp
+		chips/ymfm/ymfm_opn.cpp
+# Duplicates at the libADLMIDI
+#		chips/ymfm/ymfm_misc.cpp
+#		chips/ymfm/ymfm_pcm.cpp
+#		chips/ymfm/ymfm_adpcm.cpp
+#		chips/ymfm/ymfm_ssg.cpp
+	)
+	if(DEFINED FLAG_CPP14)
+		set_source_files_properties(${YMFM_SOURCES} COMPILE_FLAGS ${FLAG_CPP14})
+	endif()
+	target_sources(opn PRIVATE ${YMFM_SOURCES})
+else()
+	target_compile_definitions(opn PUBLIC -DOPNMIDI_DISABLE_YMFM_EMULATOR)
+endif()
+
 target_compile_definitions(opn
 PRIVATE
 	# we play with out own sequencer
 	OPNMIDI_DISABLE_MIDI_SEQUENCER
-	# Disable OPNMIDI's experimental yet emulator (using of it has some issues and missing notes in playback)
-	OPNMIDI_DISABLE_GX_EMULATOR
 )
 
 target_include_directories(opn PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

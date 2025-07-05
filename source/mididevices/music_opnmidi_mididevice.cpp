@@ -101,7 +101,10 @@ OPNMIDIDevice::OPNMIDIDevice(const OpnConfig *config)
 		opn2_switchEmulator(Renderer, (int)config->opn_emulator_id);
 		opn2_setRunAtPcmRate(Renderer, (int)config->opn_run_at_pcm_rate);
 		opn2_setNumChips(Renderer, config->opn_chips_count);
+		opn2_setVolumeRangeModel(Renderer, config->opn_volume_model);
+		opn2_setChannelAllocMode(Renderer, config->opn_chan_alloc);
 		opn2_setSoftPanEnabled(Renderer, (int)config->opn_fullpan);
+		opn2_setAutoArpeggio(Renderer, (int)config->opn_auto_arpeggio);
 	}
 	else
 	{

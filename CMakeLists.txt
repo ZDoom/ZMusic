@@ -23,6 +23,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
+include(CheckCXXCompilerFlag)
 include(ZUtility)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -108,6 +109,14 @@ if(MSVC)
 	# The CMake configurations set /GR by default, which conflict with our settings.
 	# CMake 3.20 fixes the need to do this
 	string(REPLACE " /GR" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+
+	check_cxx_compiler_flag("/std:c++14" COMPILER_SUPPORTS_CXX14)
+	if(COMPILER_SUPPORTS_CXX14)
+		set(FLAG_CPP14 "/std:c++14")
+	endif()
+	if(MSVC_VERSION LESS 1910)
+		unset(COMPILER_SUPPORTS_CXX14) # MSVC older than 2017 fails to build YMFM
+	endif()
 else()
 	add_compile_options("-ffp-contract=off")
 
@@ -123,6 +132,17 @@ else()
 			add_compile_options("-static-libgcc")
 		endif()
 	endif()
+
+	check_cxx_compiler_flag("-std=c++14" COMPILER_SUPPORTS_CXX14)
+	if(COMPILER_SUPPORTS_CXX14)
+		set(FLAG_CPP14 "-std=c++14")
+	endif()
+endif()
+
+if(COMPILER_SUPPORTS_CXX14)
+	message("== Your C++ compiler supports C++14, YMFM emulators will be ENABLED")
+else()
+	message("== Your C++ compiler does NOT supports C++14, YMFM emulators will be DISABLED")
 endif()
 
 # Initialize our list of find_package dependencies for configure_package_config_file

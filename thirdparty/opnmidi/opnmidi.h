@@ -2,7 +2,7 @@
  * libOPNMIDI is a free Software MIDI synthesizer library with OPN2 (YM2612) emulation
  *
  * MIDI parser and player (Original code from ADLMIDI): Copyright (c) 2010-2014 Joel Yliluoma <bisqwit@iki.fi>
- * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2022 Vitaly Novichkov <admin@wohlnet.ru>
+ * OPNMIDI Library and YM2612 support:   Copyright (c) 2017-2025 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Library is based on the ADLMIDI, a MIDI player for Linux and Windows with OPL3 emulation:
  * http://iki.fi/bisqwit/source/adlmidi.html
@@ -29,8 +29,8 @@ extern "C" {
 #endif
 
 #define OPNMIDI_VERSION_MAJOR       1
-#define OPNMIDI_VERSION_MINOR       5
-#define OPNMIDI_VERSION_PATCHLEVEL  1
+#define OPNMIDI_VERSION_MINOR       6
+#define OPNMIDI_VERSION_PATCHLEVEL  0
 
 #define OPNMIDI_TOSTR_I(s) #s
 #define OPNMIDI_TOSTR(s) OPNMIDI_TOSTR_I(s)
@@ -565,22 +565,31 @@ enum Opn2_Emulator
 {
     /*! Mame YM2612 */
     OPNMIDI_EMU_MAME = 0,
-    /*! Nuked OPN2 */
-    OPNMIDI_EMU_NUKED,
+    /*! Nuked OPN2 (YM3438 mode) */
+    OPNMIDI_EMU_NUKED_YM3438,
+    OPNMIDI_EMU_NUKED = OPNMIDI_EMU_NUKED_YM3438,
     /*! GENS */
     OPNMIDI_EMU_GENS,
-    /*! Genesis Plus GX (a fork of Mame YM2612) */
-    OPNMIDI_EMU_GX,
+    /*! YMFM OPN2 */
+    OPNMIDI_EMU_YMFM_OPN2,
     /*! Neko Project II OPNA */
     OPNMIDI_EMU_NP2,
     /*! Mame YM2608 */
     OPNMIDI_EMU_MAME_2608,
-    /*! PMDWin OPNA */
-    OPNMIDI_EMU_PMDWIN,
+    /*! YMFM OPNA */
+    OPNMIDI_EMU_YMFM_OPNA,
     /*! VGM file dumper (required for MIDI2VGM) */
     OPNMIDI_VGM_DUMPER,
+    /*! Nuked OPN2 (YM2612 mode) */
+    OPNMIDI_EMU_NUKED_YM2612,
     /*! Count instrument on the level */
-    OPNMIDI_EMU_end
+    OPNMIDI_EMU_end,
+
+    /* Backward compatibility */
+    /*! Genesis Plus GX (a fork of Mame YM2612): Somewhere broken and unstable */
+    OPNMIDI_EMU_GX = OPNMIDI_EMU_YMFM_OPN2,
+    /*! PMDWin OPNA: Very old and very glitchy */
+    OPNMIDI_EMU_PMDWIN = OPNMIDI_EMU_YMFM_OPNA
 };
 
 /**

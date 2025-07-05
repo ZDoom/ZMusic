@@ -1,7 +1,7 @@
 /*
  * Interfaces over Yamaha OPN2 (YM2612) chip emulators
  *
- * Copyright (c) 2017-2022 Vitaly Novichkov (Wohlstand)
+ * Copyright (c) 2017-2025 Vitaly Novichkov (Wohlstand)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,12 +22,12 @@
 #include "nuked/ym3438.h"
 #include <cstring>
 
-NukedOPN2::NukedOPN2(OPNFamily f)
-    : OPNChipBaseT(f)
+NukedOPN2::NukedOPN2(OPNFamily f, bool ym3438)
+    : OPNChipBaseT(f), m_isym3438(ym3438)
 {
-    OPN2_SetChipType(ym3438_mode_readmode);
+    OPN2_SetChipType(m_isym3438 ? ym3438_mode_readmode : ym3438_mode_ym2612);
     chip = new ym3438_t;
-    setRate(m_rate, m_clock);
+    NukedOPN2::setRate(m_rate, m_clock);
 }
 
 NukedOPN2::~NukedOPN2()
@@ -72,5 +72,5 @@ void NukedOPN2::nativeGenerate(int16_t *frame)
 
 const char *NukedOPN2::emulatorName()
 {
-    return "Nuked OPN2";
+    return m_isym3438 ? "Nuked OPN2 (3438)" : "Nuked OPN2 (2612)";
 }

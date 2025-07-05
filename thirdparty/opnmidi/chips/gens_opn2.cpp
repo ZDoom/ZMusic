@@ -1,7 +1,7 @@
 /*
  * Interfaces over Yamaha OPN2 (YM2612) chip emulators
  *
- * Copyright (c) 2017-2022 Vitaly Novichkov (Wohlstand)
+ * Copyright (c) 2017-2025 Vitaly Novichkov (Wohlstand)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ GensOPN2::GensOPN2(OPNFamily f)
     : OPNChipBaseBufferedT(f),
       chip(new LibGens::Ym2612())
 {
-    setRate(m_rate, m_clock);
+    GensOPN2::setRate(m_rate, m_clock);
 }
 
 GensOPN2::~GensOPN2()
@@ -95,7 +95,8 @@ void GensOPN2::nativeGenerateN(int16_t *output, size_t frames)
     //TODO
     // chip->updateDacAndTimers(bufL, bufR, frames);
 
-    for (size_t i = 0; i < 2 * frames; ++i) {
+    for (size_t i = 0; i < 2 * frames; ++i)
+    {
         int32_t sample = ((i & 1) ? bufR : bufL)[i / 2];
         sample /= 4; // has too high volume, attenuation needed
         sample = (sample < INT16_MIN) ? INT16_MIN : sample;
