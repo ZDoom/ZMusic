@@ -97,6 +97,7 @@ ADLMIDIDevice::ADLMIDIDevice(const ADLConfig *config)
 			adl_setBank(Renderer, config->adl_bank);
 		adl_setNumChips(Renderer, config->adl_chips_count);
 		adl_setVolumeRangeModel(Renderer, config->adl_volume_model);
+		adl_setChannelAllocMode(Renderer, config->adl_chan_alloc);
 		adl_setSoftPanEnabled(Renderer, config->adl_fullpan);
 		// TODO: Please tune the factor for each volume model to avoid too loud or too silent sounding
 		switch (adl_getVolumeRangeModel(Renderer))
