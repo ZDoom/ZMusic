@@ -427,6 +427,12 @@ FLUIDSYNTH_API int fluid_synth_set_channel_type(fluid_synth_t *synth, int chan, 
  * @{
  */
 
+// silence a VERY noisy warning in recent MSVC compilers
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:5287)
+#endif
+
 /**
  * Channel mode bits OR-ed together so that it matches with the midi spec: poly omnion (0), mono omnion (1), poly omnioff (2), mono omnioff (3)
  */
@@ -448,6 +454,10 @@ enum fluid_basic_channel_modes
     FLUID_CHANNEL_MODE_OMNIOFF_MONO = FLUID_CHANNEL_MODE_MASK & (FLUID_CHANNEL_OMNI_OFF | FLUID_CHANNEL_POLY_OFF), /**< corresponds to MIDI mode 3 */
     FLUID_CHANNEL_MODE_LAST /**< @internal Value defines the count of basic channel modes (#fluid_basic_channel_modes) @warning This symbol is not part of the public API and ABI stability guarantee and may change at any time! */
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 FLUIDSYNTH_API int fluid_synth_reset_basic_channel(fluid_synth_t *synth, int chan);
 
