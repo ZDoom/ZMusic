@@ -243,8 +243,9 @@ void OPNMIDIDevice::ChangeSettingInt(const char *setting, int value)
 	}
 	else if (strcmp(setting, "usecustombank") == 0)
 	{
-		bool update = (value != use_custom_bank);
-		use_custom_bank = value;
+		bool bvalue = (value != 0);
+		bool update = (bvalue != use_custom_bank);
+		use_custom_bank = bvalue;
 		if (update)
 		{
 			if (!LoadCustomBank(nullptr))
