@@ -85,7 +85,7 @@ typedef struct SoundStreamInfoEx_
 	ChannelConfig mChannelConfig;
 } SoundStreamInfoEx;
 
-
+// NOTE: The following enums are part of the ABI! Do not insert new values in the middle - always append them at the end!
 typedef enum EIntConfigKey_
 {
 	zmusic_adl_chips_count,
