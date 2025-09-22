@@ -1,7 +1,7 @@
 /*
- * Interfaces over Yamaha OPN2 (YM2612) chip emulators
+ * Interfaces over Yamaha OPL3 (YMF262) chip emulators
  *
- * Copyright (c) 2018-2025 Vitaly Novichkov (Wohlstand)
+ * Copyright (c) 2017-2025 Vitaly Novichkov (Wohlstand)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,32 +18,32 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NP2_OPNA_H
-#define NP2_OPNA_H
+#ifndef YMF276LLE_OPN2_H
+#define YMF276LLE_OPN2_H
 
 #include "opn_chip_base.h"
 
-namespace FM { class OPN2; class OPNA; class OPNB; }
-template <class ChipType = FM::OPNA>
-class NP2OPNA final : public OPNChipBaseBufferedT<NP2OPNA<ChipType > >
+class Ymf276LLEOPN2 final : public OPNChipBaseT<Ymf276LLEOPN2>
 {
-    typedef OPNChipBaseBufferedT<NP2OPNA<ChipType > > ChipBase;
-    ChipType *chip;
-public:
-    explicit NP2OPNA(OPNFamily f);
-    ~NP2OPNA() override;
+    void *m_chip;
+    bool m_ymf276mode;
 
-    bool canRunAtPcmRate() const override { return true; }
+public:
+    Ymf276LLEOPN2(OPNFamily f, bool ymf276mode);
+    ~Ymf276LLEOPN2() override;
+
+    bool canRunAtPcmRate() const override { return false; }
     void setRate(uint32_t rate, uint32_t clock) override;
     void reset() override;
     void writeReg(uint32_t port, uint16_t addr, uint8_t data) override;
-    void writePan(uint16_t chan, uint8_t data) override;
+    void writePan(uint16_t addr, uint8_t data) override;
     void nativePreGenerate() override {}
     void nativePostGenerate() override {}
-    void nativeGenerateN(int16_t *output, size_t frames) override;
+    void nativeGenerate(int16_t *frame) override;
     const char *emulatorName() override;
     bool hasFullPanning() override;
-    enum { resamplerPostAttenuate = 2 };
+    // amplitude scale factors to use in resampling
+    enum { resamplerPreAmplify = 11, resamplerPostAttenuate = 2 };
 };
 
-#endif
+#endif // YMF276LLE_OPN2_H
