@@ -8,6 +8,7 @@ set(libgme_SRCS Blip_Buffer.cpp
                 Effects_Buffer.cpp
                 Fir_Resampler.cpp
                 gme.cpp
+                gme.h
                 Gme_File.cpp
                 M3u_Playlist.cpp
                 Multi_Buffer.cpp
