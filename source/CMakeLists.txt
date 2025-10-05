@@ -2,8 +2,6 @@
 # added as interface sources.  Thus whatever links to zmusic-obj will be in
 # charge of compiling.  As a result any properties set on zmusic-obj should be
 # interface.
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 add_library(zmusic-obj INTERFACE)
 target_sources(zmusic-obj
