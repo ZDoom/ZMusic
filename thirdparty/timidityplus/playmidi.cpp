@@ -5775,16 +5775,14 @@ struct midi_file_info *Player::new_midi_file_info()
 void Player::playmidi_stream_init(void)
 {
     int i;
-    static int first = 1;
 
     note_key_offset = timidity_key_adjust;
     midi_time_ratio = timidity_tempo_adjust;
     CLEAR_CHANNELMASK(channel_mute);
 	if (temper_type_mute & 1)
 		FILL_CHANNELMASK(channel_mute);
-	if (first)
+	if (!midi_streaming)
 	{
-		first = 0;
 		init_mblock(&playmidi_pool);
 		midi_streaming = 1;
 	}
