@@ -2,7 +2,7 @@
 #define ZMUSIC_INTERNAL
 
 #if !defined(ZMUSIC_STATIC)
-    #if defined(_MSC_VER)
+    #if defined(_WIN32)
         #define DLL_EXPORT __declspec(dllexport)
         #define DLL_IMPORT __declspec(dllexport)	// without this the compiler complains.
     #else
