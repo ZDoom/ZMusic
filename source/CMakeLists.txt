@@ -2,6 +2,7 @@
 # added as interface sources.  Thus whatever links to zmusic-obj will be in
 # charge of compiling.  As a result any properties set on zmusic-obj should be
 # interface.
+
 add_library(zmusic-obj INTERFACE)
 target_sources(zmusic-obj
 INTERFACE
