@@ -107,7 +107,17 @@ if(WIN32)
 	target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
 	target_link_libraries(zmusic-obj INTERFACE winmm)
 	target_sources(zmusic-obj INTERFACE mididevices/music_win_mididevice.cpp)
-elseif(NOT APPLE)
+elseif(APPLE)
+	target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
+	target_sources(zmusic-obj INTERFACE
+		mididevices/music_coremidi_mididevice.mm
+	)
+	target_link_libraries(zmusic-obj INTERFACE
+		"-framework CoreMIDI"
+		"-framework CoreFoundation"
+		"-framework CoreAudio"
+	)
+else()
 	find_package(ALSA)
     if(ALSA_FOUND)
 		target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
