@@ -138,7 +138,6 @@ protected:
 	int LoopLimit;
 	std::string Args;
 	std::unique_ptr<MIDISource> source;
-	uint64_t current_sample_position;
 };
 
 
