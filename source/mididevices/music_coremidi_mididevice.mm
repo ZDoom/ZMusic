@@ -36,6 +36,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <mach/mach_time.h>
 #include <pthread.h>
+#include <unistd.h> // For usleep
 
 #include <queue>
 #include <mutex>
@@ -74,6 +75,9 @@ public:
 	void InitPlayback() override;
 
 protected:
+	void CalcTickRate();
+	int PlayTick();
+
 	// CoreMIDI handles
 	MIDIClientRef midiClient;
 	MIDIPortRef midiOutPort;
@@ -82,10 +86,11 @@ protected:
 
 	// Threading
 	std::thread PlayerThread;
-	std::mutex EventMutex;
-	std::condition_variable EventCV;
 	bool ExitRequested;
 	bool Paused;
+	std::condition_variable EventCV; // Still needed for pause/resume
+	std::mutex EventMutex; // Still needed for pause/resume
+
 	bool isOpen;
 
 	// Timing
@@ -93,15 +98,17 @@ protected:
 	int Division;
 	uint64_t StartTime;
 
-	// Event queue
-	std::queue<MidiHeader*> EventQueue;
+	double SampleRate = 44100; // Assuming a default sample rate
+	double SamplesPerTick;
+	double NextTickIn;
+	MidiHeader *Events; // Linked list of MIDI headers
+	uint32_t Position; // Current position in the MidiHeader buffer
 
 	// Thread functions
 	static void PlayerThreadProc(CoreMIDIDevice* device);
 	void PlayerLoop();
-	void ProcessEvents(MidiHeader* header);
+
 	void SendMIDIData(const uint8_t* data, size_t length, uint64_t timestamp);
-	void SendShortMessage(uint8_t status, uint8_t data1, uint8_t data2);
 };
 
 //==========================================================================
@@ -121,6 +128,10 @@ CoreMIDIDevice::CoreMIDIDevice(int deviceID)
 	, Tempo(500000)      // Default: 120 BPM (500,000 µs per quarter note)
 	, Division(96)       // Default PPQN
 	, StartTime(0)
+	, SamplesPerTick(0.0)
+	, NextTickIn(0.0)
+	, Events(nullptr)
+	, Position(0)
 {
 }
 
@@ -231,8 +242,10 @@ void CoreMIDIDevice::Close()
 	// Send All Notes Off and Reset All Controllers
 	for (int channel = 0; channel < 16; ++channel)
 	{
-		SendShortMessage(0xB0 | channel, 123, 0);  // All Notes Off
-		SendShortMessage(0xB0 | channel, 121, 0);  // Reset All Controllers
+		uint8_t msg1[3] = { (uint8_t)(0xB0 | channel), 123, 0 };
+		SendMIDIData(msg1, 3, 0);  // All Notes Off
+		uint8_t msg2[3] = { (uint8_t)(0xB0 | channel), 121, 0 };
+		SendMIDIData(msg2, 3, 0);  // Reset All Controllers
 	}
 
 	// Dispose CoreMIDI objects
@@ -285,6 +298,17 @@ int CoreMIDIDevice::GetTechnology() const
 
 //==========================================================================
 //
+// CoreMIDIDevice :: CalcTickRate
+//
+//==========================================================================
+
+void CoreMIDIDevice::CalcTickRate()
+{
+	SamplesPerTick = (double)Tempo * SampleRate / (1000000.0 * Division);
+}
+
+//==========================================================================
+//
 // CoreMIDIDevice :: SetTempo
 //
 // Sets the playback tempo (microseconds per quarter note)
@@ -294,6 +318,7 @@ int CoreMIDIDevice::GetTechnology() const
 int CoreMIDIDevice::SetTempo(int tempo)
 {
 	Tempo = tempo;
+	CalcTickRate();
 	return 0;
 }
 
@@ -307,7 +332,8 @@ int CoreMIDIDevice::SetTempo(int tempo)
 
 int CoreMIDIDevice::SetTimeDiv(int timediv)
 {
-	Division = timediv;
+	Division = timediv > 0 ? timediv : 96;
+	CalcTickRate();
 	return 0;
 }
 
@@ -324,10 +350,20 @@ int CoreMIDIDevice::StreamOut(MidiHeader *data)
 	if (!isOpen)
 		return -1;
 
-	std::lock_guard<std::mutex> lock(EventMutex);
-	EventQueue.push(data);
-	EventCV.notify_one();
-
+	data->lpNext = nullptr;
+	if (Events == nullptr)
+	{
+		Events = data;
+		Position = 0;
+	}
+	else
+	{
+		MidiHeader **p;
+		for (p = &Events; *p != nullptr; p = &(*p)->lpNext)
+		{
+		}
+		*p = data;
+	}
 	return 0;
 }
 
@@ -385,20 +421,15 @@ void CoreMIDIDevice::Stop()
 	if (!isOpen)
 		return;
 
-	ExitRequested = true;
-	EventCV.notify_all();
-
 	if (PlayerThread.joinable())
 	{
+		ExitRequested = true;
+		EventCV.notify_all();
 		PlayerThread.join();
 	}
 
 	// Clear event queue
-	std::lock_guard<std::mutex> lock(EventMutex);
-	while (!EventQueue.empty())
-	{
-		EventQueue.pop();
-	}
+	Events = nullptr;
 }
 
 //==========================================================================
@@ -445,6 +476,80 @@ bool CoreMIDIDevice::FakeVolume()
 void CoreMIDIDevice::InitPlayback()
 {
 	StartTime = mach_absolute_time();
+	NextTickIn = 0;
+	Position = 0;
+	Events = nullptr;
+	CalcTickRate();
+}
+
+//==========================================================================
+//
+// CoreMIDIDevice :: PlayTick
+//
+// Plays all events up to the current tick.
+//
+//==========================================================================
+
+int CoreMIDIDevice::PlayTick()
+{
+	if (Events == nullptr && Callback)
+	{
+		Callback(CallbackData);
+	}
+
+	if (Events == nullptr)
+	{
+		return 0;
+	}
+
+	uint64_t time = mach_absolute_time();
+
+	while (Events != nullptr && NextTickIn <= 0)
+	{
+		uint32_t *event = (uint32_t *)(Events->lpData + Position);
+		uint32_t len;
+
+		if (event[2] < 0x80000000) // Short message
+		{
+			len = 12;
+		}
+		else
+		{
+			len = 12 + ((MEVENT_EVENTPARM(event[2]) + 3) & ~3);
+		}
+
+		if (MEVENT_EVENTTYPE(event[2]) == MEVENT_TEMPO)
+		{
+			SetTempo(MEVENT_EVENTPARM(event[2]));
+		}
+		else if (MEVENT_EVENTTYPE(event[2]) == MEVENT_LONGMSG)
+		{
+			SendMIDIData((uint8_t *)&event[3], MEVENT_EVENTPARM(event[2]), time);
+		}
+		else if (MEVENT_EVENTTYPE(event[2]) == 0)
+		{
+			uint8_t msg[3] = { (uint8_t)(event[2] & 0xff), (uint8_t)((event[2] >> 8) & 0xff), (uint8_t)((event[2] >> 16) & 0xff) };
+			int msgLen = (msg[0] >= 0xC0 && msg[0] < 0xE0) ? 2 : 3;
+			SendMIDIData(msg, msgLen, time);
+		}
+
+		Position += len;
+		if (Position >= Events->dwBytesRecorded)
+		{
+			Events = Events->lpNext;
+			Position = 0;
+			if (Events == nullptr && Callback)
+			{
+				Callback(CallbackData);
+			}
+		}
+
+		if (Events != nullptr)
+		{
+			NextTickIn += SamplesPerTick * (*(uint32_t *)(Events->lpData + Position));
+		}
+	}
+	return 1;
 }
 
 //==========================================================================
@@ -473,114 +578,8 @@ void CoreMIDIDevice::PlayerLoop()
 {
 	while (!ExitRequested)
 	{
-		MidiHeader* header = nullptr;
-
-		// Wait for events
-		{
-			std::unique_lock<std::mutex> lock(EventMutex);
-			EventCV.wait(lock, [this] {
-				return !EventQueue.empty() || ExitRequested;
-			});
-
-			if (ExitRequested)
-				break;
-
-			// Wait if paused
-			EventCV.wait(lock, [this] {
-				return !Paused || ExitRequested;
-			});
-
-			if (ExitRequested)
-				break;
-
-			if (!EventQueue.empty())
-			{
-				header = EventQueue.front();
-				EventQueue.pop();
-			}
-		}
-
-		if (header != nullptr)
-		{
-			ProcessEvents(header);
-
-			// Notify completion via callback
-			if (Callback)
-			{
-				Callback(CallbackData);
-			}
-		}
-	}
-}
-
-//==========================================================================
-//
-// CoreMIDIDevice :: ProcessEvents
-//
-// Process MIDI events from a MidiHeader buffer
-//
-//==========================================================================
-
-void CoreMIDIDevice::ProcessEvents(MidiHeader* header)
-{
-	const uint8_t* data = header->lpData;
-	size_t length = header->dwBytesRecorded;
-	uint64_t currentTime = mach_absolute_time();
-
-	for (size_t i = 0; i < length; )
-	{
-		if (i + 4 > length)
-			break;
-
-		uint32_t event = *(uint32_t*)(data + i);
-		uint8_t eventType = event & 0xFF;
-
-		if (eventType == MEVENT_TEMPO)
-		{
-			// Tempo change event
-			int tempo = (event >> 8) & 0xFFFFFF;
-			SetTempo(tempo);
-			i += 4;
-		}
-		else if (eventType == MEVENT_NOP)
-		{
-			// No operation
-			i += 4;
-		}
-		else if (eventType == MEVENT_LONGMSG)
-		{
-			// Long message (SysEx)
-			uint32_t msgLen = (event >> 8) & 0xFFFFFF;
-			if (i + 4 + msgLen > length)
-				break;
-
-			SendMIDIData(data + i + 4, msgLen, currentTime);
-			i += 4 + msgLen;
-		}
-		else if (eventType < 0x80)
-		{
-			// Short MIDI message (note on/off, control change, etc.)
-			uint8_t status = (event >> 8) & 0xFF;
-			uint8_t data1 = (event >> 16) & 0xFF;
-			uint8_t data2 = (event >> 24) & 0xFF;
-
-			// Determine message length based on status byte
-			int msgLen = 3;
-			if (status >= 0xC0 && status < 0xE0)
-			{
-				msgLen = 2;  // Program Change and Channel Pressure are 2 bytes
-			}
-
-			uint8_t msg[3] = { status, data1, data2 };
-			SendMIDIData(msg, msgLen, currentTime);
-
-			i += 4;
-		}
-		else
-		{
-			// Unknown event type - skip
-			i += 4;
-		}
+		PlayTick();
+		usleep(10000); // Sleep for 10ms
 	}
 }
 
@@ -597,15 +596,42 @@ void CoreMIDIDevice::SendMIDIData(const uint8_t* data, size_t length, uint64_t t
 	if (!isOpen || midiOutPort == 0 || midiDestination == 0)
 		return;
 
-	// Create MIDI packet list (using stack buffer for small messages)
-	Byte buffer[256];
+	// The required size for the MIDIPacketList is the size of the list itself
+	// plus the size of the packet header and the actual MIDI data.
+	size_t requiredSize = offsetof(MIDIPacketList, packet) + offsetof(MIDIPacket, data) + length;
+
+	// Use a stack buffer for small messages to avoid heap allocation (fast path).
+	Byte small_buffer[256];
+
+	// Choose the buffer to use.
+	Byte* buffer;
+	std::vector<Byte> large_buffer; // Will be used only if needed.
+
+	if (requiredSize > sizeof(small_buffer))
+	{
+		try
+		{
+			large_buffer.resize(requiredSize);
+			buffer = large_buffer.data();
+		}
+		catch (const std::bad_alloc&)
+		{
+			fprintf(stderr, "CoreMIDI: Failed to allocate memory for large MIDI message.\n");
+			return;
+		}
+	}
+	else
+	{
+		buffer = small_buffer;
+	}
+
 	MIDIPacketList* packetList = (MIDIPacketList*)buffer;
 	MIDIPacket* packet = MIDIPacketListInit(packetList);
 
-	// Add packet with timestamp
-	// Use current time for immediate playback (could be enhanced with timing)
-	packet = MIDIPacketListAdd(packetList, sizeof(buffer), packet,
-	                            timestamp, length, data);
+	// Add the MIDI data to the packet list. The size passed to MIDIPacketListAdd
+	// is the total size of the buffer we have available.
+	packet = MIDIPacketListAdd(packetList, (buffer == small_buffer) ? sizeof(small_buffer) : requiredSize, packet,
+								timestamp, length, data);
 
 	if (packet != nullptr)
 	{
@@ -617,24 +643,12 @@ void CoreMIDIDevice::SendMIDIData(const uint8_t* data, size_t length, uint64_t t
 	}
 	else
 	{
-		fprintf(stderr, "CoreMIDI: MIDIPacketListAdd failed (buffer too small)\n");
+		// This should ideally not happen with dynamic allocation, but we keep the check for safety.
+		fprintf(stderr, "CoreMIDI: MIDIPacketListAdd failed unexpectedly.\n");
 	}
 }
 
-//==========================================================================
-//
-// CoreMIDIDevice :: SendShortMessage
-//
-// Convenience function for sending short MIDI messages
-//
-//==========================================================================
 
-void CoreMIDIDevice::SendShortMessage(uint8_t status, uint8_t data1, uint8_t data2)
-{
-	uint8_t msg[3] = { status, data1, data2 };
-	int msgLen = (status >= 0xC0 && status < 0xE0) ? 2 : 3;
-	SendMIDIData(msg, msgLen, mach_absolute_time());
-}
 
 //==========================================================================
 //
