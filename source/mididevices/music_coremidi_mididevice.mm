@@ -35,6 +35,7 @@
 #include <CoreMIDI/CoreMIDI.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <mach/mach_time.h>
+#include <CoreAudio/HostTime.h>
 #include <pthread.h>
 #include <unistd.h> // For usleep
 
@@ -96,11 +97,8 @@ protected:
 	// Timing
 	int Tempo;
 	int Division;
-	uint64_t StartTime;
-
-	double SampleRate = 44100; // Assuming a default sample rate
-	double SamplesPerTick;
-	double NextTickIn;
+	MIDITimeStamp CurrentEventHostTime; // This will track the host time of the current event being processed.
+	double HostUnitsPerTick; // Conversion factor: Host Time Units per MIDI Tick.
 	MidiHeader *Events; // Linked list of MIDI headers
 	uint32_t Position; // Current position in the MidiHeader buffer
 
@@ -127,9 +125,7 @@ CoreMIDIDevice::CoreMIDIDevice(int deviceID)
 	, isOpen(false)
 	, Tempo(500000)      // Default: 120 BPM (500,000 µs per quarter note)
 	, Division(96)       // Default PPQN
-	, StartTime(0)
-	, SamplesPerTick(0.0)
-	, NextTickIn(0.0)
+	, CurrentEventHostTime(0)
 	, Events(nullptr)
 	, Position(0)
 {
@@ -304,7 +300,13 @@ int CoreMIDIDevice::GetTechnology() const
 
 void CoreMIDIDevice::CalcTickRate()
 {
-	SamplesPerTick = (double)Tempo * SampleRate / (1000000.0 * Division);
+	// Tempo is in microseconds per quarter note. Division is PPQN.
+	// Host time units per second = AudioGetHostClockFrequency()
+	// Microseconds per second = 1,000,000
+	// Microseconds per tick = Tempo / Division
+	// Host time units per tick = (Microseconds per tick) * (Host time units per second / Microseconds per second)
+	Float64 hostClockFrequency = AudioGetHostClockFrequency();
+	HostUnitsPerTick = ((double)Tempo / (double)Division) * (hostClockFrequency / 1000000.0);
 }
 
 //==========================================================================
@@ -475,8 +477,7 @@ bool CoreMIDIDevice::FakeVolume()
 
 void CoreMIDIDevice::InitPlayback()
 {
-	StartTime = mach_absolute_time();
-	NextTickIn = 0;
+	CurrentEventHostTime = AudioGetCurrentHostTime(); // Initialize with current host time
 	Position = 0;
 	Events = nullptr;
 	CalcTickRate();
@@ -494,61 +495,83 @@ int CoreMIDIDevice::PlayTick()
 {
 	if (Events == nullptr && Callback)
 	{
+		// All events in the current MidiHeader processed, request next buffer
 		Callback(CallbackData);
 	}
 
 	if (Events == nullptr)
 	{
+		// No events available to process.
 		return 0;
 	}
 
-	uint64_t time = mach_absolute_time();
+	// Read the delta time (first 4 bytes of the event)
+	uint32_t *event_ptr = (uint32_t *)(Events->lpData + Position);
+	uint32_t midi_delta_ticks = event_ptr[0]; // Assuming delta time is the first uint32_t
 
-	while (Events != nullptr && NextTickIn <= 0)
+	// Advance CurrentEventHostTime based on delta ticks.
+	// This timestamp will be used for the current event.
+	CurrentEventHostTime += (MIDITimeStamp)(midi_delta_ticks * HostUnitsPerTick);
+
+	uint32_t len; // Length of the current MIDI event in bytes
+	uint32_t midi_event_type_param = event_ptr[2]; // This is the actual MIDI event or meta-event info
+
+	if (midi_event_type_param < 0x80000000) // Short message (midi_event_type_param is the combined status/data bytes)
 	{
-		uint32_t *event = (uint32_t *)(Events->lpData + Position);
-		uint32_t len;
-
-		if (event[2] < 0x80000000) // Short message
-		{
-			len = 12;
-		}
-		else
-		{
-			len = 12 + ((MEVENT_EVENTPARM(event[2]) + 3) & ~3);
-		}
-
-		if (MEVENT_EVENTTYPE(event[2]) == MEVENT_TEMPO)
-		{
-			SetTempo(MEVENT_EVENTPARM(event[2]));
-		}
-		else if (MEVENT_EVENTTYPE(event[2]) == MEVENT_LONGMSG)
-		{
-			SendMIDIData((uint8_t *)&event[3], MEVENT_EVENTPARM(event[2]), time);
-		}
-		else if (MEVENT_EVENTTYPE(event[2]) == 0)
-		{
-			uint8_t msg[3] = { (uint8_t)(event[2] & 0xff), (uint8_t)((event[2] >> 8) & 0xff), (uint8_t)((event[2] >> 16) & 0xff) };
-			int msgLen = (msg[0] >= 0xC0 && msg[0] < 0xE0) ? 2 : 3;
-			SendMIDIData(msg, msgLen, time);
-		}
-
-		Position += len;
-		if (Position >= Events->dwBytesRecorded)
-		{
-			Events = Events->lpNext;
-			Position = 0;
-			if (Events == nullptr && Callback)
-			{
-				Callback(CallbackData);
-			}
-		}
-
-		if (Events != nullptr)
-		{
-			NextTickIn += SamplesPerTick * (*(uint32_t *)(Events->lpData + Position));
-		}
+		len = 12; // 4 bytes delta time, 4 bytes reserved, 4 bytes MIDI message (up to 3 bytes + padding)
 	}
+	else // Long message or meta-event (midi_event_type_param holds type and parameter length)
+	{
+		len = 12 + ((MEVENT_EVENTPARM(midi_event_type_param) + 3) & ~3);
+	}
+
+	if (MEVENT_EVENTTYPE(midi_event_type_param) == MEVENT_TEMPO)
+	{
+		// Tempo change event, update our internal calculation for future events
+		SetTempo(MEVENT_EVENTPARM(midi_event_type_param));
+	}
+	else if (MEVENT_EVENTTYPE(midi_event_type_param) == MEVENT_LONGMSG)
+	{
+		// Long MIDI message (SysEx, etc.), data starts after event_ptr[3]
+		SendMIDIData((uint8_t *)&event_ptr[3], MEVENT_EVENTPARM(midi_event_type_param), CurrentEventHostTime);
+	}
+	else if (MEVENT_EVENTTYPE(midi_event_type_param) == 0) // Short MIDI message (note on/off, control change, etc.)
+	{
+		// midi_event_type_param contains the 1, 2, or 3 byte MIDI message
+		uint8_t msg[3] = { (uint8_t)(midi_event_type_param & 0xff),
+						   (uint8_t)((midi_event_type_param >> 8) & 0xff),
+						   (uint8_t)((midi_event_type_param >> 16) & 0xff) };
+		int msgLen = 0;
+		if (msg[0] >= 0xF0) // System messages
+		{
+			if (msg[0] == 0xF0 || msg[0] == 0xF7) msgLen = 1; // Start/Stop/Continue/Timing/Active Sensing/Reset (1 byte)
+			else if (msg[0] == 0xF1 || msg[0] == 0xF3) msgLen = 2; // Time Code Quarter Frame, Song Select (2 bytes)
+			else if (msg[0] == 0xF2) msgLen = 3; // Song Position Pointer (3 bytes)
+			else msgLen = 1; // Default to 1 for other unknown system messages
+		}
+		else if (msg[0] >= 0xC0 && msg[0] < 0xE0) // Program Change or Channel Aftertouch (2 bytes)
+		{
+			msgLen = 2;
+		}
+		else // Note On/Off, Poly Aftertouch, Control Change, Pitch Bend (3 bytes)
+		{
+			msgLen = 3;
+		}
+		SendMIDIData(msg, msgLen, CurrentEventHostTime);
+	}
+	// Other MEVENT_EVENTTYPE values (e.g., MEVENT_NOTEON, MEVENT_NOTEOFF etc. from WinMIDI)
+	// are not directly used here; the raw MIDI message is parsed from event_ptr[2]
+
+	Position += len;
+	if (Position >= Events->dwBytesRecorded)
+	{
+		// Current MidiHeader buffer exhausted, move to the next one
+		Events = Events->lpNext;
+		Position = 0;
+	}
+	
+	// Indicate that an event was processed and potentially more are available in the current tick.
+	// The PlayerLoop will decide when to call PlayTick again.
 	return 1;
 }
 
@@ -578,8 +601,26 @@ void CoreMIDIDevice::PlayerLoop()
 {
 	while (!ExitRequested)
 	{
-		PlayTick();
-		usleep(10000); // Sleep for 10ms
+		// Process all available events and schedule them with CoreMIDI
+		while (Events != nullptr && !Paused && !ExitRequested)
+		{
+			// PlayTick returns 1 if an event was processed.
+			// It will continue to be called until Events becomes nullptr.
+			PlayTick();
+		}
+
+		// After processing all currently available events, or if paused/exit requested,
+		// wait for new data, unpause, or exit signal.
+		std::unique_lock<std::mutex> lock(EventMutex);
+		EventCV.wait(lock, [&]{
+			return Paused || ExitRequested || Events != nullptr; // Wake up if paused, exit requested, or new events available
+		});
+
+		// If paused, just wait until unpaused or exit requested
+		while (Paused && !ExitRequested)
+		{
+			EventCV.wait(lock);
+		}
 	}
 }
 
