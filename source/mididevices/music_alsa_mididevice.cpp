@@ -74,43 +74,29 @@ public:
 	void Close() override;
 	bool IsOpen() const override;
 	int GetTechnology() const override;
-	int SetTempo(int tempo) override;
+	int SetTempo(int tempo) override {return 0;};
 	int SetTimeDiv(int timediv) override;
 	int StreamOut(MidiHeader *data) override;
 	int StreamOutSync(MidiHeader *data) override;
 	int Resume() override;
 	void Stop() override;
-
-	bool FakeVolume() override {
-		// Not sure if we even can control the volume this way with Alsa, so make it fake.
-		return true;
-	};
-
+	bool FakeVolume() override {return true;}; //Not sure if we even can control the volume this way with Alsa, so make it fake.
 	bool Pause(bool paused) override;
 	void InitPlayback() override;
 	bool Update() override;
 	void PrecacheInstruments(const uint16_t *instruments, int count) override {}
-
-	bool CanHandleSysex() const override
-	{
-		// Assume we can, let Alsa sort it out. We do not truly have full control.
-		return true;
-	}
-
-	void SendStopEvents();
+	bool CanHandleSysex() const override {return true;} //Assume we can, let Alsa sort it out.
 	void SetExit(bool exit);
 	bool WaitForExit(std::chrono::microseconds usec, snd_seq_queue_status_t * status);
 	EventType PullEvent();
 	void PumpEvents();
-
 
 protected:
 	AlsaSequencer &sequencer;
 
 	MidiHeader *Events = nullptr;
 	EventState_t EventState;
-	snd_midi_event_t* coder;
-	bool Started = false;
+	snd_midi_event_t* coder = nullptr;
 	uint32_t Position = 0;
 
 	const static int IntendedPortId = 0;
@@ -216,13 +202,6 @@ int AlsaMIDIDevice::GetTechnology() const
 	return Technology;
 }
 
-int AlsaMIDIDevice::SetTempo(int tempo)
-{
-	Tempo = tempo;
-	snd_seq_ev_set_queue_tempo(&EventState.data, QueueId, Tempo);
-	return 0;
-}
-
 int AlsaMIDIDevice::SetTimeDiv(int timediv)
 {
 	TimeDiv = timediv;
@@ -259,8 +238,8 @@ EventType AlsaMIDIDevice::PullEvent() {
 	}
 
 	if (MEVENT_EVENTTYPE(event[2]) == MEVENT_TEMPO) {
-		int tempo = MEVENT_EVENTPARM(event[2]);
-		SetTempo(tempo);
+		Tempo = MEVENT_EVENTPARM(event[2]);
+		snd_seq_ev_set_queue_tempo(&EventState.data, QueueId, Tempo);
 		return EventType::Action;
 	}
 	else if (MEVENT_EVENTTYPE(event[2]) == MEVENT_LONGMSG) {
@@ -303,9 +282,6 @@ bool AlsaMIDIDevice::WaitForExit(std::chrono::microseconds usec, snd_seq_queue_s
 		return true;
 	}
 	ExitCond.wait_for(lock, usec);
-	if(Exit) {
-		return true;
-	}
 	snd_seq_get_queue_status(sequencer.handle, QueueId, status);
 	return false;
 }
