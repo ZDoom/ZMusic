@@ -123,8 +123,7 @@ else()
 	find_package(ALSA)
     if(ALSA_FOUND)
 		target_compile_definitions(zmusic-obj INTERFACE HAVE_SYSTEM_MIDI)
-		target_sources(zmusic-obj
-		INTERFACE
+		target_sources(zmusic-obj INTERFACE
 			mididevices/music_alsa_mididevice.cpp
 			mididevices/music_alsa_state.cpp
 		)
