@@ -261,14 +261,12 @@ bool AlsaMIDIDevice::PullEvent()
 		snd_seq_ev_set_queue_tempo(&EventState.data, QueueId, Tempo);
 		break;
 	case MEVENT_LONGMSG:
+		// SysEx messages...
+		static uint8_t* data = (uint8_t *)&event[3];
+		static int len = MEVENT_EVENTPARM(event[2]);
+		if (len > 2 && data[0] == 0xF0 && data[len - 1] == 0xF7)
 		{
-			// SysEx messages...
-			uint8_t * data = (uint8_t *)&event[3];
-			int len = MEVENT_EVENTPARM(event[2]);
-			if (len > 1 && (data[0] == 0xF0 || data[0] == 0xF7))
-			{
-				snd_seq_ev_set_sysex(&EventState.data, len, (void *)data);
-			}
+			snd_seq_ev_set_sysex(&EventState.data, len, (void *)data);
 		}
 		break;
 	case 0: // Short MIDI event
