@@ -48,22 +48,19 @@
 
 namespace {
 
-enum class EventType {
-	Null,
-	Action
-};
-
-typedef struct EventState_t {
+struct EventState_t
+{
 	int ticks = 0;
 	snd_seq_event_t data;
 	int size_of = 0;
 
-	void Clear() {
+	void Clear()
+	{
 		ticks = 0;
 		snd_seq_ev_clear(&data);
 		size_of = 0;
 	}
-} EventState_t;
+};
 
 class AlsaMIDIDevice : public MIDIDevice
 {
@@ -74,21 +71,21 @@ public:
 	void Close() override;
 	bool IsOpen() const override;
 	int GetTechnology() const override;
-	int SetTempo(int tempo) override {return 0;};
+	int SetTempo(int tempo) override { return 0; };
 	int SetTimeDiv(int timediv) override;
 	int StreamOut(MidiHeader *data) override;
 	int StreamOutSync(MidiHeader *data) override;
 	int Resume() override;
 	void Stop() override;
-	bool FakeVolume() override {return true;}; //Not sure if we even can control the volume this way with Alsa, so make it fake.
+	bool FakeVolume() override { return true; }; //Not sure if we even can control the volume this way with Alsa, so make it fake.
 	bool Pause(bool paused) override;
 	void InitPlayback() override;
 	bool Update() override;
 	void PrecacheInstruments(const uint16_t *instruments, int count) override {}
-	bool CanHandleSysex() const override {return true;} //Assume we can, let Alsa sort it out.
+	bool CanHandleSysex() const override { return true; } //Assume we can, let Alsa sort it out.
 	void SetExit(bool exit);
 	bool WaitForExit(std::chrono::microseconds usec, snd_seq_queue_status_t * status);
-	EventType PullEvent();
+	bool PullEvent();
 	void PumpEvents();
 
 protected:
@@ -135,11 +132,12 @@ AlsaMIDIDevice::~AlsaMIDIDevice()
 
 int AlsaMIDIDevice::Open()
 {
-	if (!sequencer.IsOpen()) {
+	if (!sequencer.IsOpen())
+	{
 		return 1;
 	}
 
-	if(PortId < 0)
+	if (PortId < 0)
 	{
 		snd_seq_port_info_t *pinfo;
 		snd_seq_port_info_alloca(&pinfo);
@@ -152,11 +150,12 @@ int AlsaMIDIDevice::Open()
 		snd_seq_port_info_set_capability(pinfo, 0);
 		snd_seq_port_info_set_type(pinfo, SND_SEQ_PORT_TYPE_MIDI_GENERIC | SND_SEQ_PORT_TYPE_APPLICATION);
 
-		snd_midi_event_new(32, &coder);
+		snd_midi_event_new(3, &coder); // 3 Bytes for short messages.
 		snd_midi_event_init(coder);
 
 		int err = 0;
 		err = snd_seq_create_port(sequencer.handle, pinfo);
+		if (err) { return err; }
 		PortId = IntendedPortId;
 	}
 
@@ -165,7 +164,8 @@ int AlsaMIDIDevice::Open()
 		QueueId = snd_seq_alloc_named_queue(sequencer.handle, "ZMusic Program Queue");
 	}
 
-	if (!Connected) {
+	if (!Connected)
+	{
 		Connected = (snd_seq_connect_to(sequencer.handle, PortId, DestinationClientId, DestinationPortId) == 0);
 	}
 	return 0;
@@ -173,15 +173,18 @@ int AlsaMIDIDevice::Open()
 
 void AlsaMIDIDevice::Close()
 {
-	if(Connected) {
+	if (Connected)
+	{
 		snd_seq_disconnect_to(sequencer.handle, PortId, DestinationClientId, DestinationPortId);
 		Connected = false;
 	}
-	if(QueueId >= 0) {
+	if (QueueId >= 0)
+	{
 		snd_seq_free_queue(sequencer.handle, QueueId);
 		QueueId = -1;
 	}
-	if(PortId >= 0) {
+	if (PortId >= 0)
+	{
 		snd_seq_delete_port(sequencer.handle, PortId);
 		PortId = -1;
 	}
@@ -208,26 +211,39 @@ int AlsaMIDIDevice::SetTimeDiv(int timediv)
 	return 0;
 }
 
-EventType AlsaMIDIDevice::PullEvent() {
+bool AlsaMIDIDevice::PullEvent()
+{
 	EventState.Clear();
+
+	if (!Events) // All events in the current MidiHeader processed, request next buffer
+	{
+		Callback(CallbackData);
+	}
+
+	if (!Events) // No events available to process.
+	{
+		return false;
+	}
 
 	if (Position >= Events->dwBytesRecorded)
 	{
 		Events = Events->lpNext;
 		Position = 0;
-
 		if (Callback != NULL)
 		{
 			Callback(CallbackData);
 		}
 	}
 
-	if (!Events)
-		return EventType::Null;
+	if (!Events)  // No events in the new buffer
+	{
+		return false;
+	}
 
 	uint32_t *event = (uint32_t *)(Events->lpData + Position);
 	EventState.ticks = event[0];
 
+	// Get event size to advance Position
 	if (event[2] < 0x80000000)
 	{ // Short message
 		EventState.size_of = 12;
@@ -237,48 +253,49 @@ EventType AlsaMIDIDevice::PullEvent() {
 		EventState.size_of = 12 + ((MEVENT_EVENTPARM(event[2]) + 3) & ~3);
 	}
 
-	if (MEVENT_EVENTTYPE(event[2]) == MEVENT_TEMPO) {
+	// Pulling event out of buffer
+	switch (MEVENT_EVENTTYPE(event[2]))
+	{
+	case MEVENT_TEMPO:
 		Tempo = MEVENT_EVENTPARM(event[2]);
 		snd_seq_ev_set_queue_tempo(&EventState.data, QueueId, Tempo);
-		return EventType::Action;
-	}
-	else if (MEVENT_EVENTTYPE(event[2]) == MEVENT_LONGMSG) {
+		break;
+	case MEVENT_LONGMSG: {
 		// SysEx messages...
-		uint8_t * data = (uint8_t *)&event[3];
+		uint8_t* data = (uint8_t *)&event[3];
 		int len = MEVENT_EVENTPARM(event[2]);
-		if (len > 1 && (data[0] == 0xF0 || data[0] == 0xF7))
+		if (len > 2 && data[0] == 0xF0 && data[len - 1] == 0xF7)
 		{
 			snd_seq_ev_set_sysex(&EventState.data, len, (void *)data);
-			return EventType::Action;
 		}
 	}
-	else if (MEVENT_EVENTTYPE(event[2]) == 0)
-	{
-		// Short MIDI event
-		unsigned char status = event[2] & 0xFF;
-		unsigned char param1 = (event[2] >> 8) & 0x7f;
-		unsigned char param2 = (event[2] >> 16) & 0x7f;
-		unsigned char message[] = {status, param1, param2};;
+		break;
+	case 0: // Short MIDI event
+		uint8_t status = event[2] & 0xFF;
+		uint8_t param1 = (event[2] >> 8) & 0x7f;
+		uint8_t param2 = (event[2] >> 16) & 0x7f;
+		uint8_t message[] = {status, param1, param2};
+		double length = 3;
 		snd_midi_event_encode(coder, message, 3, &EventState.data);
-		return EventType::Action;
 	}
-	// We didn't really recognize the event, treat it as a NOP
-	EventState.data.type = SND_SEQ_EVENT_NONE;
-	snd_seq_ev_set_fixed(&EventState.data);
-	return EventType::Action;
+	return true;
 }
 
-void AlsaMIDIDevice::SetExit(bool exit) {
+void AlsaMIDIDevice::SetExit(bool exit)
+{
 	std::unique_lock<std::mutex> lock(ExitLock);
-	if(exit != Exit) {
+	if (exit != Exit)
+	{
 		Exit = exit;
 		ExitCond.notify_all();
 	}
 }
 
-bool AlsaMIDIDevice::WaitForExit(std::chrono::microseconds usec, snd_seq_queue_status_t * status) {
+bool AlsaMIDIDevice::WaitForExit(std::chrono::microseconds usec, snd_seq_queue_status_t * status)
+{
 	std::unique_lock<std::mutex> lock(ExitLock);
-	if(Exit) {
+	if (Exit)
+	{
 		return true;
 	}
 	ExitCond.wait_for(lock, usec);
@@ -291,7 +308,8 @@ bool AlsaMIDIDevice::WaitForExit(std::chrono::microseconds usec, snd_seq_queue_s
  * It tries to keep the amount of events (time-wise) in the ALSA sequencer queue to be between 40 and 80ms by sleeping where necessary.
  * This means Alsa can play them safely without running out of things to do, and we have good control over the events themselves (volume, pause, etc.).
  */
-void AlsaMIDIDevice::PumpEvents() {
+void AlsaMIDIDevice::PumpEvents()
+{
 	const std::chrono::microseconds pump_step(40000);
 
 	// TODO: fill in error handling throughout this.
@@ -309,11 +327,13 @@ void AlsaMIDIDevice::PumpEvents() {
 	snd_seq_queue_status_t *status;
 	snd_seq_queue_status_malloc(&status);
 
-	while (true) {
-		auto type = PullEvent();
+	while (true)
+	{
 		// if we reach the end of events, await our doom at a steady rate while looking for more events
-		if(type == EventType::Null) {
-			if(WaitForExit(pump_step, status)) {
+		if (!PullEvent())
+		{
+			if (WaitForExit(pump_step, status))
+			{
 				break;
 			}
 			continue;
@@ -325,28 +345,34 @@ void AlsaMIDIDevice::PumpEvents() {
 		int tick_delta = next_event_tick - queue_tick;
 		auto usecs = std::chrono::microseconds(tick_delta * Tempo / TimeDiv);
 		auto schedule_time = std::max(std::chrono::microseconds(0), usecs - pump_step);
-		if(schedule_time >= pump_step) {
-			if(WaitForExit(schedule_time, status)) {
+		if (schedule_time >= pump_step)
+		{
+			if (WaitForExit(schedule_time, status))
+			{
 				break;
 			}
 			continue;
 		}
-		if (tick_delta < 0) {
+		if (tick_delta < 0)
+		{
 			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Alsa sequencer underrun: %d ticks!\n", tick_delta);
 		}
 
 		// We found an event worthy of sending to the sequencer
 		snd_seq_ev_set_source(&EventState.data, PortId);
 		snd_seq_ev_set_subs(&EventState.data);
-		if (EventState.data.type == SND_SEQ_EVENT_TEMPO) {
+		if (EventState.data.type == SND_SEQ_EVENT_TEMPO)
+		{
 			EventState.data.dest.client = SND_SEQ_CLIENT_SYSTEM;
 			EventState.data.dest.port = SND_SEQ_PORT_SYSTEM_TIMER;
 		}
 		snd_seq_ev_schedule_tick(&EventState.data, QueueId, false, buffer_ticks + EventState.ticks);
 		int result = snd_seq_event_output(sequencer.handle, &EventState.data);
-		if(result < 0) {
+		if (result < 0)
+		{
 			ZMusic_Printf(ZMUSIC_MSG_ERROR, "Alsa sequencer did not accept event: error %d!\n", result);
-			if(WaitForExit(pump_step, status)) {
+			if (WaitForExit(pump_step, status))
+			{
 				break;
 			}
 			continue;
@@ -358,31 +384,13 @@ void AlsaMIDIDevice::PumpEvents() {
 
 	snd_seq_queue_status_free(status);
 	snd_seq_drop_output(sequencer.handle);
-	// FIXME: the event source should give use these, but it doesn't.
-	{
-		for (int channel = 0; channel < 16; ++channel)
-		{
-			snd_seq_event_t ev;
-			snd_seq_ev_clear(&ev);
-			snd_seq_ev_set_source(&ev, PortId);
-			snd_seq_ev_set_subs(&ev);
-			snd_seq_ev_schedule_tick(&ev, QueueId, true, 0);
-			snd_seq_ev_set_controller(&ev, channel, MIDI_CTL_ALL_NOTES_OFF, 0);
-			snd_seq_event_output(sequencer.handle, &ev);
-			snd_seq_ev_set_controller(&ev, channel, MIDI_CTL_RESET_CONTROLLERS, 0);
-			snd_seq_event_output(sequencer.handle, &ev);
-		}
-		snd_seq_drain_output(sequencer.handle);
-		snd_seq_sync_output_queue(sequencer.handle);
-	}
-	snd_seq_stop_queue(sequencer.handle, QueueId, NULL);
-	snd_seq_drain_output(sequencer.handle);
 }
 
 
 int AlsaMIDIDevice::Resume()
 {
-	if(!Connected) {
+	if (!Connected)
+	{
 		return 1;
 	}
 	SetExit(false);
@@ -399,6 +407,23 @@ void AlsaMIDIDevice::Stop()
 {
 	SetExit(true);
 	PlayerThread.join();
+	snd_seq_drop_output(sequencer.handle); // This drops events in the sequencer, the sequencer is still usable
+
+	// Reset all channels to prevent hanging notes
+	for (int channel = 0; channel < 16; ++channel)
+	{
+		snd_seq_event_t ev;
+		snd_seq_ev_clear(&ev);
+		snd_seq_ev_set_source(&ev, PortId);
+		snd_seq_ev_set_subs(&ev);
+		snd_seq_ev_schedule_tick(&ev, QueueId, true, 0);
+		snd_seq_ev_set_controller(&ev, channel, MIDI_CTL_ALL_NOTES_OFF, 0);
+		snd_seq_event_output(sequencer.handle, &ev);
+		snd_seq_ev_set_controller(&ev, channel, MIDI_CTL_RESET_CONTROLLERS, 0);
+		snd_seq_event_output(sequencer.handle, &ev);
+	}
+	snd_seq_drain_output(sequencer.handle);
+	snd_seq_sync_output_queue(sequencer.handle);
 }
 
 bool AlsaMIDIDevice::Pause(bool paused)
