@@ -260,14 +260,15 @@ bool AlsaMIDIDevice::PullEvent()
 		Tempo = MEVENT_EVENTPARM(event[2]);
 		snd_seq_ev_set_queue_tempo(&EventState.data, QueueId, Tempo);
 		break;
-	case MEVENT_LONGMSG:
+	case MEVENT_LONGMSG: {
 		// SysEx messages...
-		static uint8_t* data = (uint8_t *)&event[3];
-		static int len = MEVENT_EVENTPARM(event[2]);
+		uint8_t* data = (uint8_t *)&event[3];
+		int len = MEVENT_EVENTPARM(event[2]);
 		if (len > 2 && data[0] == 0xF0 && data[len - 1] == 0xF7)
 		{
 			snd_seq_ev_set_sysex(&EventState.data, len, (void *)data);
 		}
+	}
 		break;
 	case 0: // Short MIDI event
 		uint8_t status = event[2] & 0xFF;
@@ -275,8 +276,7 @@ bool AlsaMIDIDevice::PullEvent()
 		uint8_t param2 = (event[2] >> 16) & 0x7f;
 		uint8_t message[] = {status, param1, param2};
 		double length = 3;
-		if (status >= 0xC0 && status <= 0xDF) length = 2; // MIDI_PRGMCHANGE or MIDI_CHANPRESS
-		snd_midi_event_encode(coder, message, length, &EventState.data);
+		snd_midi_event_encode(coder, message, 3, &EventState.data);
 	}
 	return true;
 }
@@ -407,6 +407,8 @@ void AlsaMIDIDevice::Stop()
 {
 	SetExit(true);
 	PlayerThread.join();
+	snd_seq_drop_output(sequencer.handle); // This drops events in the sequencer, the sequencer is still usable
+
 	// Reset all channels to prevent hanging notes
 	for (int channel = 0; channel < 16; ++channel)
 	{
