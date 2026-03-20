@@ -284,6 +284,8 @@ MIDIDevice *MIDIStreamer::CreateMIDIDevice(EMidiDevice devtype, int samplerate)
 				dev = CreateWinMIDIDevice(std::max(0, miscConfig.snd_mididevice));
 #elif __linux__
                 dev = CreateAlsaMIDIDevice(std::max(0, miscConfig.snd_mididevice));
+#elif __APPLE__
+				dev = CreateCoreMIDIDevice(std::max(0, miscConfig.snd_mididevice));
 #endif
 				break;
 #endif
