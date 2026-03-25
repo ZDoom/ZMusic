@@ -251,16 +251,27 @@ struct MidiDeviceList
 			}
 		}
 #elif __APPLE__
-		for (int i = 0; i < MIDIGetNumberOfDestinations(); i++)
+		CFStringRef cfName;
+		char string_buffer[128];
+		auto destCount = MIDIGetNumberOfDestinations();
+		for (int i = 0; i < destCount; i++)
 		{
-			uint32_t endpoint = MIDIGetDestination(i);
+			auto endpoint = MIDIGetDestination(i);
 			if (!endpoint)
 			{
 				continue;
 			}
-			CFStringRef cfName;
+			cfName = nullptr;
 			MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &cfName);
-			devices.push_back({ strdup(CFStringGetCStringPtr(cfName, kCFStringEncodingUTF8)), i, MIDIDEV_MAPPER });
+			if (!CFStringGetCString(cfName, string_buffer, sizeof(string_buffer), kCFStringEncodingUTF8))
+			{
+				strcpy(string_buffer, "CoreMidi device");
+			}
+			if (cfName != nullptr)
+			{
+				CFRelease(cfName);
+			}
+			devices.push_back({ strdup(string_buffer), i, MIDIDEV_MAPPER });
 		}
 #endif
 #endif
