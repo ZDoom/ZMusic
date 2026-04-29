@@ -346,7 +346,7 @@ bool AlsaMIDIDevice::PullEvent()
 			break;
 		}
 	}
-	case 0: // Short MIDI event
+	case MEVENT_SHORTMSG:
 	{
 		uint8_t status = event[2] & 0xFF;
 		uint8_t param1 = (event[2] >> 8) & 0x7f;
