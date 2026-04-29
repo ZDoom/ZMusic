@@ -625,7 +625,7 @@ bool CoreMIDIDevice::PullEvent()
 			break;
 		}
 	}
-	case 0: // Short MIDI message (note on/off, control change, etc.)
+	case MEVENT_SHORTMSG:
 	{
 		// midi_event_type_param contains the 1, 2, or 3 byte MIDI message
 		ShortMsgBuffer = { (uint8_t)(midi_event_type_param & 0xff), // Status
