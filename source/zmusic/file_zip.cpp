@@ -2,7 +2,7 @@
 ** file_zip.cpp
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2009 Randy Heit
+** Copyright 1998-2009 Marisa Heit
 ** Copyright 2005-2023 Christoph Oelckers
 ** All rights reserved.
 **
