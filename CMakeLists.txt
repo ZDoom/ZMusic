@@ -129,13 +129,8 @@ else()
 	add_compile_options("-ffp-contract=off")
 
 	if(APPLE)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
-		if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			# With standard Apple tools -stdlib=libc++ needs to be specified in order to get
-			# C++11 support using SDKs 10.7 and 10.8.
-			add_compile_options("-stdlib=libc++")
-			add_link_options("-stdlib=libc++")
-		elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+		if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 			# If we're compiling with a custom GCC on the Mac (which we know since g++-4.2 doesn't support C++11) statically link libgcc.
 			add_compile_options("-static-libgcc")
 		endif()
