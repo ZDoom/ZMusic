@@ -102,9 +102,9 @@ protected:
 	std::condition_variable ExitCond;
 
 	// Timing
-	int InitialTempo = 500000;
-	int Tempo;
-	int Division = 100; // PPQN
+	int64_t InitialTempo = 500000;
+	int64_t Tempo;
+	int64_t Division = 100; // PPQN
 
 	// ZMusic MidiHeader data
 	MidiHeader* Events = nullptr;
@@ -448,7 +448,7 @@ void AlsaMIDIDevice::PlayerLoop()
 	snd_seq_drain_output(sequencer.handle);
 
 	Tempo = InitialTempo;
-	int buffer_tick = 0;
+	uint32_t buffer_tick = 0;
 
 	snd_seq_queue_status_t* status;
 	snd_seq_queue_status_malloc(&status);
@@ -465,10 +465,10 @@ void AlsaMIDIDevice::PlayerLoop()
 		}
 
 		// Figure out if we should sleep (the event is too far in the future for us to care), and for how long
-		int pulled_event_tick = buffer_tick + PulledEvent.tick_delta;
+		auto pulled_event_tick = buffer_tick + PulledEvent.tick_delta;
 		snd_seq_get_queue_status(sequencer.handle, QueueId, status);
-		int queue_tick = snd_seq_queue_status_get_tick_time(status);
-		int ticks_until_pulled_ev = pulled_event_tick - queue_tick;
+		auto queue_tick = snd_seq_queue_status_get_tick_time(status);
+		auto ticks_until_pulled_ev = int64_t{pulled_event_tick} - queue_tick;
 		std::chrono::microseconds time_until_pulled_ev{ticks_until_pulled_ev * Tempo / Division};
 		auto schedule_time = time_until_pulled_ev - buffer_step;
 		if (schedule_time >= buffer_step)
