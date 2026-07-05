@@ -377,7 +377,7 @@ bool AlsaMIDIDevice::PullEvent()
 		return false;
 	}
 
-	uint32_t* event = (uint32_t*)(Events->lpData + Position);
+	const uint32_t* event = (uint32_t*)(Events->lpData + Position);
 	PulledEvent.tick_delta = event[0]; // First 4 bytes of event
 
 	// Get event size to advance Position
@@ -398,8 +398,8 @@ bool AlsaMIDIDevice::PullEvent()
 		break;
 	case MEVENT_LONGMSG: // SysEx message...
 		{
-			int long_msg_len = MEVENT_EVENTPARM(event[2]);
-			uint8_t* long_msg_data = (uint8_t*)&event[3];
+			uint32_t long_msg_len = MEVENT_EVENTPARM(event[2]);
+			const uint8_t* long_msg_data = (uint8_t*)&event[3];
 			// Ensure valid sysex message
 			if (long_msg_len > 2 && long_msg_data[0] == 0xF0 && long_msg_data[long_msg_len - 1] == 0xF7)
 			{
@@ -510,7 +510,7 @@ void AlsaMIDIDevice::HandleEvent(snd_seq_event_t& event, uint32_t tick)
 		event.dest.port = SND_SEQ_PORT_SYSTEM_TIMER;
 	}
 	snd_seq_ev_schedule_tick(&event, QueueId, false, tick);
-	int result = snd_seq_event_output(sequencer.handle, &event);
+	auto result = snd_seq_event_output(sequencer.handle, &event);
 	if (result < 0)
 	{
 		ZMusic_Printf(ZMUSIC_MSG_ERROR, "Alsa sequencer did not accept event: error %d!\n", result);

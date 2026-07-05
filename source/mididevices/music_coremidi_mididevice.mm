@@ -85,7 +85,7 @@ protected:
 
 	// Event handling
 	void PrepareTempo(uint32_t tempo);
-	void PrepareMidiMsg(uint8_t* msg, uint32_t length);
+	void PrepareMidiMsg(const uint8_t* msg, uint32_t length);
 	void HandleEvent(const uint8_t* data, size_t length, MIDITimeStamp timestamp);
 	void SendImmediateShortMsg(uint8_t command, uint8_t data1 = 0, uint8_t data2 = 0);
 	int GetShortMsgLength(uint8_t* msg);
@@ -98,7 +98,7 @@ protected:
 		union
 		{
 			uint32_t tempo;
-			uint8_t* msg;
+			const uint8_t* msg;
 		} data;
 		EventType type;
 		uint32_t length;
@@ -533,7 +533,7 @@ bool CoreMIDIDevice::PullEvent()
 		return false;
 	}
 
-	uint32_t* event = (uint32_t*)(Events->lpData + Position);
+	const uint32_t* event = (uint32_t*)(Events->lpData + Position);
 	PulledEvent.tick_delta = event[0]; // First 4 bytes of event
 
 	// Get event size to advance Position
@@ -555,8 +555,8 @@ bool CoreMIDIDevice::PullEvent()
 		break;
 	case MEVENT_LONGMSG:
 		{	// Long MIDI message (SysEx, etc.), data starts after event[3]
-			int long_msg_len = MEVENT_EVENTPARM(event[2]);
-			uint8_t* long_msg_data = (uint8_t*)&event[3];
+			uint32_t long_msg_len = MEVENT_EVENTPARM(event[2]);
+			const uint8_t* long_msg_data = (uint8_t*)&event[3];
 			// Ensure valid sysex message
 			if (long_msg_len > 2 && long_msg_data[0] == 0xF0 && long_msg_data[long_msg_len - 1] == 0xF7)
 			{
@@ -598,7 +598,7 @@ bool CoreMIDIDevice::PullEvent()
 void CoreMIDIDevice::PlayerLoop()
 {
 	std::unique_lock<std::mutex> lock(Mutex);
-	std::chrono::nanoseconds buffer_step(40000000);
+	const std::chrono::nanoseconds buffer_step(40000000);
 
 	Tempo = InitialTempo;
 	// Initialize midi clock with current host time
@@ -662,7 +662,7 @@ void CoreMIDIDevice::PrepareTempo(const uint32_t tempo)
 	PulledEvent.type = EVENT_TEMPO;
 	PulledEvent.data.tempo = tempo;
 }
-void CoreMIDIDevice::PrepareMidiMsg(uint8_t* msg, uint32_t length)
+void CoreMIDIDevice::PrepareMidiMsg(const uint8_t* msg, uint32_t length)
 {
 	PulledEvent.type = EVENT_MESSAGE;
 	PulledEvent.data.msg = msg;
