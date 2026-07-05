@@ -59,7 +59,7 @@
 class CoreMIDIDevice : public MIDIDevice
 {
 public:
-	CoreMIDIDevice(int deviceID, bool precache);
+	CoreMIDIDevice(int dev_id, bool precache);
 	~CoreMIDIDevice();
 
 	int Open() override;
@@ -86,7 +86,7 @@ protected:
 	// Event handling
 	void PrepareTempo(uint32_t tempo);
 	void PrepareMidiMsg(uint8_t* msg, uint32_t length);
-	void SendMIDIData(const uint8_t* data, size_t length, MIDITimeStamp timestamp);
+	void HandleEvent(const uint8_t* data, size_t length, MIDITimeStamp timestamp);
 	void SendImmediateShortMsg(uint8_t command, uint8_t data1 = 0, uint8_t data2 = 0);
 	int GetShortMsgLength(uint8_t* msg);
 	std::array<uint8_t, 3> ShortMsgBuffer;
@@ -106,10 +106,10 @@ protected:
 	} PulledEvent;
 
 	// CoreMIDI handles
-	MIDIClientRef midiClient;
-	MIDIPortRef midiOutPort;
-	MIDIEndpointRef midiDestination;
-	int deviceID;
+	MIDIClientRef MidiClient;
+	MIDIPortRef MidiOutPort;
+	MIDIEndpointRef MidiDestination;
+	int DeviceID;
 
 	// Threading
 	std::thread PlayerThread;
@@ -134,11 +134,11 @@ protected:
 //
 //==========================================================================
 
-CoreMIDIDevice::CoreMIDIDevice(int deviceID, bool precache)
-	: deviceID(deviceID)
-	, midiClient(0)
-	, midiOutPort(0)
-	, midiDestination(0)
+CoreMIDIDevice::CoreMIDIDevice(int dev_id, bool precache)
+	: DeviceID(dev_id)
+	, MidiClient(0)
+	, MidiOutPort(0)
+	, MidiDestination(0)
 	, InitialTempo(500000)      // Default: 120 BPM (500,000 µs per quarter note)
 	, Division(100)       // Default PPQN
 	, Events(nullptr)
@@ -168,13 +168,13 @@ CoreMIDIDevice::~CoreMIDIDevice()
 
 int CoreMIDIDevice::Open()
 {
-	if (midiDestination)
+	if (MidiDestination)
 		return 0;
 
 	OSStatus status;
 
 	// Create MIDI client
-	status = MIDIClientCreate(CFSTR("ZMusic"), nullptr, nullptr, &midiClient);
+	status = MIDIClientCreate(CFSTR("ZMusic"), nullptr, nullptr, &MidiClient);
 	if (status != noErr)
 	{
 		ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: Failed to create MIDI client (error %d)\n", (int)status);
@@ -182,35 +182,35 @@ int CoreMIDIDevice::Open()
 	}
 
 	// Create output port
-	status = MIDIOutputPortCreate(midiClient, CFSTR("ZMusic Program Music"), &midiOutPort);
+	status = MIDIOutputPortCreate(MidiClient, CFSTR("ZMusic Program Music"), &MidiOutPort);
 	if (status != noErr)
 	{
 		ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: Failed to create output port (error %d)\n", (int)status);
-		MIDIClientDispose(midiClient);
-		midiClient = 0;
+		MIDIClientDispose(MidiClient);
+		MidiClient = 0;
 		return -1;
 	}
 
 	// Get destination endpoint by device ID
-	ItemCount destCount = MIDIGetNumberOfDestinations();
-	if (deviceID < 0 || deviceID >= (int)destCount)
+	ItemCount midiout_device_count = MIDIGetNumberOfDestinations();
+	if (DeviceID < 0 || DeviceID >= (int)midiout_device_count)
 	{
-		ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: Invalid device ID %d (available: %d)\n", deviceID, (int)destCount);
-		MIDIPortDispose(midiOutPort);
-		MIDIClientDispose(midiClient);
-		midiOutPort = 0;
-		midiClient = 0;
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: Invalid device ID %d (available: %d)\n", DeviceID, (int)midiout_device_count);
+		MIDIPortDispose(MidiOutPort);
+		MIDIClientDispose(MidiClient);
+		MidiOutPort = 0;
+		MidiClient = 0;
 		return -1;
 	}
 
-	midiDestination = MIDIGetDestination(deviceID);
-	if (!midiDestination)
+	MidiDestination = MIDIGetDestination(DeviceID);
+	if (!MidiDestination)
 	{
-		ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: Failed to get destination for device %d\n", deviceID);
-		MIDIPortDispose(midiOutPort);
-		MIDIClientDispose(midiClient);
-		midiOutPort = 0;
-		midiClient = 0;
+		ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: Failed to get destination for device %d\n", DeviceID);
+		MIDIPortDispose(MidiOutPort);
+		MIDIClientDispose(MidiClient);
+		MidiOutPort = 0;
+		MidiClient = 0;
 		return -1;
 	}
 
@@ -225,26 +225,26 @@ int CoreMIDIDevice::Open()
 
 void CoreMIDIDevice::Close()
 {
-	if (!midiDestination)
+	if (!MidiDestination)
 		return;
 
 	// Stop player thread
 	Stop();
 
 	// Dispose CoreMIDI objects
-	if (midiOutPort != 0)
+	if (MidiOutPort != 0)
 	{
-		MIDIPortDispose(midiOutPort);
-		midiOutPort = 0;
+		MIDIPortDispose(MidiOutPort);
+		MidiOutPort = 0;
 	}
 
-	if (midiClient != 0)
+	if (MidiClient != 0)
 	{
-		MIDIClientDispose(midiClient);
-		midiClient = 0;
+		MIDIClientDispose(MidiClient);
+		MidiClient = 0;
 	}
 
-	midiDestination = 0;
+	MidiDestination = 0;
 }
 
 //==========================================================================
@@ -255,7 +255,7 @@ void CoreMIDIDevice::Close()
 
 bool CoreMIDIDevice::IsOpen() const
 {
-	return midiDestination;
+	return MidiDestination;
 }
 
 //==========================================================================
@@ -267,10 +267,10 @@ bool CoreMIDIDevice::IsOpen() const
 int CoreMIDIDevice::GetTechnology() const
 {
 	// Query if device is offline/virtual
-	if (midiDestination != 0)
+	if (MidiDestination != 0)
 	{
 		SInt32 offline = 0;
-		MIDIObjectGetIntegerProperty(midiDestination, kMIDIPropertyOffline, &offline);
+		MIDIObjectGetIntegerProperty(MidiDestination, kMIDIPropertyOffline, &offline);
 		return offline ? MIDIDEV_SWSYNTH : MIDIDEV_MIDIPORT;
 	}
 	return MIDIDEV_MIDIPORT;
@@ -412,7 +412,7 @@ void CoreMIDIDevice::InitPlayback()
 
 int CoreMIDIDevice::Resume()
 {
-	if (!midiDestination || PlayerThread.joinable())
+	if (!MidiDestination || PlayerThread.joinable())
 	{
 		return -1;
 	}
@@ -437,7 +437,7 @@ void CoreMIDIDevice::Stop()
 	{
 		PlayerThread.join();
 	}
-	MIDIFlushOutput(midiDestination); // Drop pending events.
+	MIDIFlushOutput(MidiDestination); // Drop pending events.
 
 	// Reset all channels to prevent hanging notes
 	for (int channel = 0; channel < 16; ++channel)
@@ -638,7 +638,7 @@ void CoreMIDIDevice::PlayerLoop()
 			Tempo = PulledEvent.data.tempo;
 			break;
 		case EVENT_MESSAGE:
-			SendMIDIData(PulledEvent.data.msg, PulledEvent.length, AudioConvertNanosToHostTime(pulled_ev_timestamp));
+			HandleEvent(PulledEvent.data.msg, PulledEvent.length, AudioConvertNanosToHostTime(pulled_ev_timestamp));
 			break;
 		case EVENT_NOP:
 		default:
@@ -671,13 +671,13 @@ void CoreMIDIDevice::PrepareMidiMsg(uint8_t* msg, uint32_t length)
 
 //==========================================================================
 //
-// CoreMIDIDevice :: SendMIDIData
+// CoreMIDIDevice :: HandleEvent
 //
 // Send raw MIDI data to the CoreMIDI output port
 //
 //==========================================================================
 
-void CoreMIDIDevice::SendMIDIData(const uint8_t* data, size_t length, MIDITimeStamp timestamp)
+void CoreMIDIDevice::HandleEvent(const uint8_t* data, size_t length, MIDITimeStamp timestamp)
 {
 	// The required size for the MIDIPacketList is the size of the list itself
 	// plus the size of the packet header and the actual MIDI data.
@@ -721,7 +721,7 @@ void CoreMIDIDevice::SendMIDIData(const uint8_t* data, size_t length, MIDITimeSt
 
 	if (packet != nullptr)
 	{
-		OSStatus status = MIDISend(midiOutPort, midiDestination, packetList);
+		OSStatus status = MIDISend(MidiOutPort, MidiDestination, packetList);
 		if (status != noErr)
 		{
 			ZMusic_Printf(ZMUSIC_MSG_ERROR, "CoreMIDI: MIDISend failed (error %d)\n", (int)status);
@@ -746,7 +746,7 @@ void CoreMIDIDevice::SendImmediateShortMsg(uint8_t command, uint8_t data1, uint8
 {
 	uint8_t msg[3] = { command, data1, data2 };
 	int msgLen = GetShortMsgLength(msg);
-	SendMIDIData(msg, msgLen, 0);
+	HandleEvent(msg, msgLen, 0);
 }
 
 //==========================================================================
