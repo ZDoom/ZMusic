@@ -73,7 +73,7 @@ protected:
 	void PlayerLoop();
 
 	// Event handling
-	void HandleEvent(snd_seq_event_t &event, uint32_t tick);
+	void HandleEvent(snd_seq_event_t& event, uint32_t tick);
 	void SendImmediateShortMsg(uint8_t command, uint8_t data1 = 0, uint8_t data2 = 0);
 	snd_midi_event_t* Coder = nullptr;
 
@@ -85,7 +85,7 @@ protected:
 	} PulledEvent;
 
 	// Alsa sequencer handles
-	AlsaSequencer &sequencer;
+	AlsaSequencer& sequencer;
 	const static int IntendedPortId = 0;
 	bool Connected = false;
 	int PortId = -1;
@@ -114,8 +114,8 @@ protected:
 
 AlsaMIDIDevice::AlsaMIDIDevice(int dev_id, bool precache) : sequencer(AlsaSequencer::Get())
 {
-	auto & internalDevices = sequencer.GetInternalDevices();
-	auto & device = internalDevices.at(dev_id);
+	auto& internalDevices = sequencer.GetInternalDevices();
+	auto& device = internalDevices.at(dev_id);
 	DestinationClientId = device.ClientID;
 	DestinationPortId = device.PortNumber;
 	Precache = precache;
@@ -448,7 +448,7 @@ void AlsaMIDIDevice::PlayerLoop()
 	snd_seq_drain_output(sequencer.handle);
 
 	Tempo = InitialTempo;
-	int buffered_ticks = 0;
+	int buffer_tick = 0;
 
 	snd_seq_queue_status_t* status;
 	snd_seq_queue_status_malloc(&status);
@@ -465,7 +465,7 @@ void AlsaMIDIDevice::PlayerLoop()
 		}
 
 		// Figure out if we should sleep (the event is too far in the future for us to care), and for how long
-		int pulled_event_tick = buffered_ticks + PulledEvent.tick_delta;
+		int pulled_event_tick = buffer_tick + PulledEvent.tick_delta;
 		snd_seq_get_queue_status(sequencer.handle, QueueId, status);
 		int queue_tick = snd_seq_queue_status_get_tick_time(status);
 		int ticks_until_pulled_ev = pulled_event_tick - queue_tick;
@@ -486,7 +486,7 @@ void AlsaMIDIDevice::PlayerLoop()
 
 		// We found an event worthy of sending to the sequencer
 		HandleEvent(PulledEvent.event, pulled_event_tick);
-		buffered_ticks = pulled_event_tick;
+		buffer_tick = pulled_event_tick;
 		Position += PositionOffset;
 	}
 
@@ -494,7 +494,7 @@ void AlsaMIDIDevice::PlayerLoop()
 }
 
 // Requires QueueId to be started first for non-zero tick positioned events.
-void AlsaMIDIDevice::HandleEvent(snd_seq_event_t &event, uint32_t tick)
+void AlsaMIDIDevice::HandleEvent(snd_seq_event_t& event, uint32_t tick)
 {
 	if (event.type == SND_SEQ_EVENT_NONE)
 	{	// NOP event, clear event handle and return.
