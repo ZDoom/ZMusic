@@ -118,9 +118,9 @@ protected:
 	std::condition_variable ExitCond;
 
 	// Timing
-	int InitialTempo;
-	int Tempo;
-	int Division;
+	int64_t InitialTempo;
+	int64_t Tempo;
+	int64_t Division;
 
 	// ZMusic MidiHeader data
 	MidiHeader* Events; // Linked list of MIDI headers akin to win32 MIDIHDR
@@ -595,8 +595,8 @@ void CoreMIDIDevice::PlayerLoop()
 		}
 
 		// CoreAudio and CoreMidi work in nano seconds so multiply by 1000.
-		MIDITimeStamp pulled_ev_timestamp = buffer_timestamp + PulledEvent.tick_delta * Tempo / Division * 1000;
-
+		auto pulled_ev_time_delta = 1000 * PulledEvent.tick_delta * Tempo / Division;
+		MIDITimeStamp pulled_ev_timestamp = buffer_timestamp + pulled_ev_time_delta;
 		std::chrono::nanoseconds time_until_pulled_ev{pulled_ev_timestamp - AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())};
 		auto schedule_time = time_until_pulled_ev - buffer_step;
 		if (schedule_time >= buffer_step)
