@@ -112,7 +112,7 @@ protected:
 	uint32_t PositionOffset;
 };
 
-AlsaMIDIDevice::AlsaMIDIDevice(int dev_id, bool precache) : sequencer(AlsaSequencer::Get())
+AlsaMIDIDevice::AlsaMIDIDevice(int dev_id, bool precache) : sequencer{AlsaSequencer::Get()}
 {
 	auto& internalDevices = sequencer.GetInternalDevices();
 	auto& device = internalDevices.at(dev_id);
@@ -228,7 +228,7 @@ void AlsaMIDIDevice::PrecacheInstruments(const uint16_t* instruments, int count)
 	{
 		return;
 	}
-	uint8_t bank[16] = {0};
+	uint8_t bank[16] = {};
 	uint8_t i, chan;
 
 	for (i = 0, chan = 0; i < count; ++i)
@@ -434,8 +434,8 @@ bool AlsaMIDIDevice::PullEvent()
  */
 void AlsaMIDIDevice::PlayerLoop()
 {
-	std::unique_lock<std::mutex> lock(Mutex);
-	const std::chrono::microseconds buffer_step(40000);
+	std::unique_lock<std::mutex> lock{Mutex};
+	const std::chrono::microseconds buffer_step{40000};
 
 	// TODO: fill in error handling throughout this.
 	snd_seq_queue_tempo_t* tempo;
@@ -469,7 +469,7 @@ void AlsaMIDIDevice::PlayerLoop()
 		snd_seq_get_queue_status(sequencer.handle, QueueId, status);
 		int queue_tick = snd_seq_queue_status_get_tick_time(status);
 		int ticks_until_pulled_ev = pulled_event_tick - queue_tick;
-		auto time_until_pulled_ev = std::chrono::microseconds(ticks_until_pulled_ev * Tempo / Division);
+		std::chrono::microseconds time_until_pulled_ev{ticks_until_pulled_ev * Tempo / Division};
 		auto schedule_time = time_until_pulled_ev - buffer_step;
 		if (schedule_time >= buffer_step)
 		{

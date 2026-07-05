@@ -135,15 +135,15 @@ protected:
 //==========================================================================
 
 CoreMIDIDevice::CoreMIDIDevice(int dev_id, bool precache)
-	: DeviceID(dev_id)
-	, MidiClient(0)
-	, MidiOutPort(0)
-	, MidiDestination(0)
-	, InitialTempo(500000)      // Default: 120 BPM (500,000 µs per quarter note)
-	, Division(100)       // Default PPQN
-	, Events(nullptr)
-	, Position(0)
-	, Precache(precache)
+	: DeviceID{dev_id}
+	, MidiClient{0}
+	, MidiOutPort{0}
+	, MidiDestination{0}
+	, InitialTempo{500000}      // Default: 120 BPM (500,000 µs per quarter note)
+	, Division{100}       // Default PPQN
+	, Events{nullptr}
+	, Position{0}
+	, Precache{precache}
 {
 }
 
@@ -333,7 +333,7 @@ void CoreMIDIDevice::PrecacheInstruments(const uint16_t* instruments, int count)
 	{
 		return;
 	}
-	uint8_t bank[16] = {0};
+	uint8_t bank[16] = {};
 	uint8_t i, chan;
 
 	for (i = 0, chan = 0; i < count; ++i)
@@ -597,8 +597,8 @@ bool CoreMIDIDevice::PullEvent()
 
 void CoreMIDIDevice::PlayerLoop()
 {
-	std::unique_lock<std::mutex> lock(Mutex);
-	const std::chrono::nanoseconds buffer_step(40000000);
+	std::unique_lock<std::mutex> lock{Mutex};
+	const std::chrono::nanoseconds buffer_step{40000000};
 
 	Tempo = InitialTempo;
 	// Initialize midi clock with current host time
@@ -616,7 +616,7 @@ void CoreMIDIDevice::PlayerLoop()
 		// CoreAudio and CoreMidi work in nano seconds so multiply by 1000.
 		MIDITimeStamp pulled_ev_timestamp = buffer_timestamp + PulledEvent.tick_delta * Tempo / Division * 1000;
 
-		auto time_until_pulled_ev = std::chrono::nanoseconds(pulled_ev_timestamp - AudioConvertHostTimeToNanos(AudioGetCurrentHostTime()));
+		std::chrono::nanoseconds time_until_pulled_ev{pulled_ev_timestamp - AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())};
 		auto schedule_time = time_until_pulled_ev - buffer_step;
 		if (schedule_time >= buffer_step)
 		{    // Try to keep buffered events under 2x buffer_step
