@@ -78,12 +78,11 @@ protected:
 	snd_midi_event_t* Coder = nullptr;
 
 	// PulledEvent structure to hold the next event to be processed
-	struct PulledEvent
+	struct
 	{
-		snd_seq_event_t Event;
-		uint32_t TickDelta;
-	};
-	PulledEvent PulledEvent;
+		snd_seq_event_t event;
+		uint32_t tick_delta;
+	} PulledEvent;
 
 	// Alsa sequencer handles
 	AlsaSequencer &sequencer;
@@ -379,7 +378,7 @@ bool AlsaMIDIDevice::PullEvent()
 	}
 
 	uint32_t* event = (uint32_t*)(Events->lpData + Position);
-	PulledEvent.TickDelta = event[0]; // First 4 bytes of event
+	PulledEvent.tick_delta = event[0]; // First 4 bytes of event
 
 	// Get event size to advance Position
 	if (event[2] < 0x80000000) // Short message (event[2] is the combined status/data bytes)
@@ -395,7 +394,7 @@ bool AlsaMIDIDevice::PullEvent()
 	switch (MEVENT_EVENTTYPE(event[2]))
 	{
 	case MEVENT_TEMPO:
-		snd_seq_ev_set_queue_tempo(&PulledEvent.Event, QueueId, MEVENT_EVENTPARM(event[2]));
+		snd_seq_ev_set_queue_tempo(&PulledEvent.event, QueueId, MEVENT_EVENTPARM(event[2]));
 		break;
 	case MEVENT_LONGMSG: // SysEx message...
 		{
@@ -404,11 +403,11 @@ bool AlsaMIDIDevice::PullEvent()
 			// Ensure valid sysex message
 			if (long_msg_len > 2 && long_msg_data[0] == 0xF0 && long_msg_data[long_msg_len - 1] == 0xF7)
 			{
-				snd_seq_ev_set_sysex(&PulledEvent.Event, long_msg_len, (void*)long_msg_data);
+				snd_seq_ev_set_sysex(&PulledEvent.event, long_msg_len, (void*)long_msg_data);
 			}
 			else
 			{
-				PulledEvent.Event.type = SND_SEQ_EVENT_NONE;
+				PulledEvent.event.type = SND_SEQ_EVENT_NONE;
 			}
 			break;
 		}
@@ -419,11 +418,11 @@ bool AlsaMIDIDevice::PullEvent()
 								(uint8_t)((event[2] >> 16) & 0xff) }; // Data 2
 
 			// This silently ignores extra bytes, so no message length logic is needed.
-			snd_midi_event_encode(Coder, msg, 3, &PulledEvent.Event);
+			snd_midi_event_encode(Coder, msg, 3, &PulledEvent.event);
 			break;
 		}
 	default: // We didn't really recognize the event, treat it as a NOP
-		PulledEvent.Event.type = SND_SEQ_EVENT_NONE;
+		PulledEvent.event.type = SND_SEQ_EVENT_NONE;
 	}
 	return true;
 }
@@ -454,7 +453,7 @@ void AlsaMIDIDevice::PlayerLoop()
 	snd_seq_queue_status_t* status;
 	snd_seq_queue_status_malloc(&status);
 
-	snd_seq_ev_clear(&PulledEvent.Event);
+	snd_seq_ev_clear(&PulledEvent.event);
 
 	while (!Exit.load(std::memory_order_relaxed))
 	{
@@ -466,7 +465,7 @@ void AlsaMIDIDevice::PlayerLoop()
 		}
 
 		// Figure out if we should sleep (the event is too far in the future for us to care), and for how long
-		int pulled_event_tick = buffered_ticks + PulledEvent.TickDelta;
+		int pulled_event_tick = buffered_ticks + PulledEvent.tick_delta;
 		snd_seq_get_queue_status(sequencer.handle, QueueId, status);
 		int queue_tick = snd_seq_queue_status_get_tick_time(status);
 		int ticks_until_pulled_ev = pulled_event_tick - queue_tick;
@@ -486,7 +485,7 @@ void AlsaMIDIDevice::PlayerLoop()
 		}
 
 		// We found an event worthy of sending to the sequencer
-		HandleEvent(PulledEvent.Event, pulled_event_tick);
+		HandleEvent(PulledEvent.event, pulled_event_tick);
 		buffered_ticks = pulled_event_tick;
 		Position += PositionOffset;
 	}
