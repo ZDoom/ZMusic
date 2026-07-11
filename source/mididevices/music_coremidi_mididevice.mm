@@ -574,8 +574,8 @@ void CoreMIDIDevice::PlayerLoop()
 	const std::chrono::nanoseconds buffer_step{40000000};
 
 	Tempo = InitialTempo;
-	// Initialize midi clock with current host time
-	MIDITimeStamp buffer_timestamp = AudioConvertHostTimeToNanos(AudioGetCurrentHostTime());
+	// Initialize midi clock with current host time, CoreAudio and CoreMidi work in nano seconds.
+	std::chrono::nanoseconds buffer_timestamp{AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())};
 
 	// Process all available events and schedule them with CoreMIDI
 	while (!Exit.load(std::memory_order_relaxed))
@@ -586,10 +586,11 @@ void CoreMIDIDevice::PlayerLoop()
 			continue;
 		}
 
-		// CoreAudio and CoreMidi work in nano seconds so multiply by 1000.
-		auto pulled_ev_time_delta = 1000 * PulledEvent.tick_delta * Tempo / Division;
-		MIDITimeStamp pulled_ev_timestamp = buffer_timestamp + pulled_ev_time_delta;
-		std::chrono::nanoseconds time_until_pulled_ev{pulled_ev_timestamp - AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())};
+		// Multiply by 1000 to convert to nanoseconds, multiplication is done before any division to be accurate to the nanosecond.
+		std::chrono::nanoseconds pulled_ev_time_delta{1000 * PulledEvent.tick_delta * Tempo / Division};
+		auto pulled_ev_timestamp = buffer_timestamp + pulled_ev_time_delta;
+		std::chrono::nanoseconds current_timestamp{AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())};
+		auto time_until_pulled_ev = pulled_ev_timestamp - current_timestamp;
 		auto schedule_time = time_until_pulled_ev - buffer_step;
 		if (schedule_time >= buffer_step)
 		{	// Try to keep buffered events under 2x buffer_step
@@ -611,7 +612,7 @@ void CoreMIDIDevice::PlayerLoop()
 			Tempo = PulledEvent.data.tempo;
 			break;
 		case EVENT_MESSAGE:
-			HandleEvent(PulledEvent.data.msg_buffer, PulledEvent.word_count, AudioConvertNanosToHostTime(pulled_ev_timestamp));
+			HandleEvent(PulledEvent.data.msg_buffer, PulledEvent.word_count, AudioConvertNanosToHostTime(pulled_ev_timestamp.count()));
 			break;
 		case EVENT_NOP:
 		default:
