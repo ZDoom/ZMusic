@@ -435,7 +435,8 @@ bool AlsaMIDIDevice::PullEvent()
 void AlsaMIDIDevice::PlayerLoop()
 {
 	std::unique_lock<std::mutex> lock{Mutex};
-	const std::chrono::microseconds buffer_step{40000};
+	using namespace std::literals::chrono_literals;
+	constexpr std::chrono::microseconds buffer_step = 40ms;
 
 	// TODO: fill in error handling throughout this.
 	snd_seq_queue_tempo_t* tempo;

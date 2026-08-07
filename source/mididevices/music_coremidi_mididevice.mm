@@ -571,7 +571,8 @@ bool CoreMIDIDevice::PullEvent()
 void CoreMIDIDevice::PlayerLoop()
 {
 	std::unique_lock<std::mutex> lock{Mutex};
-	const std::chrono::nanoseconds buffer_step{40000000};
+	using namespace std::literals::chrono_literals;
+	constexpr std::chrono::nanoseconds buffer_step = 40ms;
 
 	Tempo = InitialTempo;
 	// Initialize midi clock with current host time, CoreAudio and CoreMidi work in nano seconds.
